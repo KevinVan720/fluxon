@@ -1,0 +1,19 @@
+name: squadron_example
+description: Example demonstrating Squadron workers with typed service methods
+version: 1.0.0
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  squadron: ^6.2.0
+  
+dev_dependencies:
+  test: ^1.24.0
+  build_runner: ^2.4.0
+  squadron_builder: ^6.0.0
+
+# Path dependency to our service framework
+dependency_overrides:
+  dart_service_framework:
+    path: ../../

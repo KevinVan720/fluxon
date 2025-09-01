@@ -1,0 +1,410 @@
+import 'package:test/test.dart';
+import 'package:dart_service_framework/src/service_locator.dart';
+import 'package:dart_service_framework/src/base_service.dart';
+import 'package:dart_service_framework/src/service_logger.dart';
+import 'package:dart_service_framework/src/types/service_types.dart';
+import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
+
+// Test service implementations
+class ServiceA extends BaseService {
+  bool initialized = false;
+  bool destroyed = false;
+
+  @override
+  List<Type> get dependencies => const [];
+
+  @override
+  Future<void> initialize() async {
+    initialized = true;
+  }
+
+  @override
+  Future<void> destroy() async {
+    destroyed = true;
+  }
+}
+
+class ServiceB extends BaseService {
+  bool initialized = false;
+  bool destroyed = false;
+
+  @override
+  List<Type> get dependencies => [ServiceA];
+
+  @override
+  Future<void> initialize() async {
+    initialized = true;
+  }
+
+  @override
+  Future<void> destroy() async {
+    destroyed = true;
+  }
+}
+
+class ServiceC extends BaseService {
+  bool initialized = false;
+  bool destroyed = false;
+
+  @override
+  List<Type> get dependencies => [ServiceA, ServiceB];
+
+  @override
+  Future<void> initialize() async {
+    initialized = true;
+  }
+
+  @override
+  Future<void> destroy() async {
+    destroyed = true;
+  }
+}
+
+class FailingService extends BaseService {
+  @override
+  List<Type> get dependencies => const [];
+
+  @override
+  Future<void> initialize() async {
+    throw Exception('Initialization failed');
+  }
+}
+
+class OptionalDependencyService extends BaseService {
+  @override
+  List<Type> get dependencies => const [];
+
+  @override
+  List<Type> get optionalDependencies => [ServiceA];
+
+  @override
+  Future<void> initialize() async {
+    // Initialization logic
+  }
+}
+
+void main() {
+  group('ServiceLocator', () {
+    late ServiceLocator locator;
+    late MemoryLogWriter logWriter;
+
+    setUp(() {
+      logWriter = MemoryLogWriter();
+      locator = ServiceLocator(
+        logger: ServiceLogger(serviceName: 'TestLocator', writer: logWriter),
+      );
+    });
+
+    tearDown(() async {
+      if (locator.isInitialized) {
+        await locator.destroyAll();
+      }
+      await locator.clear();
+    });
+
+    test('should register services', () {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      expect(locator.isRegistered<ServiceA>(), isTrue);
+      expect(locator.serviceCount, equals(1));
+      expect(locator.registeredServiceTypes, contains(ServiceA));
+    });
+
+    test('should prevent duplicate registration', () {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      expect(
+        () => locator.register<ServiceA>(() => ServiceA()),
+        throwsA(isA<ServiceAlreadyRegisteredException>()),
+      );
+    });
+
+    test('should unregister services', () {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      expect(locator.isRegistered<ServiceA>(), isTrue);
+      
+      locator.unregister<ServiceA>();
+      
+      expect(locator.isRegistered<ServiceA>(), isFalse);
+      expect(locator.serviceCount, equals(0));
+    });
+
+    test('should prevent unregistering non-existent services', () {
+      expect(
+        () => locator.unregister<ServiceA>(),
+        throwsA(isA<ServiceNotFoundException>()),
+      );
+    });
+
+    test('should prevent unregistering initialized services', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      await locator.initializeAll();
+      
+      expect(
+        () => locator.unregister<ServiceA>(),
+        throwsA(isA<ServiceStateException>()),
+      );
+    });
+
+    test('should initialize services in dependency order', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceB>(() => ServiceB());
+      locator.register<ServiceC>(() => ServiceC());
+      
+      await locator.initializeAll();
+      
+      expect(locator.isInitialized, isTrue);
+      expect(locator.initializedServiceCount, equals(3));
+      
+      final serviceA = locator.get<ServiceA>();
+      final serviceB = locator.get<ServiceB>();
+      final serviceC = locator.get<ServiceC>();
+      
+      expect(serviceA.initialized, isTrue);
+      expect(serviceB.initialized, isTrue);
+      expect(serviceC.initialized, isTrue);
+    });
+
+    test('should get initialized services', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      await locator.initializeAll();
+      
+      final service = locator.get<ServiceA>();
+      
+      expect(service, isA<ServiceA>());
+      expect(service.initialized, isTrue);
+    });
+
+    test('should throw when getting unregistered service', () async {
+      await locator.initializeAll();
+      
+      expect(
+        () => locator.get<ServiceA>(),
+        throwsA(isA<ServiceNotFoundException>()),
+      );
+    });
+
+    test('should throw when getting service before initialization', () {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      expect(
+        () => locator.get<ServiceA>(),
+        throwsA(isA<ServiceLocatorNotInitializedException>()),
+      );
+    });
+
+    test('should try get services safely', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      await locator.initializeAll();
+      
+      final service = locator.tryGet<ServiceA>();
+      expect(service, isA<ServiceA>());
+      
+      final nonExistent = locator.tryGet<ServiceB>();
+      expect(nonExistent, isNull);
+    });
+
+    test('should check service initialization status', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      expect(locator.isServiceInitialized<ServiceA>(), isFalse);
+      
+      await locator.initializeAll();
+      
+      expect(locator.isServiceInitialized<ServiceA>(), isTrue);
+    });
+
+    test('should handle initialization failure', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<FailingService>(() => FailingService());
+      
+      expect(
+        () => locator.initializeAll(),
+        throwsA(isA<ServiceInitializationException>()),
+      );
+      
+      expect(locator.isInitialized, isFalse);
+    });
+
+    test('should clean up on initialization failure', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<FailingService>(() => FailingService());
+      
+      try {
+        await locator.initializeAll();
+      } catch (_) {
+        // Expected to fail
+      }
+      
+      expect(locator.initializedServiceCount, equals(0));
+    });
+
+    test('should destroy services in reverse order', () async {
+      final serviceA = ServiceA();
+      final serviceB = ServiceB();
+      final serviceC = ServiceC();
+      
+      locator.register<ServiceA>(() => serviceA);
+      locator.register<ServiceB>(() => serviceB);
+      locator.register<ServiceC>(() => serviceC);
+      
+      await locator.initializeAll();
+      await locator.destroyAll();
+      
+      expect(locator.isInitialized, isFalse);
+      expect(serviceA.destroyed, isTrue);
+      expect(serviceB.destroyed, isTrue);
+      expect(serviceC.destroyed, isTrue);
+    });
+
+    test('should handle optional dependencies', () async {
+      locator.register<OptionalDependencyService>(() => OptionalDependencyService());
+      // ServiceA is not registered but it's optional
+      
+      await locator.initializeAll();
+      
+      expect(locator.isInitialized, isTrue);
+      
+      final service = locator.get<OptionalDependencyService>();
+      expect(service, isNotNull);
+    });
+
+    test('should handle optional dependencies when available', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<OptionalDependencyService>(() => OptionalDependencyService());
+      
+      await locator.initializeAll();
+      
+      expect(locator.isInitialized, isTrue);
+      
+      final serviceA = locator.get<ServiceA>();
+      final optionalService = locator.get<OptionalDependencyService>();
+      
+      expect(serviceA, isNotNull);
+      expect(optionalService, isNotNull);
+    });
+
+    test('should get service information', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      final info = locator.getServiceInfo<ServiceA>();
+      
+      expect(info.name, equals('ServiceA'));
+      expect(info.type, equals(ServiceA));
+      expect(info.state, equals(ServiceState.registered));
+    });
+
+    test('should get all service information', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceB>(() => ServiceB());
+      
+      final allInfo = locator.getAllServiceInfo();
+      
+      expect(allInfo, hasLength(2));
+      expect(allInfo.map((i) => i.name), containsAll(['ServiceA', 'ServiceB']));
+    });
+
+    test('should perform health checks', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      await locator.initializeAll();
+      
+      final healthChecks = await locator.performHealthChecks();
+      
+      expect(healthChecks, hasLength(1));
+      expect(healthChecks['ServiceA'], isNotNull);
+      expect(healthChecks['ServiceA']!.status, equals(ServiceHealthStatus.healthy));
+    });
+
+    test('should get dependency statistics', () {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceB>(() => ServiceB());
+      locator.register<ServiceC>(() => ServiceC());
+      
+      final stats = locator.getDependencyStatistics();
+      
+      expect(stats.totalServices, equals(3));
+      expect(stats.rootServices, equals(1)); // ServiceA
+      expect(stats.leafServices, equals(1)); // ServiceC
+    });
+
+    test('should visualize dependency graph', () {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceB>(() => ServiceB());
+      
+      final visualization = locator.visualizeDependencyGraph();
+      
+      expect(visualization, contains('ServiceA'));
+      expect(visualization, contains('ServiceB'));
+      expect(visualization, contains('Dependency Graph'));
+    });
+
+    test('should support lifecycle callbacks', () async {
+      bool initCallbackCalled = false;
+      bool destroyCallbackCalled = false;
+      
+      locator.addInitializationCallback((_) async {
+        initCallbackCalled = true;
+      });
+      
+      locator.addDestructionCallback((_) async {
+        destroyCallbackCalled = true;
+      });
+      
+      locator.register<ServiceA>(() => ServiceA());
+      
+      await locator.initializeAll();
+      expect(initCallbackCalled, isTrue);
+      
+      await locator.destroyAll();
+      expect(destroyCallbackCalled, isTrue);
+    });
+
+    test('should clear all services', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceB>(() => ServiceB());
+      
+      await locator.initializeAll();
+      
+      expect(locator.serviceCount, equals(2));
+      expect(locator.isInitialized, isTrue);
+      
+      await locator.clear();
+      
+      expect(locator.serviceCount, equals(0));
+      expect(locator.isInitialized, isFalse);
+    });
+
+    test('should prevent registration after initialization', () async {
+      await locator.initializeAll();
+      
+      expect(
+        () => locator.register<ServiceA>(() => ServiceA()),
+        throwsA(isA<ServiceStateException>()),
+      );
+    });
+
+    test('should handle multiple initialization calls', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      
+      await locator.initializeAll();
+      
+      // Second call should not throw but should log warning
+      await locator.initializeAll();
+      
+      expect(locator.isInitialized, isTrue);
+    });
+
+    test('should handle multiple destruction calls', () async {
+      locator.register<ServiceA>(() => ServiceA());
+      await locator.initializeAll();
+      
+      await locator.destroyAll();
+      
+      // Second call should not throw but should log warning
+      await locator.destroyAll();
+      
+      expect(locator.isInitialized, isFalse);
+    });
+  });
+}
