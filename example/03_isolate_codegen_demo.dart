@@ -1,7 +1,7 @@
 import 'package:dart_service_framework/dart_service_framework.dart';
 // no direct import needed; generated file uses ServiceMethodIdRegistry from the package
 
-part 'phase3_demo.g.dart';
+part '03_isolate_codegen_demo.g.dart';
 
 @ServiceContract(remote: true)
 abstract class MathService extends BaseService {
@@ -42,7 +42,6 @@ Future<void> main() async {
 
   try {
     _registerMathServiceClientFactory();
-    _registerMathServiceDispatcher();
     _registerMathServiceMethodIds();
     // Register a local caller service
     locator.register<ApiGateway>(() => ApiGateway());

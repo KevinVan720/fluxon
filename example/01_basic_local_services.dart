@@ -1,5 +1,4 @@
 import 'package:dart_service_framework/dart_service_framework.dart';
-part 'simple_example.service.client.g.dart';
 
 /// Example database service
 class DatabaseService extends BaseService {

@@ -2,7 +2,6 @@
 library service_proxy;
 
 import 'dart:async';
-import 'dart:mirrors';
 
 import 'base_service.dart';
 import 'exceptions/service_exceptions.dart';
@@ -91,86 +90,11 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   @override
   Future<R> callMethod<R>(String methodName, List<dynamic> args,
       {ServiceCallOptions? options}) async {
-    final service = _service;
-    if (service == null) {
-      throw ServiceStateException(
-        T.toString(),
-        'disconnected',
-        'connected',
-      );
-    }
-
-    service.ensureInitialized();
-    service.ensureNotDestroyed();
-
-    final callOptions = options ?? const ServiceCallOptions();
-
-    try {
-      return await _callMethodWithTimeout<R>(
-        service,
-        methodName,
-        args,
-        callOptions.timeout,
-      );
-    } catch (error) {
-      _logger.error('Method call failed', error: error, metadata: {
-        'service': service.serviceName,
-        'method': methodName,
-        'args': args,
-      });
-      rethrow;
-    }
-  }
-
-  Future<R> _callMethodWithTimeout<R>(
-    T service,
-    String methodName,
-    List<dynamic> args,
-    Duration timeout,
-  ) async {
-    final future = _invokeMethod<R>(service, methodName, args);
-
-    try {
-      return await future.timeout(timeout);
-    } on TimeoutException {
-      throw ServiceTimeoutException('Method call: $methodName', timeout);
-    }
-  }
-
-  Future<R> _invokeMethod<R>(
-      T service, String methodName, List<dynamic> args) async {
-    // Use mirrors for method invocation
-    // Note: Mirrors are not available in all Dart environments (e.g., Flutter web)
-    // In production, you might want to use code generation instead
-
-    final instanceMirror = reflect(service);
-    final classMirror = instanceMirror.type;
-
-    // Find the method
-    final methodSymbol = Symbol(methodName);
-    final methodMirror = classMirror.instanceMembers[methodSymbol];
-
-    if (methodMirror == null) {
-      throw ServiceMethodNotFoundException(service.serviceName, methodName);
-    }
-
-    // Convert arguments to symbols if needed
-    final positionalArgs = args;
-    final namedArgs = <Symbol, dynamic>{};
-
-    try {
-      final result =
-          instanceMirror.invoke(methodSymbol, positionalArgs, namedArgs);
-
-      // Handle both sync and async results
-      if (result.reflectee is Future) {
-        return await (result.reflectee as Future<R>);
-      } else {
-        return result.reflectee as R;
-      }
-    } catch (error) {
-      throw ServiceCallException(service.serviceName, methodName, error);
-    }
+    // Name-based invocation on local proxies is disabled to remove reflection paths.
+    // Services should obtain local instances via ServiceClientMixin.getService<T>(),
+    // which returns the actual instance for LocalServiceProxy.
+    throw ServiceException(
+        'LocalServiceProxy does not support name-based calls. Use direct instance returned by getService<T>()');
   }
 }
 
@@ -236,29 +160,14 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     final callOptions = options ?? const ServiceCallOptions();
 
     try {
-      // If we know a generated method id, prefer ID-based call; fallback to name on failure
       final methodId = ServiceMethodIdRegistry.tryGetId<T>(methodName);
-      if (methodId != null) {
-        try {
-          return await _callMethodByIdWithRetry<R>(
-            worker,
-            methodId,
-            args,
-            callOptions,
-          );
-        } catch (_) {
-          // Fallback to name-based call when dispatcher is not available in worker
-          return await _callMethodWithRetry<R>(
-            worker,
-            methodName,
-            args,
-            callOptions,
-          );
-        }
+      if (methodId == null) {
+        throw ServiceException(
+            'No generated method id for $T.$methodName. Ensure codegen ran and method IDs are registered.');
       }
-      return await _callMethodWithRetry<R>(
+      return await _callMethodByIdWithRetry<R>(
         worker,
-        methodName,
+        methodId,
         args,
         callOptions,
       );
@@ -270,47 +179,6 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
       });
       rethrow;
     }
-  }
-
-  Future<R> _callMethodWithRetry<R>(
-    ServiceWorker worker,
-    String methodName,
-    List<dynamic> args,
-    ServiceCallOptions options,
-  ) async {
-    var attempt = 0;
-    final maxAttempts = options.retryAttempts + 1;
-
-    while (attempt < maxAttempts) {
-      try {
-        return await worker.callServiceMethod<R>(methodName, args);
-      } catch (error) {
-        attempt++;
-
-        if (attempt >= maxAttempts) {
-          throw ServiceRetryExceededException(
-            'Method call: $methodName',
-            options.retryAttempts,
-          );
-        }
-
-        _logger.warning(
-          'Method call failed (attempt $attempt/$maxAttempts), retrying...',
-          metadata: {
-            'method': methodName,
-            'error': error.toString(),
-          },
-        );
-
-        if (options.retryDelay > Duration.zero) {
-          await Future.delayed(options.retryDelay);
-        }
-      }
-    }
-
-    // This should never be reached
-    throw ServiceRetryExceededException(
-        'Method call: $methodName', maxAttempts);
   }
 
   Future<R> _callMethodByIdWithRetry<R>(
@@ -505,7 +373,8 @@ mixin ServiceClientMixin on BaseService {
     }
     final generated = GeneratedClientRegistry.create<T>(proxy);
     if (generated != null) return generated;
-    return _ServiceClient<T>(proxy) as T;
+    throw ServiceException(
+        'No generated client for $T. Ensure codegen ran and client factory is registered.');
   }
 
   /// Checks if a service is available.
@@ -519,28 +388,7 @@ mixin ServiceClientMixin on BaseService {
   }
 }
 
-/// Dynamic proxy that implements service interfaces.
-class _ServiceClient<T extends BaseService> {
-  _ServiceClient(this._proxy);
-
-  final ServiceProxy<T> _proxy;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) {
-    final methodName = MirrorSystem.getName(invocation.memberName);
-    final args = invocation.positionalArguments;
-
-    // Handle async methods
-    if (invocation.isMethod) {
-      return _proxy.callMethod(methodName, args);
-    }
-
-    throw ServiceMethodNotFoundException(
-      T.toString(),
-      methodName,
-    );
-  }
-}
+// Dynamic client removed: reflection path is no longer supported.
 
 /// Lookup table for generated method IDs (populated by generated code via mixin)
 class ServiceMethodIdRegistry {

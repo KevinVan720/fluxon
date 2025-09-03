@@ -1,6 +1,6 @@
 library dispatcher_registry;
 
-import 'base_service.dart';
+import '../base_service.dart';
 
 typedef ServiceDispatcher = Future<dynamic> Function(
   BaseService service,

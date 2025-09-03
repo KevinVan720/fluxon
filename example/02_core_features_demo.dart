@@ -4,7 +4,6 @@
 /// of the Dart Service Framework.
 
 import '../lib/dart_service_framework.dart';
-part 'core_framework_demo.service.client.g.dart';
 
 /// Simple database service (no dependencies)
 class DatabaseService extends BaseService {

@@ -3,7 +3,6 @@ library service_worker;
 
 import 'dart:async';
 // 'dart:isolate' is not used directly here; Squadron manages isolates.
-import 'dart:mirrors';
 
 import 'package:squadron/squadron.dart';
 
@@ -11,7 +10,7 @@ import 'base_service.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'types/service_types.dart';
-import 'dispatcher_registry.dart';
+import 'codegen/dispatcher_registry.dart';
 
 /// A Squadron worker wrapper that runs a service in an isolate.
 class ServiceWorker extends Worker {
@@ -42,11 +41,7 @@ class ServiceWorker extends Worker {
   }
 
   /// Calls a method on the service.
-  Future<T> callServiceMethod<T>(String methodName, List<dynamic> args) async {
-    final result =
-        await send(_ServiceWorkerCommands.callMethod, args: [methodName, args]);
-    return result as T;
-  }
+  // Name-based worker calls removed; use ID-based calls via send(_ServiceWorkerCommands.callMethodById,...)
 
   /// Performs a health check on the service.
   Future<ServiceHealthCheck> performHealthCheck() async {
@@ -91,7 +86,6 @@ Future<void> _serviceWorkerEntryPoint(WorkerRequest startRequest) async {
 class _ServiceWorkerCommands {
   static const int initialize = 1;
   static const int destroy = 2;
-  static const int callMethod = 3;
   static const int healthCheck = 4;
   static const int getInfo = 5;
   static const int callMethodById = 6;
@@ -141,7 +135,6 @@ class _ServiceWorkerService implements WorkerService {
   Map<int, CommandHandler> get operations => {
         _ServiceWorkerCommands.initialize: _handleInitialize,
         _ServiceWorkerCommands.destroy: _handleDestroy,
-        _ServiceWorkerCommands.callMethod: _handleCallMethod,
         _ServiceWorkerCommands.callMethodById: _handleCallMethodById,
         _ServiceWorkerCommands.healthCheck: _handleHealthCheck,
         _ServiceWorkerCommands.getInfo: _handleGetInfo,
@@ -189,28 +182,7 @@ class _ServiceWorkerService implements WorkerService {
     }
   }
 
-  Future<dynamic> _handleCallMethod(WorkerRequest request) async {
-    if (_service == null) {
-      throw ServiceStateException(
-          _serviceName, 'not initialized', 'initialized');
-    }
-
-    final methodName = request.args[0] as String;
-    final args = request.args[1] as List<dynamic>;
-
-    try {
-      // Use reflection to call the method
-      // Note: In a real implementation, you might want to use a more
-      // sophisticated approach like code generation or a registry
-      return await _callMethodByReflection(_service!, methodName, args);
-    } catch (error, stackTrace) {
-      _logger.error('Method call failed',
-          error: error,
-          stackTrace: stackTrace,
-          metadata: {'method': methodName, 'args': args});
-      throw ServiceCallException(_serviceName, methodName, error);
-    }
-  }
+  // Name-based call handler removed; ID-based dispatch is required.
 
   Future<dynamic> _handleCallMethodById(WorkerRequest request) async {
     if (_service == null) {
@@ -289,35 +261,7 @@ class _ServiceWorkerService implements WorkerService {
     };
   }
 
-  Future<dynamic> _callMethodByReflection(
-    BaseService service,
-    String methodName,
-    List<dynamic> args,
-  ) async {
-    // Reflection-based invocation (VM-only). Codegen will replace this path.
-    final instanceMirror = reflect(service);
-    final classMirror = instanceMirror.type;
-
-    final methodSymbol = Symbol(methodName);
-    final methodMirror = classMirror.instanceMembers[methodSymbol];
-
-    if (methodMirror == null ||
-        methodMirror.isGetter ||
-        methodMirror.isSetter) {
-      throw ServiceMethodNotFoundException(_serviceName, methodName);
-    }
-
-    // Positional only for now; named args support can be added later via codegen
-    final positionalArgs = args;
-    final namedArgs = <Symbol, dynamic>{};
-
-    final result =
-        instanceMirror.invoke(methodSymbol, positionalArgs, namedArgs);
-    if (result.reflectee is Future) {
-      return await (result.reflectee as Future);
-    }
-    return result.reflectee;
-  }
+  // Reflection path removed.
 }
 
 /// Factory for creating service workers.
