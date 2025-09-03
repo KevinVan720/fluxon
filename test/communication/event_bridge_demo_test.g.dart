@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'event_bridge_demo.dart';
+part of 'event_bridge_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -13,7 +13,7 @@ class RemoteEmitterClient extends RemoteEmitter {
 
   @override
   Future<void> emitTick(String id) async {
-    await _proxy.callMethod('emitTick', [id], namedArgs: {});
+    return await _proxy.callMethod('emitTick', [id], namedArgs: {});
   }
 }
 
@@ -66,7 +66,7 @@ class RemoteListenerClient extends RemoteListener {
 
   @override
   Future<void> onTick(String id) async {
-    await _proxy.callMethod('onTick', [id], namedArgs: {});
+    return await _proxy.callMethod('onTick', [id], namedArgs: {});
   }
 
   @override
@@ -125,11 +125,6 @@ void registerRemoteListenerGenerated() {
 class LocalHubClient extends LocalHub {
   LocalHubClient(this._proxy);
   final ServiceProxy<LocalHub> _proxy;
-
-  @override
-  Future<void> onTick(String id) async {
-    await _proxy.callMethod('onTick', [id], namedArgs: {});
-  }
 }
 
 void _registerLocalHubClientFactory() {
@@ -138,9 +133,7 @@ void _registerLocalHubClientFactory() {
   );
 }
 
-class _LocalHubMethods {
-  static const int onTickId = 1;
-}
+class _LocalHubMethods {}
 
 Future<dynamic> _LocalHubDispatcher(
   BaseService service,
@@ -150,8 +143,6 @@ Future<dynamic> _LocalHubDispatcher(
 ) async {
   final s = service as LocalHub;
   switch (methodId) {
-    case _LocalHubMethods.onTickId:
-      return await s.onTick(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -164,9 +155,7 @@ void _registerLocalHubDispatcher() {
 }
 
 void _registerLocalHubMethodIds() {
-  ServiceMethodIdRegistry.register<LocalHub>({
-    'onTick': _LocalHubMethods.onTickId,
-  });
+  ServiceMethodIdRegistry.register<LocalHub>({});
 }
 
 void registerLocalHubGenerated() {

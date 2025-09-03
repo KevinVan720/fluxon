@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'named_parameters_demo.g.dart';
+part 'named_parameters_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class ReportService extends BaseService {
@@ -33,9 +34,9 @@ class ReportServiceImpl extends ReportService {
   }
 }
 
-Future<void> main() async {
+Future<void> _runNamedparametersdemoDemo() async {
   final locator = ServiceLocator();
-  try {
+  
     locator.register<Coordinator>(() => Coordinator());
     await locator.registerWorkerServiceProxy<ReportService>(
       serviceName: 'ReportService',
@@ -45,7 +46,15 @@ Future<void> main() async {
     await locator.initializeAll();
     final c = locator.get<Coordinator>();
     await c.run();
-  } finally {
+  
+
     await locator.destroyAll();
-  }
+}
+
+void main() {
+  group('Named Parameters Demo', () {
+    test('runs named parameters demo successfully', () async {
+      await _runNamedparametersdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

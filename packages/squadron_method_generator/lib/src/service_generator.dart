@@ -48,13 +48,30 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       final methodName = m.displayName;
       methodIds[methodName] = nextId++;
       final returnType = m.returnType.getDisplayString(withNullability: true);
-      final paramsSig = m.parameters.map((p) {
+      // Separate positional and named parameters
+      final positionalParams =
+          m.parameters.where((p) => p.isPositional).toList();
+      final namedParams = m.parameters.where((p) => p.isNamed).toList();
+
+      final positionalSig = positionalParams.map((p) {
         final t = p.type.getDisplayString(withNullability: true);
-        final isNamed = p.isNamed;
-        final isRequiredNamed = p.isNamed && p.isRequiredNamed;
-        final nameSig = isNamed ? 'required $t ${p.name}' : '$t ${p.name}';
-        return nameSig;
+        return '$t ${p.name}';
       }).join(', ');
+
+      final namedSig = namedParams.map((p) {
+        final t = p.type.getDisplayString(withNullability: true);
+        final isRequiredNamed = p.isRequiredNamed;
+        final defaultValue =
+            p.hasDefaultValue ? ' = ${p.defaultValueCode}' : '';
+        return isRequiredNamed
+            ? 'required $t ${p.name}'
+            : '$t ${p.name}$defaultValue';
+      }).join(', ');
+
+      final paramsSig = [
+        if (positionalSig.isNotEmpty) positionalSig,
+        if (namedSig.isNotEmpty) '{$namedSig}',
+      ].join(', ');
       final positionalNames =
           m.parameters.where((p) => p.isPositional).map((p) => p.name).toList();
       final namedNames = m.parameters

@@ -1,7 +1,9 @@
+import 'package:test/test.dart';
 import 'dart:async';
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'retry_timeout_demo.g.dart';
+part 'retry_timeout_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class FlakyService extends BaseService {
@@ -33,7 +35,7 @@ class FlakyServiceImpl extends FlakyService {
   }
 }
 
-Future<void> main() async {
+Future<void> _runRetrytimeoutdemoDemo() async {
   final locator = ServiceLocator();
   try {
     await locator.registerWorkerServiceProxy<FlakyService>(
@@ -54,10 +56,7 @@ Future<void> main() async {
         retryAttempts: 2,
         retryDelay: Duration(milliseconds: 50),
       ),
-    );
-    print('succeedAfter result: $retriesResult');
-
-    // Timeout demo: call with short timeout to force timeout
+    );// Timeout demo: call with short timeout to force timeout
     try {
       await proxy.callMethod<String>(
         'slowOperation',
@@ -67,9 +66,7 @@ Future<void> main() async {
           retryAttempts: 0,
         ),
       );
-    } on ServiceTimeoutException catch (e) {
-      print('slowOperation timed out: ${e.message}');
-    }
+    } on ServiceTimeoutException catch (e) {}
 
     // Now call with longer timeout via options
     final ok = await proxy.callMethod<String>(
@@ -80,9 +77,15 @@ Future<void> main() async {
         retryAttempts: 1,
         retryDelay: Duration(milliseconds: 50),
       ),
-    );
-    print('slowOperation with options: $ok');
-  } finally {
+    );} finally {
     await locator.destroyAll();
   }
+}
+
+void main() {
+  group('Retry Timeout Demo', () {
+    test('runs retry timeout demo successfully', () async {
+      await _runRetrytimeoutdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

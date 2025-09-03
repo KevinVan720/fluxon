@@ -1,7 +1,9 @@
+import 'package:test/test.dart';
 import 'dart:math';
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'parallel_workers_demo.g.dart';
+part 'parallel_workers_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class CruncherService extends BaseService {
@@ -20,7 +22,7 @@ class CruncherServiceImpl extends CruncherService {
   Future<int> fibonacci(int n) async => _fib(n);
 }
 
-Future<void> main() async {
+Future<void> _runParallelworkersdemoDemo() async {
   final pool = ServiceWorkerPool(maxWorkers: 2, minWorkers: 1);
   pool.registerService<CruncherService>(
       'CruncherService', () => CruncherServiceImpl());
@@ -50,4 +52,12 @@ Future<void> main() async {
   print('fib(20)=${results[0]}, fib(22)=${results[1]}');
 
   await pool.shutdown();
+}
+
+void main() {
+  group('Parallel Workers Demo', () {
+    test('runs parallel workers demo successfully', () async {
+      await _runParallelworkersdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

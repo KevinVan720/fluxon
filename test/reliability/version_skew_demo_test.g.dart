@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'version_skew_demo.dart';
+part of 'version_skew_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'mixed_local_remote_demo.g.dart';
+part 'mixed_local_remote_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class RemoteMath extends BaseService {
@@ -61,7 +62,7 @@ class LocalGateway extends BaseService with ServiceClientMixin {
   }
 }
 
-Future<void> main() async {
+Future<void> _runMixedlocalremotedemoDemo() async {
   final locator = ServiceLocator();
   try {
     // Local services
@@ -90,4 +91,12 @@ Future<void> main() async {
   } finally {
     await locator.destroyAll();
   }
+}
+
+void main() {
+  group('Mixed Local Remote Demo', () {
+    test('runs mixed local remote demo successfully', () async {
+      await _runMixedlocalremotedemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

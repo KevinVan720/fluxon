@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cancellation_demo.dart';
+part of 'cancellation_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

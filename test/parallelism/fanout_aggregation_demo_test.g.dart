@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'fanout_aggregation_demo.dart';
+part of 'fanout_aggregation_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

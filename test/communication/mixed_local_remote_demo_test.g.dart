@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'mixed_local_remote_demo.dart';
+part of 'mixed_local_remote_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -72,11 +72,6 @@ void registerRemoteMathGenerated() {
 class LocalAdderClient extends LocalAdder {
   LocalAdderClient(this._proxy);
   final ServiceProxy<LocalAdder> _proxy;
-
-  @override
-  Future<int> add(int a, int b) async {
-    return await _proxy.callMethod('add', [a, b], namedArgs: {});
-  }
 }
 
 void _registerLocalAdderClientFactory() {
@@ -85,9 +80,7 @@ void _registerLocalAdderClientFactory() {
   );
 }
 
-class _LocalAdderMethods {
-  static const int addId = 1;
-}
+class _LocalAdderMethods {}
 
 Future<dynamic> _LocalAdderDispatcher(
   BaseService service,
@@ -97,8 +90,6 @@ Future<dynamic> _LocalAdderDispatcher(
 ) async {
   final s = service as LocalAdder;
   switch (methodId) {
-    case _LocalAdderMethods.addId:
-      return await s.add(positionalArgs[0], positionalArgs[1]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -111,9 +102,7 @@ void _registerLocalAdderDispatcher() {
 }
 
 void _registerLocalAdderMethodIds() {
-  ServiceMethodIdRegistry.register<LocalAdder>({
-    'add': _LocalAdderMethods.addId,
-  });
+  ServiceMethodIdRegistry.register<LocalAdder>({});
 }
 
 void registerLocalAdderGenerated() {

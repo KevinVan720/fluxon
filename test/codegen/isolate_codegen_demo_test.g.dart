@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'isolate_codegen_demo.dart';
+part of 'isolate_codegen_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

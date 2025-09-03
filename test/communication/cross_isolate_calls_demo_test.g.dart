@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'cross_isolate_calls_demo.dart';
+part of 'cross_isolate_calls_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

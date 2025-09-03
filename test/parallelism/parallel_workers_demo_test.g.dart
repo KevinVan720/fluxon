@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'parallel_workers_demo.dart';
+part of 'parallel_workers_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

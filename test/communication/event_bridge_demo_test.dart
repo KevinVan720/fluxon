@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'event_bridge_demo.g.dart';
+part 'event_bridge_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class RemoteEmitter extends BaseService {
@@ -85,9 +86,9 @@ class Orchestrator extends BaseService with ServiceClientMixin {
   }
 }
 
-Future<void> main() async {
+Future<void> _runEventbridgedemoDemo() async {
   final locator = ServiceLocator();
-  try {
+  
     // Local hub must register IDs for host-side dispatch
     registerLocalHubGenerated();
     locator.register<LocalHub>(() => LocalHub());
@@ -108,8 +109,14 @@ Future<void> main() async {
 
     final orchestrator = locator.get<Orchestrator>();
     final count = await orchestrator.run();
-    print('Listener count: $count');
-  } finally {
+
     await locator.destroyAll();
-  }
+}
+
+void main() {
+  group('Event Bridge Demo', () {
+    test('runs event bridge demo successfully', () async {
+      await _runEventbridgedemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

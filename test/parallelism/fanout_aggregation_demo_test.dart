@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'fanout_aggregation_demo.g.dart';
+part 'fanout_aggregation_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class PricingService extends BaseService {
@@ -49,9 +50,9 @@ class InventoryServiceImpl extends InventoryService {
   Future<int> getStock(String sku) async => 42;
 }
 
-Future<void> main() async {
+Future<void> _runFanoutaggregationdemoDemo() async {
   final locator = ServiceLocator();
-  try {
+  
     locator.register<Aggregator>(() => Aggregator());
 
     await locator.registerWorkerServiceProxy<PricingService>(
@@ -69,8 +70,14 @@ Future<void> main() async {
 
     final agg = locator.get<Aggregator>();
     final offer = await agg.getOffer('SKU-123');
-    print(offer);
-  } finally {
+
     await locator.destroyAll();
-  }
+}
+
+void main() {
+  group('Fanout Aggregation Demo', () {
+    test('runs fanout aggregation demo successfully', () async {
+      await _runFanoutaggregationdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

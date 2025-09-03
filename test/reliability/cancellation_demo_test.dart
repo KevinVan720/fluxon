@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'cancellation_demo.g.dart';
+part 'cancellation_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class SlowService extends BaseService {
@@ -24,7 +25,7 @@ class SlowServiceImpl extends SlowService {
   Future<String> quick() async => 'quick-ok';
 }
 
-Future<void> main() async {
+Future<void> _runCancellationdemoDemo() async {
   final locator = ServiceLocator();
   try {
     await locator.registerWorkerServiceProxy<SlowService>(
@@ -53,9 +54,15 @@ Future<void> main() async {
 
     // Verify subsequent call still works
     final ok = await proxy.callMethod<String>('quick', [],
-        options: const ServiceCallOptions(timeout: Duration(seconds: 2)));
-    print('Quick call result: $ok');
-  } finally {
+        options: const ServiceCallOptions(timeout: Duration(seconds: 2)));} finally {
     await locator.destroyAll();
   }
+}
+
+void main() {
+  group('Cancellation Demo', () {
+    test('runs cancellation demo successfully', () async {
+      await _runCancellationdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

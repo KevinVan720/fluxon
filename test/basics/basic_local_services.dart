@@ -1,3 +1,4 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
 /// Example database service
@@ -218,115 +219,85 @@ class NotificationService extends BaseService with PeriodicServiceMixin {
 /// Enhanced service locator that handles dependency injection
 // Use ServiceLocator directly; DI is handled by the core hooks.
 
-Future<void> main() async {
-  print('=== Dart Service Framework Example ===\n');
-
+Future<void> _runBasicServicesExample() async {
   // Create service locator with custom logger
   final memoryWriter = MemoryLogWriter();
   final logger = ServiceLogger(
     serviceName: 'ExampleApp',
     writer: MultiLogWriter([
-      ConsoleLogWriter(colorize: true),
+      ConsoleLogWriter(colorize: false), // Disable colors for tests
       memoryWriter,
     ]),
   );
 
   final locator = ServiceLocator(logger: logger);
 
-  try {
-    print('1. Registering services...');
+  // Register services in any order - dependency resolver will handle initialization order
+  locator.register<NotificationService>(() => NotificationService());
+  locator.register<UserService>(() => UserService());
+  locator.register<CacheService>(() => CacheService());
+  locator.register<DatabaseService>(() => DatabaseService());
 
-    // Register services in any order - dependency resolver will handle initialization order
-    locator.register<NotificationService>(() => NotificationService());
-    locator.register<UserService>(() => UserService());
-    locator.register<CacheService>(() => CacheService());
-    locator.register<DatabaseService>(() => DatabaseService());
+  // Analyze dependencies
+  final stats = locator.getDependencyStatistics();
+  expect(stats.totalServices, equals(4));
+  expect(stats.rootServices,
+      equals(2)); // DatabaseService and CacheService have no dependencies
+  expect(stats.leafServices, equals(1)); // NotificationService is a leaf
 
-    print('   Registered ${locator.serviceCount} services\n');
+  // Initialize all services
+  await locator.initializeAll();
 
-    print('2. Analyzing dependencies...');
-    final stats = locator.getDependencyStatistics();
-    print('   Total services: ${stats.totalServices}');
-    print('   Root services: ${stats.rootServices}');
-    print('   Leaf services: ${stats.leafServices}');
-    print('   Longest chain: ${stats.longestChainLength}\n');
+  // Test service interactions
+  final userService = locator.get<UserService>();
+  final notificationService = locator.get<NotificationService>();
 
-    print('3. Initializing all services...');
-    await locator.initializeAll();
-    print('   All services initialized successfully!\n');
+  // Get user profiles
+  final user1 = await userService.getUserProfile('123');
+  final user2 = await userService.getUserProfile('456');
+  final user1Cached =
+      await userService.getUserProfile('123'); // Should come from cache
 
-    print('4. Using services...');
-    final userService = locator.get<UserService>();
-    final notificationService = locator.get<NotificationService>();
+  expect(user1['name'], equals('User 123'));
+  expect(user2['name'], equals('User 456'));
+  expect(user1Cached['name'], equals('User 123'));
 
-    // Get user profiles
-    final user1 = await userService.getUserProfile('123');
-    final user2 = await userService.getUserProfile('456');
-    final user1Cached =
-        await userService.getUserProfile('123'); // Should come from cache
+  // Send notifications
+  notificationService.sendNotification('123', 'Welcome!');
+  notificationService.sendNotification('456', 'Hello World!');
+  expect(notificationService.queueSize, equals(2));
 
-    print('   Retrieved user: ${user1['name']}');
-    print('   Retrieved user: ${user2['name']}');
-    print('   Retrieved cached user: ${user1Cached['name']}\n');
+  // Wait for periodic processing
+  await Future.delayed(const Duration(seconds: 3));
+  expect(notificationService.processedCount, greaterThan(0));
 
-    // Send notifications
-    notificationService.sendNotification('123', 'Welcome!');
-    notificationService.sendNotification('456', 'Hello World!');
-
-    print(
-        '   Sent 2 notifications (queue size: ${notificationService.queueSize})');
-
-    // Wait for periodic processing
-    print('   Waiting for periodic processing...');
-    await Future.delayed(const Duration(seconds: 5));
-    print('   Processed ${notificationService.processedCount} notifications\n');
-
-    print('5. Health checks...');
-    final healthChecks = await locator.performHealthChecks();
-    for (final entry in healthChecks.entries) {
-      final serviceName = entry.key;
-      final health = entry.value;
-      print('   $serviceName: ${health.status.name} - ${health.message}');
-    }
-    print('');
-
-    print('6. Service information...');
-    final allInfo = locator.getAllServiceInfo();
-    for (final info in allInfo) {
-      print(
-          '   ${info.name}: ${info.state.name} (${info.dependencies.length} deps)');
-    }
-    print('');
-
-    print('7. Dependency visualization:');
-    print(locator.visualizeDependencyGraph());
-
-    print('8. Destroying all services...');
-    await locator.destroyAll();
-    print('   All services destroyed successfully!\n');
-
-    print('9. Log summary:');
-    final logEntries = memoryWriter.entries;
-    final errorLogs = logEntries.where((e) => e.level == ServiceLogLevel.error);
-    final warningLogs =
-        logEntries.where((e) => e.level == ServiceLogLevel.warning);
-    final infoLogs = logEntries.where((e) => e.level == ServiceLogLevel.info);
-
-    print('   Total log entries: ${logEntries.length}');
-    print('   Errors: ${errorLogs.length}');
-    print('   Warnings: ${warningLogs.length}');
-    print('   Info: ${infoLogs.length}');
-
-    print('\n=== Example completed successfully! ===');
-  } catch (error, stackTrace) {
-    print('Error: $error');
-    print('Stack trace: $stackTrace');
-
-    // Try to clean up
-    try {
-      await locator.destroyAll();
-    } catch (cleanupError) {
-      print('Cleanup error: $cleanupError');
-    }
+  // Health checks
+  final healthChecks = await locator.performHealthChecks();
+  expect(healthChecks.length, equals(4));
+  for (final health in healthChecks.values) {
+    expect(health.status, equals(ServiceHealthStatus.healthy));
   }
+
+  // Service information
+  final allInfo = locator.getAllServiceInfo();
+  expect(allInfo.length, equals(4));
+  for (final info in allInfo) {
+    expect(info.state, equals(ServiceState.initialized));
+  }
+
+  // Clean up
+  await locator.destroyAll();
+
+  // Verify log entries
+  final logEntries = memoryWriter.entries;
+  final errorLogs = logEntries.where((e) => e.level == ServiceLogLevel.error);
+  expect(errorLogs.length, equals(0)); // No errors should occur
+}
+
+void main() {
+  group('Basic Local Services', () {
+    test('runs basic services example successfully', () async {
+      await _runBasicServicesExample();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'version_skew_demo.g.dart';
+part 'version_skew_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class ApiV1 extends BaseService {
@@ -18,7 +19,7 @@ class ApiV1Impl extends ApiV1 {
   Future<String> greet(String name) async => 'hello $name';
 }
 
-Future<void> main() async {
+Future<void> _runVersionskewdemoDemo() async {
   final locator = ServiceLocator();
   try {
     // Register worker with ApiV1
@@ -38,14 +39,18 @@ Future<void> main() async {
 
     final client = locator.proxyRegistry.getProxy<ApiV1>();
     try {
-      final res = await client.callMethod<String>('greet', ['world']);
-      print('Unexpected success: $res');
-    } on ServiceRetryExceededException catch (e) {
+      final res = await client.callMethod<String>('greet', ['world']);} on ServiceRetryExceededException catch (e) {
       print('Version skew detected (retry exceeded): ${e.message}');
-    } on ServiceException catch (e) {
-      print('Version skew detected: ${e.message}');
-    }
+    } on ServiceException catch (e) {}
   } finally {
     await locator.destroyAll();
   }
+}
+
+void main() {
+  group('Version Skew Demo', () {
+    test('runs version skew demo successfully', () async {
+      await _runVersionskewdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

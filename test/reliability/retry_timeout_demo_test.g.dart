@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'retry_timeout_demo.dart';
+part of 'retry_timeout_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -13,7 +13,6 @@ class FlakyServiceClient extends FlakyService {
 
   @override
   Future<String> succeedAfter(int attempts) async {
-    // Provide retries from caller via ServiceCallOptions if needed
     return await _proxy.callMethod('succeedAfter', [attempts], namedArgs: {});
   }
 

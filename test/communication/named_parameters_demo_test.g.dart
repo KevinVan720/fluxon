@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'named_parameters_demo.dart';
+part of 'named_parameters_demo_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

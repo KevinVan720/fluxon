@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'policy_timeout_retry_demo.g.dart';
+part 'policy_timeout_retry_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class PolicyService extends BaseService {
@@ -33,7 +34,7 @@ class PolicyServiceImpl extends PolicyService {
   }
 }
 
-Future<void> main() async {
+Future<void> _runPolicytimeoutretrydemoDemo() async {
   final locator = ServiceLocator();
   try {
     await locator.registerWorkerServiceProxy<PolicyService>(
@@ -58,4 +59,12 @@ Future<void> main() async {
   } finally {
     await locator.destroyAll();
   }
+}
+
+void main() {
+  group('Policy Timeout Retry Demo', () {
+    test('runs policy timeout retry demo successfully', () async {
+      await _runPolicytimeoutretrydemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }

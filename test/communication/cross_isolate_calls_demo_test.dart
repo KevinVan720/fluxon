@@ -1,6 +1,7 @@
+import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'cross_isolate_calls_demo.g.dart';
+part 'cross_isolate_calls_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 abstract class ServiceA extends BaseService {
@@ -37,8 +38,10 @@ class ServiceAImpl extends ServiceA with ServiceClientMixin {
 
   @override
   Future<int> increment(int x) async {
+    // This demonstrates a worker service calling another worker service
     final b = getService<ServiceB>();
-    return await b.doubleIt(x + 1);
+    final doubled = await b.doubleIt(x);
+    return doubled + 1; // double the input, then add 1
   }
 }
 
@@ -57,28 +60,36 @@ class ServiceBImpl extends ServiceB with ServiceClientMixin {
   Future<int> doubleIt(int x) async => x * 2;
 }
 
-Future<void> main() async {
+Future<void> _runCrossisolatecallsdemoDemo() async {
   final locator = ServiceLocator();
-  try {
-    locator.register<Orchestrator>(() => Orchestrator());
 
-    await locator.registerWorkerServiceProxy<ServiceA>(
-      serviceName: 'ServiceA',
-      serviceFactory: () => ServiceAImpl(),
-      registerGenerated: registerServiceAGenerated,
-    );
-    await locator.registerWorkerServiceProxy<ServiceB>(
-      serviceName: 'ServiceB',
-      serviceFactory: () => ServiceBImpl(),
-      registerGenerated: registerServiceBGenerated,
-    );
+  locator.register<Orchestrator>(() => Orchestrator());
 
-    await locator.initializeAll();
+  await locator.registerWorkerServiceProxy<ServiceA>(
+    serviceName: 'ServiceA',
+    serviceFactory: () => ServiceAImpl(),
+    registerGenerated: registerServiceAGenerated,
+  );
+  await locator.registerWorkerServiceProxy<ServiceB>(
+    serviceName: 'ServiceB',
+    serviceFactory: () => ServiceBImpl(),
+    registerGenerated: registerServiceBGenerated,
+  );
 
-    final orch = locator.get<Orchestrator>();
-    final result = await orch.run(10);
-    print('Result: $result');
-  } finally {
-    await locator.destroyAll();
-  }
+  await locator.initializeAll();
+
+  final orch = locator.get<Orchestrator>();
+  final result = await orch.run(10);
+  expect(result,
+      equals(42)); // 10 -> doubleIt(10) = 20, 20+1 = 21 -> doubleIt(21) = 42
+
+  await locator.destroyAll();
+}
+
+void main() {
+  group('Cross Isolate Calls Demo', () {
+    test('runs cross isolate calls demo successfully', () async {
+      await _runCrossisolatecallsdemoDemo();
+    }, timeout: const Timeout(Duration(seconds: 30)));
+  });
 }
