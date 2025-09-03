@@ -1,0 +1,60 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of '06_parallel_workers_demo.dart';
+
+// **************************************************************************
+// ServiceGenerator
+// **************************************************************************
+
+// Service client for CruncherService
+class CruncherServiceClient extends CruncherService {
+  CruncherServiceClient(this._proxy);
+  final ServiceProxy<CruncherService> _proxy;
+
+  @override
+  Future<int> fib(int n) async {
+    return await _proxy.callMethod('fib', [n], namedArgs: {});
+  }
+}
+
+void _registerCruncherServiceClientFactory() {
+  GeneratedClientRegistry.register<CruncherService>(
+    (proxy) => CruncherServiceClient(proxy),
+  );
+}
+
+class _CruncherServiceMethods {
+  static const int fibId = 1;
+}
+
+Future<dynamic> _CruncherServiceDispatcher(
+  BaseService service,
+  int methodId,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+) async {
+  final s = service as CruncherService;
+  switch (methodId) {
+    case _CruncherServiceMethods.fibId:
+      return await s.fib(positionalArgs[0]);
+    default:
+      throw ServiceException('Unknown method id: $methodId');
+  }
+}
+
+void _registerCruncherServiceDispatcher() {
+  GeneratedDispatcherRegistry.register<CruncherService>(
+    _CruncherServiceDispatcher,
+  );
+}
+
+void _registerCruncherServiceMethodIds() {
+  ServiceMethodIdRegistry.register<CruncherService>({
+    'fib': _CruncherServiceMethods.fibId,
+  });
+}
+
+void registerCruncherServiceGenerated() {
+  _registerCruncherServiceClientFactory();
+  _registerCruncherServiceMethodIds();
+}

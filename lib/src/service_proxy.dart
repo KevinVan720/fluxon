@@ -185,11 +185,17 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
         callOptions,
       );
     } catch (error) {
+      List<String> _stringifyList(List<dynamic> list) =>
+          list.map((e) => e?.toString() ?? 'null').toList();
+      Map<String, String>? _stringifyMap(Map<String, dynamic>? map) =>
+          map == null
+              ? null
+              : map.map((k, v) => MapEntry(k, v?.toString() ?? 'null'));
       _logger.error('Worker method call failed', error: error, metadata: {
         'service': worker.serviceName,
         'method': methodName,
-        'positional': positionalArgs,
-        'named': namedArgs,
+        'positional': _stringifyList(positionalArgs),
+        'named': _stringifyMap(namedArgs ?? const {}),
       });
       rethrow;
     }
@@ -207,9 +213,27 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
 
     while (attempt < maxAttempts) {
       try {
-        final result =
-            await worker.send(6, args: [methodId, positionalArgs, namedArgs]);
+        final result = await worker.send(6, args: [
+          methodId,
+          positionalArgs,
+          namedArgs
+        ]).timeout(options.timeout);
         return result as R;
+      } on TimeoutException {
+        attempt++;
+        if (attempt >= maxAttempts) {
+          throw ServiceTimeoutException(
+              'Method call by id: $methodId', options.timeout);
+        }
+        _logger.warning('Call timed out, retrying...', metadata: {
+          'methodId': methodId,
+          'timeout_ms': options.timeout.inMilliseconds,
+          'attempt': attempt,
+          'maxAttempts': maxAttempts,
+        });
+        if (options.retryDelay > Duration.zero) {
+          await Future.delayed(options.retryDelay);
+        }
       } catch (error) {
         attempt++;
         if (attempt >= maxAttempts) {
@@ -298,12 +322,12 @@ class ServiceProxyRegistry {
   }
 
   /// Gets a proxy for a service type.
-  ServiceProxy<T> getProxy<T extends BaseService>() {
+  ServiceProxy getProxy<T extends BaseService>() {
     final proxy = _proxies[T];
     if (proxy == null) {
       throw ServiceNotFoundException(T.toString());
     }
-    return proxy as ServiceProxy<T>;
+    return proxy;
   }
 
   /// Creates and registers a proxy for a service.
@@ -388,11 +412,12 @@ mixin ServiceClientMixin on BaseService {
 
     final proxy = registry.getProxy<T>();
     // Prefer returning the real local instance when available
-    if (proxy is LocalServiceProxy<T>) {
-      final instance = proxy.peekInstance();
-      if (instance != null) return instance;
+    if (proxy is LocalServiceProxy) {
+      final instance = (proxy as LocalServiceProxy).peekInstance();
+      if (instance != null && instance is T) return instance as T;
     }
-    final generated = GeneratedClientRegistry.create<T>(proxy);
+    final generated =
+        GeneratedClientRegistry.create<T>(proxy as ServiceProxy<T>);
     if (generated != null) return generated;
     throw ServiceException(
         'No generated client for $T. Ensure codegen ran and client factory is registered.');
