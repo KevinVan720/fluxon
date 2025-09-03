@@ -19,7 +19,7 @@ class ApiV1Impl extends ApiV1 {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     // Register worker with ApiV1
     await locator.registerWorkerServiceProxy<ApiV1>(

@@ -86,7 +86,7 @@ class Orchestrator extends BaseService with ServiceClientMixin {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     // Local hub must register IDs for host-side dispatch
     registerLocalHubGenerated();

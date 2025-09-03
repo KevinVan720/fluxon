@@ -31,6 +31,8 @@ class ServiceAImpl extends ServiceA with ServiceClientMixin {
   @override
   Future<void> initialize() async {
     _registerServiceADispatcher();
+    // Register client factory for ServiceB inside worker so A can call B via bridge
+    _registerServiceBClientFactory();
   }
 
   @override
@@ -47,6 +49,8 @@ class ServiceBImpl extends ServiceB with ServiceClientMixin {
   @override
   Future<void> initialize() async {
     _registerServiceBDispatcher();
+    // Register client factory for ServiceA inside worker so B can call A via bridge
+    _registerServiceAClientFactory();
   }
 
   @override
@@ -54,7 +58,7 @@ class ServiceBImpl extends ServiceB with ServiceClientMixin {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     locator.register<Orchestrator>(() => Orchestrator());
 

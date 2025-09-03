@@ -119,6 +119,16 @@ class UserService extends BaseService {
     // Dependencies will be injected by the service locator
   }
 
+  @override
+  void onDependencyAvailable(Type serviceType, BaseService service) {
+    super.onDependencyAvailable(serviceType, service);
+    if (service is DatabaseService) {
+      setDatabaseService(service);
+    } else if (service is CacheService) {
+      setCacheService(service);
+    }
+  }
+
   /// Sets the database service dependency
   void setDatabaseService(DatabaseService dbService) {
     _dbService = dbService;
@@ -206,35 +216,7 @@ class NotificationService extends BaseService with PeriodicServiceMixin {
 }
 
 /// Enhanced service locator that handles dependency injection
-class EnhancedServiceLocator extends ServiceLocator {
-  EnhancedServiceLocator({ServiceLogger? logger}) : super(logger: logger);
-
-  @override
-  Future<void> initializeAll() async {
-    await super.initializeAll();
-
-    // Perform dependency injection after all services are initialized
-    _injectDependencies();
-  }
-
-  void _injectDependencies() {
-    // Inject database service into user service
-    if (isServiceInitialized<UserService>() &&
-        isServiceInitialized<DatabaseService>()) {
-      final userService = get<UserService>();
-      final dbService = get<DatabaseService>();
-      userService.setDatabaseService(dbService);
-    }
-
-    // Inject cache service into user service if available
-    if (isServiceInitialized<UserService>() &&
-        isServiceInitialized<CacheService>()) {
-      final userService = get<UserService>();
-      final cacheService = get<CacheService>();
-      userService.setCacheService(cacheService);
-    }
-  }
-}
+// Use ServiceLocator directly; DI is handled by the core hooks.
 
 Future<void> main() async {
   print('=== Dart Service Framework Example ===\n');
@@ -249,7 +231,7 @@ Future<void> main() async {
     ]),
   );
 
-  final locator = EnhancedServiceLocator(logger: logger);
+  final locator = ServiceLocator(logger: logger);
 
   try {
     print('1. Registering services...');

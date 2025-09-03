@@ -2,12 +2,18 @@
 library service_locator;
 
 import 'dart:async';
+import 'dart:isolate';
 
 import 'base_service.dart';
 import 'dependency_resolver.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
+import 'service_registry.dart';
+import 'service_proxy.dart';
+import 'service_worker.dart';
+import 'package:squadron/squadron.dart';
 import 'types/service_types.dart';
+import 'codegen/dispatcher_registry.dart';
 
 /// Central registry and manager for all services in the application.
 ///
@@ -23,10 +29,14 @@ class ServiceLocator {
     ServiceLogger? logger,
   }) : _logger = logger ?? ServiceLogger(serviceName: 'ServiceLocator') {
     _dependencyResolver = DependencyResolver();
+    _registry = ServiceRegistry(logger: _logger);
+    _proxyRegistry = ServiceProxyRegistry(logger: _logger);
   }
 
   final ServiceLogger _logger;
   late final DependencyResolver _dependencyResolver;
+  late final ServiceRegistry _registry;
+  late final ServiceProxyRegistry _proxyRegistry;
 
   final Map<Type, ServiceFactory> _factories = {};
   final Map<Type, BaseService> _instances = {};
@@ -38,6 +48,12 @@ class ServiceLocator {
 
   final List<ServiceLifecycleCallback> _initializationCallbacks = [];
   final List<ServiceLifecycleCallback> _destructionCallbacks = [];
+
+  // Enhanced features
+  final Map<Type, Isolate> _serviceIsolates = {};
+  final Map<Type, SendPort> _isolatePorts = {};
+  final List<ReceivePort> _bridgePorts = [];
+  final List<StreamSubscription> _bridgeSubscriptions = [];
 
   /// Gets whether the service locator has been initialized.
   bool get isInitialized => _isInitialized;
@@ -169,6 +185,8 @@ class ServiceLocator {
 
     final instance = _instances[serviceType];
     if (instance == null) {
+      final remote = _registry.getService<T>();
+      if (remote != null) return remote;
       throw ServiceNotFoundException(serviceName);
     }
 
@@ -219,6 +237,149 @@ class ServiceLocator {
     return List.from(_serviceInfos.values);
   }
 
+  // Enhanced helpers
+  bool isServiceAvailable<T extends BaseService>() {
+    return isRegistered<T>() || _registry.hasService<T>();
+  }
+
+  // Expose registries for advanced scenarios (e.g., direct proxy usage in demos)
+  ServiceRegistry get registry => _registry;
+  ServiceProxyRegistry get proxyRegistry => _proxyRegistry;
+
+  void _setupProxyRegistry() {
+    for (final type in initializedServiceTypes) {
+      _registerLocalProxy(type);
+    }
+    for (final type in initializedServiceTypes) {
+      final service = _tryGetServiceInstance(type);
+      if (service is ServiceClientMixin) {
+        service.setProxyRegistry(_proxyRegistry);
+      }
+    }
+  }
+
+  void _registerLocalProxy(Type serviceType) {
+    try {
+      final service = _tryGetServiceInstance(serviceType);
+      if (service == null) return;
+      final localProxy = LocalServiceProxy<BaseService>(logger: _logger);
+      localProxy.connect(service);
+      _proxyRegistry.registerProxyForType(serviceType, localProxy);
+    } catch (e, st) {
+      _logger.error('Failed to register local proxy', error: e, stackTrace: st);
+    }
+  }
+
+  BaseService? _tryGetServiceInstance(Type t) {
+    try {
+      final info = getAllServiceInfo().firstWhere(
+        (i) => i.type == t,
+        orElse: () => throw StateError('Service not found for type $t'),
+      );
+      final instance = info.instance;
+      if (instance is BaseService) return instance;
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _performDependencyInjection() async {
+    _logger.info('Performing automatic dependency injection');
+    final allServiceInfo = getAllServiceInfo();
+    for (final serviceInfo in allServiceInfo) {
+      if (serviceInfo.instance != null) {
+        _logger.debug('Processing dependency', metadata: {
+          'service': serviceInfo.type.toString(),
+          'dependencyCount': serviceInfo.dependencies.length,
+        });
+      }
+    }
+    _logger.info('Dependency injection completed');
+  }
+
+  // Cross-isolate registration
+  Future<void> registerWorkerServiceProxy<T extends BaseService>({
+    required String serviceName,
+    required ServiceFactory<T> serviceFactory,
+    List<dynamic> args = const [],
+    ExceptionManager? exceptionManager,
+    void Function()? registerGenerated,
+  }) async {
+    try {
+      registerGenerated?.call();
+    } catch (e, st) {
+      _logger.error('Error during generated registration',
+          error: e, stackTrace: st);
+    }
+    final bridge = ReceivePort();
+    final worker = ServiceWorkerFactory().createWorker<T>(
+      serviceName: serviceName,
+      serviceFactory: serviceFactory,
+      args: [...args, bridge.sendPort],
+      exceptionManager: exceptionManager,
+    );
+    await worker.start();
+    await worker.initializeService();
+    final workerProxy = WorkerServiceProxy<T>(logger: _logger);
+    await workerProxy.connect(worker);
+    _proxyRegistry.registerProxyForType(T, workerProxy);
+
+    final sub = bridge.listen((message) async {
+      if (message is Map && message['cmd'] == 'outboundCall') {
+        final replyTo = message['replyTo'] as SendPort?;
+        try {
+          final serviceTypeStr = message['serviceType'] as String;
+          final method = message['method'] as String;
+          final positional = (message['positional'] as List).cast<dynamic>();
+          final named = Map<String, dynamic>.from(message['named'] as Map);
+          final targetType = _proxyRegistry.registeredTypes.firstWhere(
+            (t) => t.toString() == serviceTypeStr,
+            orElse: () => throw ServiceNotFoundException(serviceTypeStr),
+          );
+          final proxy = _proxyRegistry.tryGetProxyByType(targetType);
+          if (proxy == null) {
+            throw ServiceNotFoundException(serviceTypeStr);
+          }
+          dynamic result;
+          if (proxy is WorkerServiceProxy) {
+            result = await proxy.callMethod<dynamic>(method, positional,
+                namedArgs: named);
+          } else if (proxy is LocalServiceProxy) {
+            final instance = proxy.peekInstance();
+            if (instance == null) {
+              throw ServiceException('Local proxy has no instance');
+            }
+            final methodId =
+                ServiceMethodIdRegistry.tryGetIdByType(targetType, method);
+            if (methodId == null) {
+              throw ServiceException(
+                  'No method id for $serviceTypeStr.$method');
+            }
+            final dispatcher =
+                GeneratedDispatcherRegistry.findDispatcherForObject(instance);
+            if (dispatcher == null) {
+              throw ServiceException(
+                  'No dispatcher registered for $serviceTypeStr');
+            }
+            result = await dispatcher(instance, methodId, positional, named);
+          } else {
+            throw ServiceException(
+                'Unsupported proxy type: ${proxy.runtimeType}');
+          }
+          replyTo?.send({'ok': true, 'result': result});
+        } catch (e, st) {
+          _logger.error('Outbound call failed', error: e, stackTrace: st);
+          final replyTo = message['replyTo'] as SendPort?;
+          replyTo?.send({'ok': false, 'error': e.toString()});
+        }
+      }
+    });
+    _bridgePorts.add(bridge);
+    _bridgeSubscriptions.add(sub);
+    _logger.info('Worker service proxy registered: $T');
+  }
+
   /// Initializes all registered services in dependency order.
   ///
   /// This must be called before using any services.
@@ -240,6 +401,8 @@ class ServiceLocator {
     _logger.info('Starting service initialization');
 
     try {
+      // Initialize registry
+      await _registry.initialize();
       // Validate dependencies
       _dependencyResolver.validateDependencies();
 
@@ -256,6 +419,10 @@ class ServiceLocator {
 
       _isInitialized = true;
       _logger.info('All services initialized successfully');
+
+      // Enhanced hooks
+      await _performDependencyInjection();
+      _setupProxyRegistry();
 
       // Call initialization callbacks
       for (final callback in _initializationCallbacks) {
@@ -317,6 +484,22 @@ class ServiceLocator {
 
       _isInitialized = false;
       _logger.info('All services destroyed successfully');
+
+      // Enhanced cleanup
+      _registry.dispose();
+      await _proxyRegistry.disconnectAll();
+      for (final sub in _bridgeSubscriptions) {
+        try {
+          await sub.cancel();
+        } catch (_) {}
+      }
+      _bridgeSubscriptions.clear();
+      for (final port in _bridgePorts) {
+        try {
+          port.close();
+        } catch (_) {}
+      }
+      _bridgePorts.clear();
     } catch (error, stackTrace) {
       _logger.error('Service destruction failed',
           error: error, stackTrace: stackTrace);

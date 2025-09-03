@@ -62,7 +62,7 @@ class LocalGateway extends BaseService with ServiceClientMixin {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     // Local services
     locator.register<LocalAdder>(() => LocalAdder());

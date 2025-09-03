@@ -13,7 +13,6 @@ library dart_service_framework;
 // Core framework exports
 export 'src/base_service.dart';
 export 'src/service_locator.dart';
-export 'src/enhanced_service_locator.dart';
 export 'src/service_registry.dart';
 export 'src/dependency_resolver.dart';
 export 'src/service_logger.dart';

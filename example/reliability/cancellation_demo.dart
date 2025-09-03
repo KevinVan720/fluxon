@@ -25,7 +25,7 @@ class SlowServiceImpl extends SlowService {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     await locator.registerWorkerServiceProxy<SlowService>(
       serviceName: 'SlowService',

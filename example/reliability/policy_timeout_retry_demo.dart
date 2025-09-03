@@ -34,7 +34,7 @@ class PolicyServiceImpl extends PolicyService {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     await locator.registerWorkerServiceProxy<PolicyService>(
       serviceName: 'PolicyService',

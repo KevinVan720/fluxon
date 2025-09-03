@@ -34,7 +34,7 @@ class ReportServiceImpl extends ReportService {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     locator.register<Coordinator>(() => Coordinator());
     await locator.registerWorkerServiceProxy<ReportService>(

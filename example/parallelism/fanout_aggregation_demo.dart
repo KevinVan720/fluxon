@@ -50,7 +50,7 @@ class InventoryServiceImpl extends InventoryService {
 }
 
 Future<void> main() async {
-  final locator = EnhancedServiceLocator();
+  final locator = ServiceLocator();
   try {
     locator.register<Aggregator>(() => Aggregator());
 
