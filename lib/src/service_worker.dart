@@ -2,7 +2,7 @@
 library service_worker;
 
 import 'dart:async';
-// 'dart:isolate' is not used directly here; Squadron manages isolates.
+import 'dart:isolate';
 
 import 'package:squadron/squadron.dart';
 
@@ -11,6 +11,7 @@ import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'types/service_types.dart';
 import 'codegen/dispatcher_registry.dart';
+import 'service_proxy.dart';
 
 /// A Squadron worker wrapper that runs a service in an isolate.
 class ServiceWorker extends Worker {
@@ -89,6 +90,7 @@ class _ServiceWorkerCommands {
   static const int healthCheck = 4;
   static const int getInfo = 5;
   static const int callMethodById = 6;
+  static const int outboundCallById = 7; // worker->host bridge
 }
 
 /// Service implementation that runs in the worker isolate.
@@ -105,6 +107,7 @@ class _ServiceWorkerService implements WorkerService {
   final String _serviceName;
   final ServiceFactory _serviceFactory;
   final List<dynamic> _args; // reserved for future use (constructor params)
+  SendPort? _hostBridgePort;
 
   BaseService? _service;
   late ServiceLogger _logger;
@@ -115,6 +118,10 @@ class _ServiceWorkerService implements WorkerService {
     _logger.info('Service worker isolate started');
     if (_args.isNotEmpty) {
       _logger.debug('Worker args received', metadata: {'count': _args.length});
+      final possiblePort = _args.last;
+      if (possiblePort is SendPort) {
+        _hostBridgePort = possiblePort;
+      }
     }
   }
 
@@ -136,6 +143,7 @@ class _ServiceWorkerService implements WorkerService {
         _ServiceWorkerCommands.initialize: _handleInitialize,
         _ServiceWorkerCommands.destroy: _handleDestroy,
         _ServiceWorkerCommands.callMethodById: _handleCallMethodById,
+        _ServiceWorkerCommands.outboundCallById: _handleOutboundCallById,
         _ServiceWorkerCommands.healthCheck: _handleHealthCheck,
         _ServiceWorkerCommands.getInfo: _handleGetInfo,
       };
@@ -155,6 +163,14 @@ class _ServiceWorkerService implements WorkerService {
       }
 
       _logger.info('Initializing service');
+      // Inject bridge registry for cross-service calls from within worker
+      if (_hostBridgePort != null && _service is ServiceClientMixin) {
+        final registry = WorkerBridgeRegistry(
+          hostPort: _hostBridgePort!,
+          logger: _logger,
+        );
+        (_service as ServiceClientMixin).setProxyRegistry(registry);
+      }
       await _service!.internalInitialize();
       _logger.info('Service initialized successfully');
     } catch (error, stackTrace) {
@@ -207,6 +223,12 @@ class _ServiceWorkerService implements WorkerService {
           metadata: {'methodId': methodId, 'args': args});
       throw ServiceCallException(_serviceName, '#$methodId', error);
     }
+  }
+
+  // Forward a call from worker to host to call another service via host proxies
+  Future<dynamic> _handleOutboundCallById(WorkerRequest request) async {
+    // No-op: outbound calls are initiated by the worker using _hostBridgePort directly
+    throw ServiceException('Outbound bridge should not be invoked by host');
   }
 
   Future<Map<String, dynamic>> _handleHealthCheck(WorkerRequest request) async {
@@ -262,6 +284,96 @@ class _ServiceWorkerService implements WorkerService {
   }
 
   // Reflection path removed.
+}
+
+/// A proxy used inside a worker isolate to call other services through the host isolate.
+class BridgeServiceProxy<T extends BaseService> implements ServiceProxy<T> {
+  BridgeServiceProxy({required SendPort hostPort, ServiceLogger? logger})
+      : _hostPort = hostPort,
+        _logger =
+            logger ?? ServiceLogger(serviceName: 'BridgeServiceProxy<$T>');
+
+  final SendPort _hostPort;
+  final ServiceLogger _logger;
+
+  @override
+  Type get targetType => T;
+
+  @override
+  bool get isConnected => true;
+
+  @override
+  Future<void> connect(target) async {}
+
+  @override
+  Future<void> disconnect() async {}
+
+  @override
+  Future<R> callMethod<R>(String methodName, List<dynamic> args,
+      {ServiceCallOptions? options}) async {
+    final reply = ReceivePort();
+    try {
+      _logger.debug('Outbound bridge call', metadata: {
+        'service': T.toString(),
+        'method': methodName,
+        'argsCount': args.length,
+      });
+      final message = {
+        'cmd': 'outboundCall',
+        'serviceType': T.toString(),
+        'method': methodName,
+        'args': args,
+        'replyTo': reply.sendPort,
+      };
+      _hostPort.send(message);
+      final response = await reply.first;
+      if (response is Map && response['ok'] == true) {
+        return response['result'] as R;
+      }
+      final error = (response is Map) ? response['error'] : 'Unknown error';
+      throw ServiceCallException(T.toString(), methodName, error);
+    } finally {
+      reply.close();
+    }
+  }
+}
+
+/// Registry used inside worker isolate to provide proxies that route through host.
+class WorkerBridgeRegistry extends ServiceProxyRegistry {
+  WorkerBridgeRegistry({required SendPort hostPort, ServiceLogger? logger})
+      : _hostPort = hostPort,
+        _bridgeLogger =
+            logger ?? ServiceLogger(serviceName: 'WorkerBridgeRegistry'),
+        super(logger: logger);
+
+  final SendPort _hostPort;
+  final ServiceLogger _bridgeLogger;
+  final Map<Type, ServiceProxy> _map = {};
+
+  @override
+  void registerProxyForType(Type type, ServiceProxy proxy) {
+    _map[type] = proxy;
+  }
+
+  @override
+  ServiceProxy<T> getProxy<T extends BaseService>() {
+    final existing = _map[T];
+    if (existing != null) return existing as ServiceProxy<T>;
+    final proxy =
+        BridgeServiceProxy<T>(hostPort: _hostPort, logger: _bridgeLogger);
+    _map[T] = proxy;
+    return proxy;
+  }
+
+  @override
+  bool hasProxy<T extends BaseService>() {
+    return _map.containsKey(T);
+  }
+
+  @override
+  Future<void> disconnectAll() async {
+    _map.clear();
+  }
 }
 
 /// Factory for creating service workers.

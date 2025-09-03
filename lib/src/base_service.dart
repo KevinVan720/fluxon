@@ -9,7 +9,7 @@ import 'service_logger.dart';
 import 'types/service_types.dart';
 
 /// Abstract base class for all services in the framework.
-/// 
+///
 /// Services must extend this class and implement the required methods.
 /// The base class provides common functionality like logging, lifecycle
 /// management, and dependency declaration.
@@ -18,10 +18,14 @@ abstract class BaseService {
   BaseService({
     ServiceConfig? config,
     ServiceLogger? logger,
-  }) : _config = config ?? const ServiceConfig(),
-       _logger = logger ?? ServiceLogger(serviceName: _getServiceName()) {
+  })  : _config = config ?? const ServiceConfig(),
+        _logger = logger ?? ServiceLogger(serviceName: _getServiceName()) {
     _state = ServiceState.registered;
     _registeredAt = DateTime.now();
+    // Replace fallback logger name with the concrete type once constructed
+    if (logger == null) {
+      _logger = ServiceLogger(serviceName: serviceName);
+    }
   }
 
   final ServiceConfig _config;
@@ -66,13 +70,13 @@ abstract class BaseService {
   bool get hasFailed => _state == ServiceState.failed;
 
   /// Declares the dependencies for this service.
-  /// 
+  ///
   /// Services listed here will be initialized before this service.
   /// Override this method to declare dependencies.
   List<Type> get dependencies => const [];
 
   /// Declares optional dependencies for this service.
-  /// 
+  ///
   /// These services will be initialized before this service if they are
   /// registered, but are not required for this service to function.
   List<Type> get optionalDependencies => const [];
@@ -89,7 +93,8 @@ abstract class BaseService {
   T getRequiredDependency<T extends BaseService>() {
     final dependency = getDependency<T>();
     if (dependency == null) {
-      throw ServiceException('Required dependency $T is not available for service $serviceName');
+      throw ServiceException(
+          'Required dependency $T is not available for service $serviceName');
     }
     return dependency;
   }
@@ -119,7 +124,7 @@ abstract class BaseService {
   }
 
   /// Initializes the service.
-  /// 
+  ///
   /// This method is called automatically by the service locator when
   /// all dependencies are satisfied. Override this method to perform
   /// service-specific initialization.
@@ -128,7 +133,7 @@ abstract class BaseService {
   }
 
   /// Destroys the service and cleans up resources.
-  /// 
+  ///
   /// This method is called automatically by the service locator during
   /// shutdown. Override this method to perform service-specific cleanup.
   Future<void> destroy() async {
@@ -136,7 +141,7 @@ abstract class BaseService {
   }
 
   /// Performs a health check on the service.
-  /// 
+  ///
   /// Override this method to implement service-specific health checks.
   Future<ServiceHealthCheck> healthCheck() async {
     if (_state == ServiceState.initialized) {
@@ -165,10 +170,7 @@ abstract class BaseService {
   Future<void> internalInitialize() async {
     if (_state != ServiceState.registered) {
       throw ServiceStateException(
-        serviceName, 
-        _state.toString(), 
-        ServiceState.registered.toString()
-      );
+          serviceName, _state.toString(), ServiceState.registered.toString());
     }
 
     _setState(ServiceState.initializing);
@@ -180,14 +182,14 @@ abstract class BaseService {
         _config.timeout,
         'Service initialization',
       );
-      
+
       _setState(ServiceState.initialized);
       _initializedAt = DateTime.now();
       _logger.info('Service initialized successfully');
     } catch (error, stackTrace) {
       _error = error;
       _setState(ServiceState.failed);
-      _logger.error('Service initialization failed', 
+      _logger.error('Service initialization failed',
           error: error, stackTrace: stackTrace);
       throw ServiceInitializationException(serviceName, error);
     }
@@ -212,14 +214,14 @@ abstract class BaseService {
         _config.timeout,
         'Service destruction',
       );
-      
+
       _setState(ServiceState.destroyed);
       _destroyedAt = DateTime.now();
       _logger.info('Service destroyed successfully');
     } catch (error, stackTrace) {
       _error = error;
       _setState(ServiceState.failed);
-      _logger.error('Service destruction failed', 
+      _logger.error('Service destruction failed',
           error: error, stackTrace: stackTrace);
       // Don't rethrow destruction errors to avoid cascading failures
     }
@@ -267,26 +269,29 @@ abstract class BaseService {
   }) async {
     final attempts = maxAttempts ?? _config.retryAttempts;
     final delay = retryDelay ?? _config.retryDelay;
-    
+
     for (int attempt = 1; attempt <= attempts; attempt++) {
       try {
         return await operation();
       } catch (error, stackTrace) {
         if (attempt == attempts) {
-          _logger.error('Operation "$operationName" failed after $attempts attempts',
-              error: error, stackTrace: stackTrace);
+          _logger.error(
+              'Operation "$operationName" failed after $attempts attempts',
+              error: error,
+              stackTrace: stackTrace);
           throw ServiceRetryExceededException(operationName, attempts);
         }
-        
-        _logger.warning('Operation "$operationName" failed (attempt $attempt/$attempts), retrying...',
+
+        _logger.warning(
+            'Operation "$operationName" failed (attempt $attempt/$attempts), retrying...',
             metadata: {'error': error.toString()});
-        
+
         if (delay > Duration.zero) {
           await Future.delayed(delay);
         }
       }
     }
-    
+
     // This should never be reached
     throw ServiceRetryExceededException(operationName, attempts);
   }
@@ -355,7 +360,7 @@ mixin PeriodicServiceMixin on BaseService {
   @override
   Future<void> initialize() async {
     await super.initialize();
-    
+
     if (periodicTasksEnabled) {
       _startPeriodicTasks();
     }
@@ -372,10 +377,11 @@ mixin PeriodicServiceMixin on BaseService {
       try {
         await performPeriodicTask();
       } catch (error, stackTrace) {
-        logger.error('Periodic task failed', error: error, stackTrace: stackTrace);
+        logger.error('Periodic task failed',
+            error: error, stackTrace: stackTrace);
       }
     });
-    
+
     logger.debug('Started periodic tasks with interval: $periodicInterval');
   }
 
@@ -389,7 +395,7 @@ mixin PeriodicServiceMixin on BaseService {
 /// Mixin for services that need configuration validation.
 mixin ConfigurableServiceMixin on BaseService {
   /// Validates the service configuration.
-  /// 
+  ///
   /// Override this method to implement configuration validation.
   /// Throw a [ServiceConfigurationException] if the configuration is invalid.
   void validateConfiguration() {
@@ -406,7 +412,7 @@ mixin ConfigurableServiceMixin on BaseService {
         error,
       );
     }
-    
+
     await super.initialize();
   }
 }

@@ -14,6 +14,7 @@ import 'service_proxy.dart';
 import 'service_worker.dart';
 import 'package:squadron/squadron.dart';
 import 'types/service_types.dart';
+import 'codegen/dispatcher_registry.dart';
 
 /// Enhanced service locator that provides automatic dependency injection
 /// and transparent cross-isolate service communication
@@ -31,6 +32,8 @@ class EnhancedServiceLocator extends ServiceLocator {
   late final ServiceProxyRegistry _proxyRegistry;
   final Map<Type, Isolate> _serviceIsolates = {};
   final Map<Type, SendPort> _isolatePorts = {};
+  final List<ReceivePort> _bridgePorts = [];
+  final List<StreamSubscription> _bridgeSubscriptions = [];
 
   /// Initialize the enhanced service locator
   @override
@@ -180,6 +183,20 @@ class EnhancedServiceLocator extends ServiceLocator {
     // Disconnect all proxies
     await _proxyRegistry.disconnectAll();
 
+    // Close bridge listeners and ports
+    for (final sub in _bridgeSubscriptions) {
+      try {
+        await sub.cancel();
+      } catch (_) {}
+    }
+    _bridgeSubscriptions.clear();
+    for (final port in _bridgePorts) {
+      try {
+        port.close();
+      } catch (_) {}
+    }
+    _bridgePorts.clear();
+
     _logger.info('All services and isolates destroyed');
   }
 
@@ -246,10 +263,12 @@ class EnhancedServiceLocator extends ServiceLocator {
     List<dynamic> args = const [],
     ExceptionManager? exceptionManager,
   }) async {
+    // Create host bridge port for outbound calls from worker
+    final bridge = ReceivePort();
     final worker = ServiceWorkerFactory().createWorker<T>(
       serviceName: serviceName,
       serviceFactory: serviceFactory,
-      args: args,
+      args: [...args, bridge.sendPort],
       exceptionManager: exceptionManager,
     );
 
@@ -259,6 +278,58 @@ class EnhancedServiceLocator extends ServiceLocator {
     final workerProxy = WorkerServiceProxy<T>(logger: _logger);
     await workerProxy.connect(worker);
     _proxyRegistry.registerProxyForType(T, workerProxy);
+
+    // Listen for outbound calls from worker
+    final sub = bridge.listen((message) async {
+      if (message is Map && message['cmd'] == 'outboundCall') {
+        final replyTo = message['replyTo'] as SendPort?;
+        try {
+          final serviceTypeStr = message['serviceType'] as String;
+          final method = message['method'] as String;
+          final args = (message['args'] as List).cast<dynamic>();
+          // Find proxy by stringified Type
+          final targetType = _proxyRegistry.registeredTypes.firstWhere(
+            (t) => t.toString() == serviceTypeStr,
+            orElse: () => throw ServiceNotFoundException(serviceTypeStr),
+          );
+          final proxy = _proxyRegistry.tryGetProxyByType(targetType);
+          if (proxy == null) {
+            throw ServiceNotFoundException(serviceTypeStr);
+          }
+          dynamic result;
+          if (proxy is WorkerServiceProxy) {
+            // Worker proxy: use its callMethod which routes by generated method id
+            result = await proxy.callMethod<dynamic>(method, args);
+          } else if (proxy is LocalServiceProxy) {
+            // Local proxy: dispatch via generated dispatcher using method id
+            final instance = proxy.peekInstance();
+            if (instance == null)
+              throw ServiceException('Local proxy has no instance');
+            final methodId =
+                ServiceMethodIdRegistry.tryGetIdByType(targetType, method);
+            if (methodId == null)
+              throw ServiceException(
+                  'No method id for $serviceTypeStr.$method');
+            final dispatcher =
+                GeneratedDispatcherRegistry.findDispatcherForObject(instance);
+            if (dispatcher == null)
+              throw ServiceException(
+                  'No dispatcher registered for $serviceTypeStr');
+            result = await dispatcher(instance, methodId, args);
+          } else {
+            throw ServiceException(
+                'Unsupported proxy type: ${proxy.runtimeType}');
+          }
+          replyTo?.send({'ok': true, 'result': result});
+        } catch (e, st) {
+          _logger.error('Outbound call failed', error: e, stackTrace: st);
+          final replyTo = message['replyTo'] as SendPort?;
+          replyTo?.send({'ok': false, 'error': e.toString()});
+        }
+      }
+    });
+    _bridgePorts.add(bridge);
+    _bridgeSubscriptions.add(sub);
 
     _logger.info('Worker service proxy registered: $T');
   }

@@ -317,6 +317,11 @@ class ServiceProxyRegistry {
   /// Gets all registered proxy types.
   Set<Type> get registeredTypes => Set.from(_proxies.keys);
 
+  /// Gets a proxy by runtime type, or null if not registered.
+  ServiceProxy? tryGetProxyByType(Type type) {
+    return _proxies[type];
+  }
+
   /// Disconnects all proxies.
   Future<void> disconnectAll() async {
     for (final proxy in _proxies.values) {
@@ -399,6 +404,12 @@ class ServiceMethodIdRegistry {
 
   static int? tryGetId<T extends BaseService>(String methodName) {
     final map = _ids[T];
+    return map?[methodName];
+  }
+
+  /// Lookup by runtime [type]. Returns null if none or method not found.
+  static int? tryGetIdByType(Type type, String methodName) {
+    final map = _ids[type];
     return map?[methodName];
   }
 }
