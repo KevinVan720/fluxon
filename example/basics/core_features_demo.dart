@@ -1,9 +1,9 @@
+import 'package:dart_service_framework/dart_service_framework.dart';
+
 /// Core Framework Demo
 ///
 /// This example demonstrates the fully implemented Phase 1 and Phase 2 functionality
 /// of the Dart Service Framework.
-
-import '../lib/dart_service_framework.dart';
 
 /// Simple database service (no dependencies)
 class DatabaseService extends BaseService {

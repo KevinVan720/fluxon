@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '08_mixed_local_remote_demo.dart';
+part of 'mixed_local_remote_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator

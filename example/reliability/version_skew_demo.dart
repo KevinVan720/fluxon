@@ -1,6 +1,6 @@
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part '12_version_skew_demo.g.dart';
+part 'version_skew_demo.g.dart';
 
 @ServiceContract(remote: true)
 abstract class ApiV1 extends BaseService {

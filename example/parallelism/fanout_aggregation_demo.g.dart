@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '07_fanout_aggregation_demo.dart';
+part of 'fanout_aggregation_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -12,9 +12,8 @@ class PricingServiceClient extends PricingService {
   final ServiceProxy<PricingService> _proxy;
 
   @override
-  Future<double> priceOf(String sku, {required String region}) async {
-    return await _proxy
-        .callMethod('priceOf', [sku], namedArgs: {'region': region});
+  Future<double> getPrice(String sku) async {
+    return await _proxy.callMethod('getPrice', [sku], namedArgs: {});
   }
 }
 
@@ -25,7 +24,7 @@ void _registerPricingServiceClientFactory() {
 }
 
 class _PricingServiceMethods {
-  static const int priceOfId = 1;
+  static const int getPriceId = 1;
 }
 
 Future<dynamic> _PricingServiceDispatcher(
@@ -36,8 +35,8 @@ Future<dynamic> _PricingServiceDispatcher(
 ) async {
   final s = service as PricingService;
   switch (methodId) {
-    case _PricingServiceMethods.priceOfId:
-      return await s.priceOf(positionalArgs[0], region: namedArgs['region']);
+    case _PricingServiceMethods.getPriceId:
+      return await s.getPrice(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -51,7 +50,7 @@ void _registerPricingServiceDispatcher() {
 
 void _registerPricingServiceMethodIds() {
   ServiceMethodIdRegistry.register<PricingService>({
-    'priceOf': _PricingServiceMethods.priceOfId,
+    'getPrice': _PricingServiceMethods.getPriceId,
   });
 }
 
@@ -66,9 +65,8 @@ class InventoryServiceClient extends InventoryService {
   final ServiceProxy<InventoryService> _proxy;
 
   @override
-  Future<int> stockOf(String sku, {required String warehouse}) async {
-    return await _proxy
-        .callMethod('stockOf', [sku], namedArgs: {'warehouse': warehouse});
+  Future<int> getStock(String sku) async {
+    return await _proxy.callMethod('getStock', [sku], namedArgs: {});
   }
 }
 
@@ -79,7 +77,7 @@ void _registerInventoryServiceClientFactory() {
 }
 
 class _InventoryServiceMethods {
-  static const int stockOfId = 1;
+  static const int getStockId = 1;
 }
 
 Future<dynamic> _InventoryServiceDispatcher(
@@ -90,9 +88,8 @@ Future<dynamic> _InventoryServiceDispatcher(
 ) async {
   final s = service as InventoryService;
   switch (methodId) {
-    case _InventoryServiceMethods.stockOfId:
-      return await s.stockOf(positionalArgs[0],
-          warehouse: namedArgs['warehouse']);
+    case _InventoryServiceMethods.getStockId:
+      return await s.getStock(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -106,7 +103,7 @@ void _registerInventoryServiceDispatcher() {
 
 void _registerInventoryServiceMethodIds() {
   ServiceMethodIdRegistry.register<InventoryService>({
-    'stockOf': _InventoryServiceMethods.stockOfId,
+    'getStock': _InventoryServiceMethods.getStockId,
   });
 }
 

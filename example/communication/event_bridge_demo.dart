@@ -1,6 +1,6 @@
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part '10_event_bridge_demo.g.dart';
+part 'event_bridge_demo.g.dart';
 
 @ServiceContract(remote: true)
 abstract class RemoteEmitter extends BaseService {

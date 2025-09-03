@@ -1,6 +1,6 @@
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part '08_mixed_local_remote_demo.g.dart';
+part 'mixed_local_remote_demo.g.dart';
 
 @ServiceContract(remote: true)
 abstract class RemoteMath extends BaseService {

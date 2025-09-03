@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '05_named_parameters_demo.dart';
+part of 'named_parameters_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -12,10 +12,10 @@ class ReportServiceClient extends ReportService {
   final ServiceProxy<ReportService> _proxy;
 
   @override
-  Future<String> buildReport(int base,
-      {required int multiplier, String label = 'Report'}) async {
-    return await _proxy.callMethod('buildReport', [base],
-        namedArgs: {'multiplier': multiplier, 'label': label});
+  Future<String> generateReport(String title,
+      {int? year, bool detailed = false}) async {
+    return await _proxy.callMethod('generateReport', [title],
+        namedArgs: {'year': year, 'detailed': detailed});
   }
 }
 
@@ -26,7 +26,7 @@ void _registerReportServiceClientFactory() {
 }
 
 class _ReportServiceMethods {
-  static const int buildReportId = 1;
+  static const int generateReportId = 1;
 }
 
 Future<dynamic> _ReportServiceDispatcher(
@@ -37,9 +37,9 @@ Future<dynamic> _ReportServiceDispatcher(
 ) async {
   final s = service as ReportService;
   switch (methodId) {
-    case _ReportServiceMethods.buildReportId:
-      return await s.buildReport(positionalArgs[0],
-          multiplier: namedArgs['multiplier'], label: namedArgs['label']);
+    case _ReportServiceMethods.generateReportId:
+      return await s.generateReport(positionalArgs[0],
+          year: namedArgs['year'], detailed: namedArgs['detailed']);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -53,7 +53,7 @@ void _registerReportServiceDispatcher() {
 
 void _registerReportServiceMethodIds() {
   ServiceMethodIdRegistry.register<ReportService>({
-    'buildReport': _ReportServiceMethods.buildReportId,
+    'generateReport': _ReportServiceMethods.generateReportId,
   });
 }
 

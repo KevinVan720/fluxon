@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '10_event_bridge_demo.dart';
+part of 'event_bridge_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator

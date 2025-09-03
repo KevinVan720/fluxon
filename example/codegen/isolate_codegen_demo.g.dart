@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '03_isolate_codegen_demo.dart';
+part of 'isolate_codegen_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -43,7 +43,9 @@ Future<dynamic> _MathServiceDispatcher(
 }
 
 void _registerMathServiceDispatcher() {
-  GeneratedDispatcherRegistry.register<MathService>(_MathServiceDispatcher);
+  GeneratedDispatcherRegistry.register<MathService>(
+    _MathServiceDispatcher,
+  );
 }
 
 void _registerMathServiceMethodIds() {

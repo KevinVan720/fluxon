@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '06_parallel_workers_demo.dart';
+part of 'parallel_workers_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -12,8 +12,8 @@ class CruncherServiceClient extends CruncherService {
   final ServiceProxy<CruncherService> _proxy;
 
   @override
-  Future<int> fib(int n) async {
-    return await _proxy.callMethod('fib', [n], namedArgs: {});
+  Future<int> fibonacci(int n) async {
+    return await _proxy.callMethod('fibonacci', [n], namedArgs: {});
   }
 }
 
@@ -24,7 +24,7 @@ void _registerCruncherServiceClientFactory() {
 }
 
 class _CruncherServiceMethods {
-  static const int fibId = 1;
+  static const int fibonacciId = 1;
 }
 
 Future<dynamic> _CruncherServiceDispatcher(
@@ -35,8 +35,8 @@ Future<dynamic> _CruncherServiceDispatcher(
 ) async {
   final s = service as CruncherService;
   switch (methodId) {
-    case _CruncherServiceMethods.fibId:
-      return await s.fib(positionalArgs[0]);
+    case _CruncherServiceMethods.fibonacciId:
+      return await s.fibonacci(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -50,7 +50,7 @@ void _registerCruncherServiceDispatcher() {
 
 void _registerCruncherServiceMethodIds() {
   ServiceMethodIdRegistry.register<CruncherService>({
-    'fib': _CruncherServiceMethods.fibId,
+    'fibonacci': _CruncherServiceMethods.fibonacciId,
   });
 }
 

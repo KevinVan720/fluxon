@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part '09_retry_timeout_demo.g.dart';
+part 'retry_timeout_demo.g.dart';
 
 @ServiceContract(remote: true)
 abstract class FlakyService extends BaseService {
@@ -44,10 +44,9 @@ Future<void> main() async {
 
     await locator.initializeAll();
 
-    // Use proxy registry to control retries/timeouts per call
     final proxy = locator.proxyRegistry.getProxy<FlakyService>();
 
-    // Retry demo: fail twice then succeed on 3rd attempt
+    // Retry demo: expect failures, then success
     final retriesResult = await proxy.callMethod<String>(
       'succeedAfter',
       [3],
@@ -58,7 +57,7 @@ Future<void> main() async {
     );
     print('succeedAfter result: $retriesResult');
 
-    // Timeout demo: short timeout to force timeout
+    // Timeout demo: call with short timeout to force timeout
     try {
       await proxy.callMethod<String>(
         'slowOperation',

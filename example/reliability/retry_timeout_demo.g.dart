@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '09_retry_timeout_demo.dart';
+part of 'retry_timeout_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator

@@ -1,6 +1,6 @@
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part '11_cancellation_demo.g.dart';
+part 'cancellation_demo.g.dart';
 
 @ServiceContract(remote: true)
 abstract class SlowService extends BaseService {

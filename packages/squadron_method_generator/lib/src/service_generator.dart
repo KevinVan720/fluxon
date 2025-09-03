@@ -10,6 +10,10 @@ final _serviceContractChecker = const TypeChecker.fromUrl(
   'package:dart_service_framework/src/annotations/service_annotations.dart#ServiceContract',
 );
 
+final _serviceMethodChecker = const TypeChecker.fromUrl(
+  'package:dart_service_framework/src/annotations/service_annotations.dart#ServiceMethod',
+);
+
 class ServiceGenerator extends GeneratorForAnnotation<Object> {
   @override
   FutureOr<String> generateForAnnotatedElement(
@@ -57,10 +61,34 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           .where((p) => p.isNamed)
           .map((p) => "'${p.name}': ${p.name}")
           .join(', ');
+      // Build optional ServiceCallOptions from @ServiceMethod annotation
+      final methodAnno = _serviceMethodChecker.firstAnnotationOf(m);
+      String optionsArg = '';
+      if (methodAnno != null) {
+        final reader = ConstantReader(methodAnno);
+        final timeoutMs = reader.peek('timeoutMs')?.intValue;
+        final retryAttempts = reader.peek('retryAttempts')?.intValue;
+        final retryDelayMs = reader.peek('retryDelayMs')?.intValue;
+        final opts = <String>[];
+        if (timeoutMs != null) {
+          opts.add('timeout: Duration(milliseconds: $timeoutMs)');
+        }
+        if (retryAttempts != null) {
+          opts.add('retryAttempts: $retryAttempts');
+        }
+        if (retryDelayMs != null) {
+          opts.add('retryDelay: Duration(milliseconds: $retryDelayMs)');
+        }
+        if (opts.isNotEmpty) {
+          optionsArg =
+              ', options: const ServiceCallOptions(${opts.join(', ')})';
+        }
+      }
+
       buf.writeln('  @override');
       buf.writeln('  $returnType $methodName($paramsSig) async {');
       buf.writeln(
-          "    return await _proxy.callMethod('$methodName', [${positionalNames.join(', ')}], namedArgs: {${namedNames}});");
+          "    return await _proxy.callMethod('$methodName', [${positionalNames.join(', ')}], namedArgs: {${namedNames}}$optionsArg);");
       buf.writeln('  }');
       buf.writeln('');
     }
@@ -98,7 +126,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           if (p.isPositional) {
             parts.add('positionalArgs[' + (positionalIndex++).toString() + ']');
           } else if (p.isNamed) {
-            parts.add(p.name + ': namedArgs[' ' + p.name + ' ']');
+            parts.add("${p.name}: namedArgs['${p.name}']");
           }
         }
         return parts.join(', ');

@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of '04_cross_isolate_calls_demo.dart';
+part of 'cross_isolate_calls_demo.dart';
 
 // **************************************************************************
 // ServiceGenerator
@@ -10,11 +10,6 @@ part of '04_cross_isolate_calls_demo.dart';
 class ServiceAClient extends ServiceA {
   ServiceAClient(this._proxy);
   final ServiceProxy<ServiceA> _proxy;
-
-  @override
-  Future<int> incThenDouble(int x) async {
-    return await _proxy.callMethod('incThenDouble', [x], namedArgs: {});
-  }
 
   @override
   Future<int> increment(int x) async {
@@ -29,8 +24,7 @@ void _registerServiceAClientFactory() {
 }
 
 class _ServiceAMethods {
-  static const int incThenDoubleId = 1;
-  static const int incrementId = 2;
+  static const int incrementId = 1;
 }
 
 Future<dynamic> _ServiceADispatcher(
@@ -41,8 +35,6 @@ Future<dynamic> _ServiceADispatcher(
 ) async {
   final s = service as ServiceA;
   switch (methodId) {
-    case _ServiceAMethods.incThenDoubleId:
-      return await s.incThenDouble(positionalArgs[0]);
     case _ServiceAMethods.incrementId:
       return await s.increment(positionalArgs[0]);
     default:
@@ -58,7 +50,6 @@ void _registerServiceADispatcher() {
 
 void _registerServiceAMethodIds() {
   ServiceMethodIdRegistry.register<ServiceA>({
-    'incThenDouble': _ServiceAMethods.incThenDoubleId,
     'increment': _ServiceAMethods.incrementId,
   });
 }
@@ -74,11 +65,6 @@ class ServiceBClient extends ServiceB {
   final ServiceProxy<ServiceB> _proxy;
 
   @override
-  Future<int> doubleThenInc(int x) async {
-    return await _proxy.callMethod('doubleThenInc', [x], namedArgs: {});
-  }
-
-  @override
   Future<int> doubleIt(int x) async {
     return await _proxy.callMethod('doubleIt', [x], namedArgs: {});
   }
@@ -91,8 +77,7 @@ void _registerServiceBClientFactory() {
 }
 
 class _ServiceBMethods {
-  static const int doubleThenIncId = 1;
-  static const int doubleItId = 2;
+  static const int doubleItId = 1;
 }
 
 Future<dynamic> _ServiceBDispatcher(
@@ -103,8 +88,6 @@ Future<dynamic> _ServiceBDispatcher(
 ) async {
   final s = service as ServiceB;
   switch (methodId) {
-    case _ServiceBMethods.doubleThenIncId:
-      return await s.doubleThenInc(positionalArgs[0]);
     case _ServiceBMethods.doubleItId:
       return await s.doubleIt(positionalArgs[0]);
     default:
@@ -120,7 +103,6 @@ void _registerServiceBDispatcher() {
 
 void _registerServiceBMethodIds() {
   ServiceMethodIdRegistry.register<ServiceB>({
-    'doubleThenInc': _ServiceBMethods.doubleThenIncId,
     'doubleIt': _ServiceBMethods.doubleItId,
   });
 }
