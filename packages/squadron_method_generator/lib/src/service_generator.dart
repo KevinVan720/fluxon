@@ -110,6 +110,12 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     }
     buf.writeln('  });');
     buf.writeln('}');
+    buf.writeln('');
+    // Public registrar for host-side (client + method IDs)
+    buf.writeln('void register${className}Generated() {');
+    buf.writeln('  _register${className}ClientFactory();');
+    buf.writeln('  _register${className}MethodIds();');
+    buf.writeln('}');
     return buf.toString();
   }
 }

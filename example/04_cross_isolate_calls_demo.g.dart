@@ -62,6 +62,11 @@ void _registerServiceAMethodIds() {
   });
 }
 
+void registerServiceAGenerated() {
+  _registerServiceAClientFactory();
+  _registerServiceAMethodIds();
+}
+
 // Service client for ServiceB
 class ServiceBClient extends ServiceB {
   ServiceBClient(this._proxy);
@@ -116,4 +121,9 @@ void _registerServiceBMethodIds() {
     'doubleThenInc': _ServiceBMethods.doubleThenIncId,
     'doubleIt': _ServiceBMethods.doubleItId,
   });
+}
+
+void registerServiceBGenerated() {
+  _registerServiceBClientFactory();
+  _registerServiceBMethodIds();
 }

@@ -76,12 +76,6 @@ class Orchestrator extends BaseService with ServiceClientMixin {
 Future<void> main() async {
   final locator = EnhancedServiceLocator();
   try {
-    // Register generated clients & method IDs in host
-    _registerServiceAClientFactory();
-    _registerServiceAMethodIds();
-    _registerServiceBClientFactory();
-    _registerServiceBMethodIds();
-
     // Local orchestrator
     locator.register<Orchestrator>(() => Orchestrator());
 
@@ -89,10 +83,12 @@ Future<void> main() async {
     await locator.registerWorkerServiceProxy<ServiceA>(
       serviceName: 'ServiceA',
       serviceFactory: () => ServiceAImpl(),
+      registerGenerated: registerServiceAGenerated,
     );
     await locator.registerWorkerServiceProxy<ServiceB>(
       serviceName: 'ServiceB',
       serviceFactory: () => ServiceBImpl(),
+      registerGenerated: registerServiceBGenerated,
     );
 
     await locator.initializeAll();

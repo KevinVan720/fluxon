@@ -41,8 +41,6 @@ Future<void> main() async {
   final locator = EnhancedServiceLocator();
 
   try {
-    _registerMathServiceClientFactory();
-    _registerMathServiceMethodIds();
     // Register a local caller service
     locator.register<ApiGateway>(() => ApiGateway());
 
@@ -50,6 +48,7 @@ Future<void> main() async {
     await locator.registerWorkerServiceProxy<MathService>(
       serviceName: 'MathService',
       serviceFactory: () => MathServiceImpl(),
+      registerGenerated: registerMathServiceGenerated,
     );
 
     await locator.initializeAll();

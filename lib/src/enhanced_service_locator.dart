@@ -262,7 +262,15 @@ class EnhancedServiceLocator extends ServiceLocator {
     required ServiceFactory<T> serviceFactory,
     List<dynamic> args = const [],
     ExceptionManager? exceptionManager,
+    void Function()? registerGenerated,
   }) async {
+    // Allow caller to ensure host-side generated client + method IDs are registered
+    try {
+      registerGenerated?.call();
+    } catch (e, st) {
+      _logger.error('Error during generated registration',
+          error: e, stackTrace: st);
+    }
     // Create host bridge port for outbound calls from worker
     final bridge = ReceivePort();
     final worker = ServiceWorkerFactory().createWorker<T>(

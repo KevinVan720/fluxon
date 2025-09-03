@@ -42,13 +42,16 @@ Future<dynamic> _MathServiceDispatcher(
 }
 
 void _registerMathServiceDispatcher() {
-  GeneratedDispatcherRegistry.register<MathService>(
-    _MathServiceDispatcher,
-  );
+  GeneratedDispatcherRegistry.register<MathService>(_MathServiceDispatcher);
 }
 
 void _registerMathServiceMethodIds() {
   ServiceMethodIdRegistry.register<MathService>({
     'add': _MathServiceMethods.addId,
   });
+}
+
+void registerMathServiceGenerated() {
+  _registerMathServiceClientFactory();
+  _registerMathServiceMethodIds();
 }
