@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 
 /// Base class for all service events
-/// 
+///
 /// Events are immutable data objects that carry information between services.
 /// Each event type should extend this class and provide typed data.
 @immutable
@@ -81,10 +81,13 @@ abstract class ServiceEvent {
 enum EventProcessingResult {
   /// Event was processed successfully
   success,
+
   /// Event processing failed
   failed,
+
   /// Event was ignored/not handled
   ignored,
+
   /// Event processing was skipped
   skipped,
 }
@@ -171,10 +174,13 @@ class EventTarget {
 enum EventDistributionStrategy {
   /// Send to specified targets only
   targeted,
+
   /// Send to specified targets first, then to all other services
   targetedThenBroadcast,
+
   /// Send to all services except those specified
   broadcastExcept,
+
   /// Send to all services
   broadcast,
 }
@@ -249,7 +255,8 @@ class EventDistribution {
 }
 
 /// Event handler function type
-typedef EventHandler<T extends ServiceEvent> = Future<EventProcessingResponse> Function(T event);
+typedef EventHandler<T extends ServiceEvent> = Future<EventProcessingResponse>
+    Function(T event);
 
 /// Event listener registration
 class EventListener<T extends ServiceEvent> {
@@ -279,7 +286,17 @@ class EventListener<T extends ServiceEvent> {
   /// Check if this listener should handle the event
   bool shouldHandle(ServiceEvent event) {
     if (event.runtimeType != eventType) return false;
-    return condition?.call(event as T) ?? true;
+    // Allow covariant handling where T is a subtype of ServiceEvent
+    try {
+      return condition?.call(event as T) ?? true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Invoke the handler with safe casting
+  Future<EventProcessingResponse> handle(ServiceEvent event) async {
+    return await handler(event as T);
   }
 
   @override

@@ -10,6 +10,10 @@ import 'service_locator.dart';
 import 'service_registry.dart';
 import 'service_logger.dart';
 import 'exceptions/service_exceptions.dart';
+import 'service_proxy.dart';
+import 'service_worker.dart';
+import 'package:squadron/squadron.dart';
+import 'types/service_types.dart';
 
 /// Enhanced service locator that provides automatic dependency injection
 /// and transparent cross-isolate service communication
@@ -19,10 +23,12 @@ class EnhancedServiceLocator extends ServiceLocator {
             logger ?? ServiceLogger(serviceName: 'EnhancedServiceLocator'),
         super(logger: logger) {
     _registry = ServiceRegistry(logger: _logger);
+    _proxyRegistry = ServiceProxyRegistry(logger: _logger);
   }
 
   final ServiceLogger _logger;
   late final ServiceRegistry _registry;
+  late final ServiceProxyRegistry _proxyRegistry;
   final Map<Type, Isolate> _serviceIsolates = {};
   final Map<Type, SendPort> _isolatePorts = {};
 
@@ -37,6 +43,9 @@ class EnhancedServiceLocator extends ServiceLocator {
 
     // Perform automatic dependency injection
     await _performDependencyInjection();
+
+    // Register local proxies for all initialized services and inject registry
+    _setupProxyRegistry();
   }
 
   /// Register a service to run in its own isolate
@@ -147,9 +156,19 @@ class EnhancedServiceLocator extends ServiceLocator {
     // Destroy local services first
     await super.destroyAll();
 
-    // Kill isolates
+    // Request graceful shutdown of worker isolates
+    for (final port in _isolatePorts.values) {
+      try {
+        port.send('shutdown');
+      } catch (_) {}
+    }
+    // Allow some time for workers to cleanup
+    await Future.delayed(const Duration(milliseconds: 100));
+    // Ensure isolates are terminated
     for (final isolate in _serviceIsolates.values) {
-      isolate.kill();
+      try {
+        isolate.kill(priority: Isolate.immediate);
+      } catch (_) {}
     }
 
     _serviceIsolates.clear();
@@ -158,11 +177,91 @@ class EnhancedServiceLocator extends ServiceLocator {
     // Dispose registry
     _registry.dispose();
 
+    // Disconnect all proxies
+    await _proxyRegistry.disconnectAll();
+
     _logger.info('All services and isolates destroyed');
   }
 
   /// Get the service registry
   ServiceRegistry get registry => _registry;
+
+  /// Get the proxy registry
+  ServiceProxyRegistry get proxyRegistry => _proxyRegistry;
+
+  void _setupProxyRegistry() {
+    // Register local proxies for each initialized service
+    for (final type in initializedServiceTypes) {
+      _registerLocalProxy(type);
+    }
+
+    // Inject registry into services that support client calls
+    for (final type in initializedServiceTypes) {
+      final service = _tryGetServiceInstance(type);
+      if (service is ServiceClientMixin) {
+        service.setProxyRegistry(_proxyRegistry);
+      }
+    }
+  }
+
+  void _registerLocalProxy(Type serviceType) {
+    try {
+      // Use generic helper via switch on string; limited but avoids mirrors in core
+      // Fallback: use dynamic proxy creation
+      final service = _tryGetServiceInstance(serviceType);
+      if (service == null) return;
+
+      final localProxy = LocalServiceProxy<BaseService>(logger: _logger);
+      localProxy.connect(service);
+      _proxyRegistry.registerProxyForType(serviceType, localProxy);
+    } catch (e, st) {
+      _logger.error('Failed to register local proxy', error: e, stackTrace: st);
+    }
+  }
+
+  BaseService? _tryGetServiceInstance(Type t) {
+    try {
+      // Use the public API: get via type-safe generics cannot be done dynamically,
+      // so expose instances via service info
+      final info = getAllServiceInfo().firstWhere(
+        (i) => i.type == t,
+        orElse: () => throw StateError('Service not found for type $t'),
+      );
+      final instance = info.instance;
+      if (instance is BaseService) return instance;
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Register a worker-backed service proxy for type [T].
+  ///
+  /// This starts a [ServiceWorker], initializes the service in the isolate,
+  /// and registers a [WorkerServiceProxy] in the proxy registry so that
+  /// services using [ServiceClientMixin] can call it.
+  Future<void> registerWorkerServiceProxy<T extends BaseService>({
+    required String serviceName,
+    required ServiceFactory<T> serviceFactory,
+    List<dynamic> args = const [],
+    ExceptionManager? exceptionManager,
+  }) async {
+    final worker = ServiceWorkerFactory().createWorker<T>(
+      serviceName: serviceName,
+      serviceFactory: serviceFactory,
+      args: args,
+      exceptionManager: exceptionManager,
+    );
+
+    await worker.start();
+    await worker.initializeService();
+
+    final workerProxy = WorkerServiceProxy<T>(logger: _logger);
+    await workerProxy.connect(worker);
+    _proxyRegistry.registerProxyForType(T, workerProxy);
+
+    _logger.info('Worker service proxy registered: $T');
+  }
 }
 
 /// Data passed to isolate on startup

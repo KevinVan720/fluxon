@@ -13,6 +13,11 @@ dev_dependencies:
   test: ^1.24.0
   mockito: ^5.4.0
   build_runner: ^2.4.0
+  source_gen: ^1.4.0
+  analyzer: ^6.4.0
+  build: ^2.4.0
+  squadron_method_generator:
+    path: packages/squadron_method_generator
 
 # Configuration for the package
 publish_to: none # Remove this line if you wish to publish to pub.dev

@@ -418,7 +418,7 @@ class EventDispatcher {
     final listener = serviceListeners.first;
 
     try {
-      final response = await listener.handler(event);
+      final response = await listener.handle(event);
       stopwatch.stop();
 
       return EventProcessingResponse(

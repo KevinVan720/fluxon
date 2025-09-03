@@ -14,19 +14,39 @@ import 'types/service_types.dart';
 abstract class ServiceProxy<T extends BaseService> {
   /// The target service type.
   Type get targetType;
-  
+
   /// Whether the proxy is connected to a service.
   bool get isConnected;
-  
+
   /// Calls a method on the target service.
-  Future<R> callMethod<R>(String methodName, List<dynamic> args, 
+  Future<R> callMethod<R>(String methodName, List<dynamic> args,
       {ServiceCallOptions? options});
-  
+
   /// Connects the proxy to a service instance or worker.
   Future<void> connect(dynamic target);
-  
+
   /// Disconnects the proxy.
   Future<void> disconnect();
+}
+
+typedef ServiceClientFactory<T extends BaseService> = T Function(
+  ServiceProxy<T> proxy,
+);
+
+class GeneratedClientRegistry {
+  static final Map<Type, dynamic> _factories = {};
+
+  static void register<T extends BaseService>(ServiceClientFactory<T> factory) {
+    _factories[T] = factory;
+  }
+
+  static T? create<T extends BaseService>(ServiceProxy<T> proxy) {
+    final dynamic factory = _factories[T];
+    if (factory == null) return null;
+    final ServiceClientFactory<T> typedFactory =
+        factory as ServiceClientFactory<T>;
+    return typedFactory(proxy);
+  }
 }
 
 /// Proxy for services running in the same isolate.
@@ -39,6 +59,9 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   final ServiceLogger _logger;
   T? _service;
 
+  /// Exposes the underlying local instance if connected.
+  T? peekInstance() => _service;
+
   @override
   Type get targetType => T;
 
@@ -49,8 +72,7 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   Future<void> connect(dynamic target) async {
     if (target is! T) {
       throw InvalidServiceTypeException(
-        'Expected service of type $T, got ${target.runtimeType}'
-      );
+          'Expected service of type $T, got ${target.runtimeType}');
     }
 
     _service = target;
@@ -60,7 +82,8 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   @override
   Future<void> disconnect() async {
     if (_service != null) {
-      _logger.debug('Disconnected from local service: ${_service!.serviceName}');
+      _logger
+          .debug('Disconnected from local service: ${_service!.serviceName}');
       _service = null;
     }
   }
@@ -81,22 +104,20 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     service.ensureNotDestroyed();
 
     final callOptions = options ?? const ServiceCallOptions();
-    
+
     try {
       return await _callMethodWithTimeout<R>(
-        service, 
-        methodName, 
-        args, 
+        service,
+        methodName,
+        args,
         callOptions.timeout,
       );
     } catch (error) {
-      _logger.error('Method call failed', 
-          error: error,
-          metadata: {
-            'service': service.serviceName,
-            'method': methodName,
-            'args': args,
-          });
+      _logger.error('Method call failed', error: error, metadata: {
+        'service': service.serviceName,
+        'method': methodName,
+        'args': args,
+      });
       rethrow;
     }
   }
@@ -108,7 +129,7 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     Duration timeout,
   ) async {
     final future = _invokeMethod<R>(service, methodName, args);
-    
+
     try {
       return await future.timeout(timeout);
     } on TimeoutException {
@@ -116,18 +137,19 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     }
   }
 
-  Future<R> _invokeMethod<R>(T service, String methodName, List<dynamic> args) async {
+  Future<R> _invokeMethod<R>(
+      T service, String methodName, List<dynamic> args) async {
     // Use mirrors for method invocation
     // Note: Mirrors are not available in all Dart environments (e.g., Flutter web)
     // In production, you might want to use code generation instead
-    
+
     final instanceMirror = reflect(service);
     final classMirror = instanceMirror.type;
-    
+
     // Find the method
     final methodSymbol = Symbol(methodName);
     final methodMirror = classMirror.instanceMembers[methodSymbol];
-    
+
     if (methodMirror == null) {
       throw ServiceMethodNotFoundException(service.serviceName, methodName);
     }
@@ -137,8 +159,9 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     final namedArgs = <Symbol, dynamic>{};
 
     try {
-      final result = instanceMirror.invoke(methodSymbol, positionalArgs, namedArgs);
-      
+      final result =
+          instanceMirror.invoke(methodSymbol, positionalArgs, namedArgs);
+
       // Handle both sync and async results
       if (result.reflectee is Future) {
         return await (result.reflectee as Future<R>);
@@ -171,8 +194,7 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   Future<void> connect(dynamic target) async {
     if (target is! ServiceWorker) {
       throw InvalidServiceTypeException(
-        'Expected ServiceWorker, got ${target.runtimeType}'
-      );
+          'Expected ServiceWorker, got ${target.runtimeType}');
     }
 
     _worker = target;
@@ -181,8 +203,20 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
 
   @override
   Future<void> disconnect() async {
-    if (_worker != null) {
-      _logger.debug('Disconnected from worker service: ${_worker!.serviceName}');
+    final worker = _worker;
+    if (worker != null) {
+      try {
+        // Attempt graceful shutdown of the service in the isolate
+        await worker.destroyService();
+      } catch (e) {
+        // Ignore errors during teardown
+      }
+      try {
+        worker.stop();
+      } catch (e) {
+        // Ignore errors during stop
+      }
+      _logger.debug('Disconnected from worker service: ${worker.serviceName}');
       _worker = null;
     }
   }
@@ -200,8 +234,28 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     }
 
     final callOptions = options ?? const ServiceCallOptions();
-    
+
     try {
+      // If we know a generated method id, prefer ID-based call; fallback to name on failure
+      final methodId = ServiceMethodIdRegistry.tryGetId<T>(methodName);
+      if (methodId != null) {
+        try {
+          return await _callMethodByIdWithRetry<R>(
+            worker,
+            methodId,
+            args,
+            callOptions,
+          );
+        } catch (_) {
+          // Fallback to name-based call when dispatcher is not available in worker
+          return await _callMethodWithRetry<R>(
+            worker,
+            methodName,
+            args,
+            callOptions,
+          );
+        }
+      }
       return await _callMethodWithRetry<R>(
         worker,
         methodName,
@@ -209,13 +263,11 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
         callOptions,
       );
     } catch (error) {
-      _logger.error('Worker method call failed', 
-          error: error,
-          metadata: {
-            'service': worker.serviceName,
-            'method': methodName,
-            'args': args,
-          });
+      _logger.error('Worker method call failed', error: error, metadata: {
+        'service': worker.serviceName,
+        'method': methodName,
+        'args': args,
+      });
       rethrow;
     }
   }
@@ -234,10 +286,10 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
         return await worker.callServiceMethod<R>(methodName, args);
       } catch (error) {
         attempt++;
-        
+
         if (attempt >= maxAttempts) {
           throw ServiceRetryExceededException(
-            'Method call: $methodName', 
+            'Method call: $methodName',
             options.retryAttempts,
           );
         }
@@ -257,7 +309,45 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     }
 
     // This should never be reached
-    throw ServiceRetryExceededException('Method call: $methodName', maxAttempts);
+    throw ServiceRetryExceededException(
+        'Method call: $methodName', maxAttempts);
+  }
+
+  Future<R> _callMethodByIdWithRetry<R>(
+    ServiceWorker worker,
+    int methodId,
+    List<dynamic> args,
+    ServiceCallOptions options,
+  ) async {
+    var attempt = 0;
+    final maxAttempts = options.retryAttempts + 1;
+
+    while (attempt < maxAttempts) {
+      try {
+        final result = await worker.send(6, args: [methodId, args]);
+        return result as R;
+      } catch (error) {
+        attempt++;
+        if (attempt >= maxAttempts) {
+          throw ServiceRetryExceededException(
+            'Method call by id: $methodId',
+            options.retryAttempts,
+          );
+        }
+        _logger.warning(
+          'Method call by id failed (attempt $attempt/$maxAttempts), retrying...',
+          metadata: {
+            'methodId': methodId,
+            'error': error.toString(),
+          },
+        );
+        if (options.retryDelay > Duration.zero) {
+          await Future.delayed(options.retryDelay);
+        }
+      }
+    }
+    throw ServiceRetryExceededException(
+        'Method call by id: $methodId', maxAttempts);
   }
 }
 
@@ -295,8 +385,7 @@ class ServiceProxyFactory {
       return proxy;
     } else {
       throw InvalidServiceTypeException(
-        'Cannot create proxy for target of type ${target.runtimeType}'
-      );
+          'Cannot create proxy for target of type ${target.runtimeType}');
     }
   }
 }
@@ -318,20 +407,19 @@ class ServiceProxyRegistry {
     _logger.debug('Registered proxy for service type: $T');
   }
 
+  /// Registers a proxy for a specific [type] at runtime.
+  void registerProxyForType(Type type, ServiceProxy proxy) {
+    _proxies[type] = proxy;
+    _logger.debug('Registered proxy for service type: $type');
+  }
+
   /// Gets a proxy for a service type.
   ServiceProxy<T> getProxy<T extends BaseService>() {
     final proxy = _proxies[T];
     if (proxy == null) {
       throw ServiceNotFoundException(T.toString());
     }
-
-    if (proxy is! ServiceProxy<T>) {
-      throw InvalidServiceTypeException(
-        'Proxy for $T is not of correct type'
-      );
-    }
-
-    return proxy;
+    return proxy as ServiceProxy<T>;
   }
 
   /// Creates and registers a proxy for a service.
@@ -377,17 +465,17 @@ class ServiceProxyRegistry {
   /// Gets statistics about registered proxies.
   Map<String, dynamic> getStatistics() {
     final stats = <String, dynamic>{};
-    
+
     for (final entry in _proxies.entries) {
       final type = entry.key;
       final proxy = entry.value;
-      
+
       stats[type.toString()] = {
         'connected': proxy.isConnected,
         'proxyType': proxy.runtimeType.toString(),
       };
     }
-    
+
     return stats;
   }
 }
@@ -406,11 +494,17 @@ mixin ServiceClientMixin on BaseService {
     final registry = _proxyRegistry;
     if (registry == null) {
       throw ServiceException(
-        'Proxy registry not set for service ${serviceName}'
-      );
+          'Proxy registry not set for service ${serviceName}');
     }
 
     final proxy = registry.getProxy<T>();
+    // Prefer returning the real local instance when available
+    if (proxy is LocalServiceProxy<T>) {
+      final instance = proxy.peekInstance();
+      if (instance != null) return instance;
+    }
+    final generated = GeneratedClientRegistry.create<T>(proxy);
+    if (generated != null) return generated;
     return _ServiceClient<T>(proxy) as T;
   }
 
@@ -435,16 +529,29 @@ class _ServiceClient<T extends BaseService> {
   dynamic noSuchMethod(Invocation invocation) {
     final methodName = MirrorSystem.getName(invocation.memberName);
     final args = invocation.positionalArguments;
-    
+
     // Handle async methods
     if (invocation.isMethod) {
       return _proxy.callMethod(methodName, args);
     }
-    
+
     throw ServiceMethodNotFoundException(
-      T.toString(), 
+      T.toString(),
       methodName,
     );
+  }
+}
+
+/// Lookup table for generated method IDs (populated by generated code via mixin)
+class ServiceMethodIdRegistry {
+  static final Map<Type, Map<String, int>> _ids = {};
+  static void register<T extends BaseService>(Map<String, int> methodIds) {
+    _ids[T] = methodIds;
+  }
+
+  static int? tryGetId<T extends BaseService>(String methodName) {
+    final map = _ids[T];
+    return map?[methodName];
   }
 }
 
@@ -530,8 +637,8 @@ class LoggingServiceInterceptor extends ServiceCallInterceptor {
     Object error,
     StackTrace stackTrace,
   ) async {
-    _logger.error('Service method failed', 
-        error: error, 
+    _logger.error('Service method failed',
+        error: error,
         stackTrace: stackTrace,
         metadata: {
           'service': serviceName,

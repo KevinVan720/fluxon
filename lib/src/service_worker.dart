@@ -2,7 +2,8 @@
 library service_worker;
 
 import 'dart:async';
-import 'dart:isolate';
+// 'dart:isolate' is not used directly here; Squadron manages isolates.
+import 'dart:mirrors';
 
 import 'package:squadron/squadron.dart';
 
@@ -10,6 +11,7 @@ import 'base_service.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'types/service_types.dart';
+import 'dispatcher_registry.dart';
 
 /// A Squadron worker wrapper that runs a service in an isolate.
 class ServiceWorker extends Worker {
@@ -19,14 +21,12 @@ class ServiceWorker extends Worker {
     required ServiceFactory serviceFactory,
     List args = const [],
     ExceptionManager? exceptionManager,
-  }) : _serviceName = serviceName,
-       _serviceFactory = serviceFactory,
-       super(_serviceWorkerEntryPoint, 
-             args: [serviceName, serviceFactory, ...args],
-             exceptionManager: exceptionManager);
+  })  : _serviceName = serviceName,
+        super(_serviceWorkerEntryPoint,
+            args: [serviceName, serviceFactory, ...args],
+            exceptionManager: exceptionManager);
 
   final String _serviceName;
-  final ServiceFactory _serviceFactory;
 
   /// Gets the service name.
   String get serviceName => _serviceName;
@@ -43,8 +43,8 @@ class ServiceWorker extends Worker {
 
   /// Calls a method on the service.
   Future<T> callServiceMethod<T>(String methodName, List<dynamic> args) async {
-    final result = await send(_ServiceWorkerCommands.callMethod, 
-        args: [methodName, args]);
+    final result =
+        await send(_ServiceWorkerCommands.callMethod, args: [methodName, args]);
     return result as T;
   }
 
@@ -56,8 +56,8 @@ class ServiceWorker extends Worker {
       timestamp: DateTime.parse(result['timestamp']),
       message: result['message'],
       details: Map<String, dynamic>.from(result['details'] ?? {}),
-      duration: result['duration'] != null 
-          ? Duration(microseconds: result['duration']) 
+      duration: result['duration'] != null
+          ? Duration(microseconds: result['duration'])
           : null,
     );
   }
@@ -80,12 +80,11 @@ Future<void> _serviceWorkerEntryPoint(WorkerRequest startRequest) async {
     serviceFactory: serviceFactory,
     args: additionalArgs,
   );
-  
+
   await service.install();
-  
-  // Handle worker requests
-  // This is a simplified implementation - in practice you'd need
-  // to set up proper message handling with Squadron
+
+  // Hand off to Squadron runtime to process requests using the operations map
+  run((_) => service, startRequest);
 }
 
 /// Commands for service worker communication.
@@ -95,6 +94,7 @@ class _ServiceWorkerCommands {
   static const int callMethod = 3;
   static const int healthCheck = 4;
   static const int getInfo = 5;
+  static const int callMethodById = 6;
 }
 
 /// Service implementation that runs in the worker isolate.
@@ -104,14 +104,14 @@ class _ServiceWorkerService implements WorkerService {
     required String serviceName,
     required ServiceFactory serviceFactory,
     List<dynamic> args = const [],
-  }) : _serviceName = serviceName,
-       _serviceFactory = serviceFactory,
-       _args = args;
+  })  : _serviceName = serviceName,
+        _serviceFactory = serviceFactory,
+        _args = args;
 
   final String _serviceName;
   final ServiceFactory _serviceFactory;
-  final List<dynamic> _args;
-  
+  final List<dynamic> _args; // reserved for future use (constructor params)
+
   BaseService? _service;
   late ServiceLogger _logger;
 
@@ -119,6 +119,9 @@ class _ServiceWorkerService implements WorkerService {
   Future<void> install() async {
     _logger = ServiceLogger(serviceName: 'ServiceWorker[$_serviceName]');
     _logger.info('Service worker isolate started');
+    if (_args.isNotEmpty) {
+      _logger.debug('Worker args received', metadata: {'count': _args.length});
+    }
   }
 
   /// Cleans up the worker service.
@@ -127,7 +130,7 @@ class _ServiceWorkerService implements WorkerService {
       try {
         await _service!.internalDestroy();
       } catch (error, stackTrace) {
-        _logger.error('Error during service cleanup', 
+        _logger.error('Error during service cleanup',
             error: error, stackTrace: stackTrace);
       }
     }
@@ -136,22 +139,24 @@ class _ServiceWorkerService implements WorkerService {
 
   @override
   Map<int, CommandHandler> get operations => {
-    _ServiceWorkerCommands.initialize: _handleInitialize,
-    _ServiceWorkerCommands.destroy: _handleDestroy,
-    _ServiceWorkerCommands.callMethod: _handleCallMethod,
-    _ServiceWorkerCommands.healthCheck: _handleHealthCheck,
-    _ServiceWorkerCommands.getInfo: _handleGetInfo,
-  };
+        _ServiceWorkerCommands.initialize: _handleInitialize,
+        _ServiceWorkerCommands.destroy: _handleDestroy,
+        _ServiceWorkerCommands.callMethod: _handleCallMethod,
+        _ServiceWorkerCommands.callMethodById: _handleCallMethodById,
+        _ServiceWorkerCommands.healthCheck: _handleHealthCheck,
+        _ServiceWorkerCommands.getInfo: _handleGetInfo,
+      };
 
   Future<void> _handleInitialize(WorkerRequest request) async {
     if (_service != null) {
-      throw ServiceStateException(_serviceName, 'initialized', 'not initialized');
+      throw ServiceStateException(
+          _serviceName, 'initialized', 'not initialized');
     }
 
     try {
       _logger.info('Creating service instance');
       _service = _serviceFactory();
-      
+
       if (_service == null) {
         throw ServiceFactoryException(_serviceName);
       }
@@ -160,7 +165,7 @@ class _ServiceWorkerService implements WorkerService {
       await _service!.internalInitialize();
       _logger.info('Service initialized successfully');
     } catch (error, stackTrace) {
-      _logger.error('Service initialization failed', 
+      _logger.error('Service initialization failed',
           error: error, stackTrace: stackTrace);
       _service = null;
       rethrow;
@@ -177,7 +182,7 @@ class _ServiceWorkerService implements WorkerService {
       await _service!.internalDestroy();
       _logger.info('Service destroyed successfully');
     } catch (error, stackTrace) {
-      _logger.error('Service destruction failed', 
+      _logger.error('Service destruction failed',
           error: error, stackTrace: stackTrace);
     } finally {
       _service = null;
@@ -186,7 +191,8 @@ class _ServiceWorkerService implements WorkerService {
 
   Future<dynamic> _handleCallMethod(WorkerRequest request) async {
     if (_service == null) {
-      throw ServiceStateException(_serviceName, 'not initialized', 'initialized');
+      throw ServiceStateException(
+          _serviceName, 'not initialized', 'initialized');
     }
 
     final methodName = request.args[0] as String;
@@ -198,10 +204,36 @@ class _ServiceWorkerService implements WorkerService {
       // sophisticated approach like code generation or a registry
       return await _callMethodByReflection(_service!, methodName, args);
     } catch (error, stackTrace) {
-      _logger.error('Method call failed', 
-          error: error, stackTrace: stackTrace,
+      _logger.error('Method call failed',
+          error: error,
+          stackTrace: stackTrace,
           metadata: {'method': methodName, 'args': args});
       throw ServiceCallException(_serviceName, methodName, error);
+    }
+  }
+
+  Future<dynamic> _handleCallMethodById(WorkerRequest request) async {
+    if (_service == null) {
+      throw ServiceStateException(
+          _serviceName, 'not initialized', 'initialized');
+    }
+
+    final methodId = request.args[0] as int;
+    final args = request.args[1] as List<dynamic>;
+
+    try {
+      final dispatcher =
+          GeneratedDispatcherRegistry.findDispatcherForObject(_service!);
+      if (dispatcher == null) {
+        throw ServiceException('No dispatcher registered for $_serviceName');
+      }
+      return await dispatcher(_service!, methodId, args);
+    } catch (error, stackTrace) {
+      _logger.error('Method call by id failed',
+          error: error,
+          stackTrace: stackTrace,
+          metadata: {'methodId': methodId, 'args': args});
+      throw ServiceCallException(_serviceName, '#$methodId', error);
     }
   }
 
@@ -224,7 +256,7 @@ class _ServiceWorkerService implements WorkerService {
         'duration': healthCheck.duration?.inMicroseconds,
       };
     } catch (error, stackTrace) {
-      _logger.error('Health check failed', 
+      _logger.error('Health check failed',
           error: error, stackTrace: stackTrace);
       return {
         'status': ServiceHealthStatus.unhealthy.index,
@@ -258,16 +290,33 @@ class _ServiceWorkerService implements WorkerService {
   }
 
   Future<dynamic> _callMethodByReflection(
-    BaseService service, 
-    String methodName, 
+    BaseService service,
+    String methodName,
     List<dynamic> args,
   ) async {
-    // This is a simplified reflection-like approach
-    // In a real implementation, you would use mirrors or code generation
-    
-    // For now, we'll throw an exception indicating that method calls
-    // need to be implemented through the service proxy system
-    throw ServiceMethodNotFoundException(_serviceName, methodName);
+    // Reflection-based invocation (VM-only). Codegen will replace this path.
+    final instanceMirror = reflect(service);
+    final classMirror = instanceMirror.type;
+
+    final methodSymbol = Symbol(methodName);
+    final methodMirror = classMirror.instanceMembers[methodSymbol];
+
+    if (methodMirror == null ||
+        methodMirror.isGetter ||
+        methodMirror.isSetter) {
+      throw ServiceMethodNotFoundException(_serviceName, methodName);
+    }
+
+    // Positional only for now; named args support can be added later via codegen
+    final positionalArgs = args;
+    final namedArgs = <Symbol, dynamic>{};
+
+    final result =
+        instanceMirror.invoke(methodSymbol, positionalArgs, namedArgs);
+    if (result.reflectee is Future) {
+      return await (result.reflectee as Future);
+    }
+    return result.reflectee;
   }
 }
 
@@ -302,7 +351,7 @@ class ServiceWorkerPool {
 
   /// Maximum number of workers in the pool.
   final int maxWorkers;
-  
+
   /// Minimum number of workers in the pool.
   final int minWorkers;
 
@@ -339,10 +388,10 @@ class ServiceWorkerPool {
         serviceName: serviceName,
         serviceFactory: factory,
       );
-      
+
       await worker.start();
       await worker.initializeService();
-      
+
       workers.add(worker);
       return worker;
     }
@@ -377,20 +426,21 @@ class ServiceWorkerPool {
   /// Gets statistics about the worker pool.
   Map<String, dynamic> getStatistics() {
     final stats = <String, dynamic>{};
-    
+
     for (final entry in _workers.entries) {
       final serviceName = entry.key;
       final workers = entry.value;
-      
+
       stats[serviceName] = {
         'totalWorkers': workers.length,
         'activeWorkers': workers.where((w) => !w.isStopped).length,
-        'idleWorkers': workers.where((w) => !w.isStopped && w.workload == 0).length,
+        'idleWorkers':
+            workers.where((w) => !w.isStopped && w.workload == 0).length,
         'totalWorkload': workers.fold<int>(0, (sum, w) => sum + w.workload),
         'totalErrors': workers.fold<int>(0, (sum, w) => sum + w.totalErrors),
       };
     }
-    
+
     return stats;
   }
 }

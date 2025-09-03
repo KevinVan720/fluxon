@@ -19,6 +19,8 @@ export 'src/dependency_resolver.dart';
 export 'src/service_logger.dart';
 export 'src/service_proxy.dart';
 export 'src/service_worker.dart';
+export 'src/annotations/service_annotations.dart';
+export 'src/dispatcher_registry.dart';
 
 // Squadron-first framework exports (temporarily disabled due to integration issues)
 // export 'src/squadron_service.dart';
