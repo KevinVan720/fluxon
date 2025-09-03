@@ -13,12 +13,12 @@ class ServiceAClient extends ServiceA {
 
   @override
   Future<int> incThenDouble(int x) async {
-    return await _proxy.callMethod('incThenDouble', [x]);
+    return await _proxy.callMethod('incThenDouble', [x], namedArgs: {});
   }
 
   @override
   Future<int> increment(int x) async {
-    return await _proxy.callMethod('increment', [x]);
+    return await _proxy.callMethod('increment', [x], namedArgs: {});
   }
 }
 
@@ -36,14 +36,15 @@ class _ServiceAMethods {
 Future<dynamic> _ServiceADispatcher(
   BaseService service,
   int methodId,
-  List<dynamic> args,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
 ) async {
   final s = service as ServiceA;
   switch (methodId) {
     case _ServiceAMethods.incThenDoubleId:
-      return await s.incThenDouble(args[0]);
+      return await s.incThenDouble(positionalArgs[0]);
     case _ServiceAMethods.incrementId:
-      return await s.increment(args[0]);
+      return await s.increment(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -74,12 +75,12 @@ class ServiceBClient extends ServiceB {
 
   @override
   Future<int> doubleThenInc(int x) async {
-    return await _proxy.callMethod('doubleThenInc', [x]);
+    return await _proxy.callMethod('doubleThenInc', [x], namedArgs: {});
   }
 
   @override
   Future<int> doubleIt(int x) async {
-    return await _proxy.callMethod('doubleIt', [x]);
+    return await _proxy.callMethod('doubleIt', [x], namedArgs: {});
   }
 }
 
@@ -97,14 +98,15 @@ class _ServiceBMethods {
 Future<dynamic> _ServiceBDispatcher(
   BaseService service,
   int methodId,
-  List<dynamic> args,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
 ) async {
   final s = service as ServiceB;
   switch (methodId) {
     case _ServiceBMethods.doubleThenIncId:
-      return await s.doubleThenInc(args[0]);
+      return await s.doubleThenInc(positionalArgs[0]);
     case _ServiceBMethods.doubleItId:
-      return await s.doubleIt(args[0]);
+      return await s.doubleIt(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }

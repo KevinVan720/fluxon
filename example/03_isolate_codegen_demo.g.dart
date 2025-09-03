@@ -13,7 +13,7 @@ class MathServiceClient extends MathService {
 
   @override
   Future<int> add(int a, int b) async {
-    return await _proxy.callMethod('add', [a, b]);
+    return await _proxy.callMethod('add', [a, b], namedArgs: {});
   }
 }
 
@@ -30,12 +30,13 @@ class _MathServiceMethods {
 Future<dynamic> _MathServiceDispatcher(
   BaseService service,
   int methodId,
-  List<dynamic> args,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
 ) async {
   final s = service as MathService;
   switch (methodId) {
     case _MathServiceMethods.addId:
-      return await s.add(args[0], args[1]);
+      return await s.add(positionalArgs[0], positionalArgs[1]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }

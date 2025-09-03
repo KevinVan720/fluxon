@@ -294,7 +294,8 @@ class EnhancedServiceLocator extends ServiceLocator {
         try {
           final serviceTypeStr = message['serviceType'] as String;
           final method = message['method'] as String;
-          final args = (message['args'] as List).cast<dynamic>();
+          final positional = (message['positional'] as List).cast<dynamic>();
+          final named = Map<String, dynamic>.from(message['named'] as Map);
           // Find proxy by stringified Type
           final targetType = _proxyRegistry.registeredTypes.firstWhere(
             (t) => t.toString() == serviceTypeStr,
@@ -307,7 +308,8 @@ class EnhancedServiceLocator extends ServiceLocator {
           dynamic result;
           if (proxy is WorkerServiceProxy) {
             // Worker proxy: use its callMethod which routes by generated method id
-            result = await proxy.callMethod<dynamic>(method, args);
+            result = await proxy.callMethod<dynamic>(method, positional,
+                namedArgs: named);
           } else if (proxy is LocalServiceProxy) {
             // Local proxy: dispatch via generated dispatcher using method id
             final instance = proxy.peekInstance();
@@ -323,7 +325,7 @@ class EnhancedServiceLocator extends ServiceLocator {
             if (dispatcher == null)
               throw ServiceException(
                   'No dispatcher registered for $serviceTypeStr');
-            result = await dispatcher(instance, methodId, args);
+            result = await dispatcher(instance, methodId, positional, named);
           } else {
             throw ServiceException(
                 'Unsupported proxy type: ${proxy.runtimeType}');

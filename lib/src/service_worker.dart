@@ -207,7 +207,10 @@ class _ServiceWorkerService implements WorkerService {
     }
 
     final methodId = request.args[0] as int;
-    final args = request.args[1] as List<dynamic>;
+    final positionalArgs = request.args[1] as List<dynamic>;
+    final namedArgs = request.args.length > 2
+        ? Map<String, dynamic>.from(request.args[2] as Map)
+        : <String, dynamic>{};
 
     try {
       final dispatcher =
@@ -215,12 +218,16 @@ class _ServiceWorkerService implements WorkerService {
       if (dispatcher == null) {
         throw ServiceException('No dispatcher registered for $_serviceName');
       }
-      return await dispatcher(_service!, methodId, args);
+      return await dispatcher(_service!, methodId, positionalArgs, namedArgs);
     } catch (error, stackTrace) {
       _logger.error('Method call by id failed',
           error: error,
           stackTrace: stackTrace,
-          metadata: {'methodId': methodId, 'args': args});
+          metadata: {
+            'methodId': methodId,
+            'positional': positionalArgs,
+            'named': namedArgs
+          });
       throw ServiceCallException(_serviceName, '#$methodId', error);
     }
   }
@@ -309,20 +316,25 @@ class BridgeServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   Future<void> disconnect() async {}
 
   @override
-  Future<R> callMethod<R>(String methodName, List<dynamic> args,
-      {ServiceCallOptions? options}) async {
+  Future<R> callMethod<R>(
+    String methodName,
+    List<dynamic> positionalArgs, {
+    Map<String, dynamic>? namedArgs,
+    ServiceCallOptions? options,
+  }) async {
     final reply = ReceivePort();
     try {
       _logger.debug('Outbound bridge call', metadata: {
         'service': T.toString(),
         'method': methodName,
-        'argsCount': args.length,
+        'positionalCount': positionalArgs.length,
       });
       final message = {
         'cmd': 'outboundCall',
         'serviceType': T.toString(),
         'method': methodName,
-        'args': args,
+        'positional': positionalArgs,
+        'named': namedArgs ?? const <String, dynamic>{},
         'replyTo': reply.sendPort,
       };
       _hostPort.send(message);

@@ -18,8 +18,12 @@ abstract class ServiceProxy<T extends BaseService> {
   bool get isConnected;
 
   /// Calls a method on the target service.
-  Future<R> callMethod<R>(String methodName, List<dynamic> args,
-      {ServiceCallOptions? options});
+  Future<R> callMethod<R>(
+    String methodName,
+    List<dynamic> positionalArgs, {
+    Map<String, dynamic>? namedArgs,
+    ServiceCallOptions? options,
+  });
 
   /// Connects the proxy to a service instance or worker.
   Future<void> connect(dynamic target);
@@ -88,8 +92,12 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   }
 
   @override
-  Future<R> callMethod<R>(String methodName, List<dynamic> args,
-      {ServiceCallOptions? options}) async {
+  Future<R> callMethod<R>(
+    String methodName,
+    List<dynamic> positionalArgs, {
+    Map<String, dynamic>? namedArgs,
+    ServiceCallOptions? options,
+  }) async {
     // Name-based invocation on local proxies is disabled to remove reflection paths.
     // Services should obtain local instances via ServiceClientMixin.getService<T>(),
     // which returns the actual instance for LocalServiceProxy.
@@ -146,8 +154,12 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   }
 
   @override
-  Future<R> callMethod<R>(String methodName, List<dynamic> args,
-      {ServiceCallOptions? options}) async {
+  Future<R> callMethod<R>(
+    String methodName,
+    List<dynamic> positionalArgs, {
+    Map<String, dynamic>? namedArgs,
+    ServiceCallOptions? options,
+  }) async {
     final worker = _worker;
     if (worker == null || worker.isStopped) {
       throw ServiceStateException(
@@ -168,14 +180,16 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
       return await _callMethodByIdWithRetry<R>(
         worker,
         methodId,
-        args,
+        positionalArgs,
+        namedArgs ?? const {},
         callOptions,
       );
     } catch (error) {
       _logger.error('Worker method call failed', error: error, metadata: {
         'service': worker.serviceName,
         'method': methodName,
-        'args': args,
+        'positional': positionalArgs,
+        'named': namedArgs,
       });
       rethrow;
     }
@@ -184,7 +198,8 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   Future<R> _callMethodByIdWithRetry<R>(
     ServiceWorker worker,
     int methodId,
-    List<dynamic> args,
+    List<dynamic> positionalArgs,
+    Map<String, dynamic> namedArgs,
     ServiceCallOptions options,
   ) async {
     var attempt = 0;
@@ -192,7 +207,8 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
 
     while (attempt < maxAttempts) {
       try {
-        final result = await worker.send(6, args: [methodId, args]);
+        final result =
+            await worker.send(6, args: [methodId, positionalArgs, namedArgs]);
         return result as R;
       } catch (error) {
         attempt++;

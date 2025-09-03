@@ -46,13 +46,21 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       final returnType = m.returnType.getDisplayString(withNullability: true);
       final paramsSig = m.parameters.map((p) {
         final t = p.type.getDisplayString(withNullability: true);
-        return '$t ${p.name}';
+        final isNamed = p.isNamed;
+        final isRequiredNamed = p.isNamed && p.isRequiredNamed;
+        final nameSig = isNamed ? 'required $t ${p.name}' : '$t ${p.name}';
+        return nameSig;
       }).join(', ');
-      final argsList = m.parameters.map((p) => p.name).join(', ');
+      final positionalNames =
+          m.parameters.where((p) => p.isPositional).map((p) => p.name).toList();
+      final namedNames = m.parameters
+          .where((p) => p.isNamed)
+          .map((p) => "'${p.name}': ${p.name}")
+          .join(', ');
       buf.writeln('  @override');
       buf.writeln('  $returnType $methodName($paramsSig) async {');
       buf.writeln(
-          "    return await _proxy.callMethod('$methodName', [$argsList]);");
+          "    return await _proxy.callMethod('$methodName', [${positionalNames.join(', ')}], namedArgs: {${namedNames}});");
       buf.writeln('  }');
       buf.writeln('');
     }
@@ -75,18 +83,26 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln('Future<dynamic> _${className}Dispatcher(');
     buf.writeln('  BaseService service,');
     buf.writeln('  int methodId,');
-    buf.writeln('  List<dynamic> args,');
+    buf.writeln('  List<dynamic> positionalArgs,');
+    buf.writeln('  Map<String, dynamic> namedArgs,');
     buf.writeln(') async {');
     buf.writeln('  final s = service as $className;');
     buf.writeln('  switch (methodId) {');
     for (final entry in methodIds.entries) {
       final method =
           classEl.methods.firstWhere((m) => m.displayName == entry.key);
-      final argList = method.parameters
-          .asMap()
-          .entries
-          .map((e) => 'args[${e.key}]')
-          .join(', ');
+      final argList = () {
+        final parts = <String>[];
+        var positionalIndex = 0;
+        for (final p in method.parameters) {
+          if (p.isPositional) {
+            parts.add('positionalArgs[' + (positionalIndex++).toString() + ']');
+          } else if (p.isNamed) {
+            parts.add(p.name + ': namedArgs[' ' + p.name + ' ']');
+          }
+        }
+        return parts.join(', ');
+      }();
       buf.writeln('    case _${className}Methods.${entry.key}Id:');
       buf.writeln('      return await s.${entry.key}($argList);');
     }

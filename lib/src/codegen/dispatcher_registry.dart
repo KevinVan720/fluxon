@@ -5,7 +5,8 @@ import '../base_service.dart';
 typedef ServiceDispatcher = Future<dynamic> Function(
   BaseService service,
   int methodId,
-  List<dynamic> args,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
 );
 
 class GeneratedDispatcherRegistry {
