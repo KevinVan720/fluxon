@@ -3,6 +3,7 @@ library flux_runtime;
 
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:mirrors';
 
 import 'package:squadron/squadron.dart';
 
@@ -162,6 +163,9 @@ class FluxRuntime {
       config: tempInstance.config,
       registeredAt: DateTime.now(),
     );
+
+    // 🚀 AUTO-REGISTRATION: Try to automatically register local side for this service
+    _tryAutoRegisterLocalSide(serviceType);
 
     _logger.info('Registered service: $serviceName');
     _logger.debug('Service dependencies', metadata: {
@@ -374,11 +378,80 @@ class FluxRuntime {
     try {
       final service = _tryGetServiceInstance(serviceType);
       if (service == null) return;
+
       final localProxy = LocalServiceProxy<BaseService>(logger: _logger);
       localProxy.connect(service);
       _proxyRegistry.registerProxyForType(serviceType, localProxy);
     } catch (e, st) {
       _logger.error('Failed to register local proxy', error: e, stackTrace: st);
+    }
+  }
+
+  /// Attempts to automatically call the generated $register{ClassName}LocalSide() function
+  /// for local services to register their client factories, dispatchers, and method IDs.
+  void _tryAutoRegisterLocalSide(Type serviceType) {
+    try {
+      final className = serviceType.toString();
+      final functionName = '\$register${className}LocalSide';
+
+      _logger
+          .debug('Attempting auto-registration for local service', metadata: {
+        'serviceType': className,
+        'function': functionName,
+        'registryTypes':
+            LocalSideRegistry.registeredTypes.map((t) => t.toString()).toList(),
+      });
+
+      // First try the LocalSideRegistry approach
+      var success = LocalSideRegistry.tryRegisterLocalSide(serviceType);
+      if (success) {
+        _logger.debug('Auto-registered local side for service via registry',
+            metadata: {
+              'serviceType': className,
+            });
+        return;
+      }
+
+      // If registry approach fails, try to call the function by name
+      // This is a fallback for when the generated code hasn't loaded yet
+      try {
+        // Dynamic function lookup as fallback
+        final library = currentMirrorSystem().isolate.rootLibrary;
+        library.invoke(Symbol(functionName), []);
+        _logger.debug(
+            'Auto-registered local side for service via dynamic lookup',
+            metadata: {
+              'serviceType': className,
+            });
+        return;
+      } catch (_) {
+        // Dynamic lookup failed, try searching libraries
+        for (final lib in currentMirrorSystem().libraries.values) {
+          try {
+            lib.invoke(Symbol(functionName), []);
+            _logger.debug(
+                'Auto-registered local side for service via library search',
+                metadata: {
+                  'serviceType': className,
+                });
+            return;
+          } catch (_) {
+            continue;
+          }
+        }
+      }
+
+      _logger.debug('No auto-registration function found', metadata: {
+        'serviceType': className,
+        'function': functionName,
+      });
+    } catch (e, st) {
+      // Don't fail the proxy registration if auto-registration fails
+      _logger.warning('Auto-registration failed for local service', metadata: {
+        'serviceType': serviceType.toString(),
+        'error': e.toString(),
+        'stackTrace': st.toString(),
+      });
     }
   }
 

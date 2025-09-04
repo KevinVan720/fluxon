@@ -141,3 +141,13 @@ void $registerSimpleTaskServiceLocalSide() {
   $registerSimpleTaskServiceClientFactory();
   $registerSimpleTaskServiceMethodIds();
 }
+
+void $autoRegisterSimpleTaskServiceLocalSide() {
+  LocalSideRegistry.register<SimpleTaskService>(
+      $registerSimpleTaskServiceLocalSide);
+}
+
+final $_SimpleTaskServiceLocalSideRegistered = (() {
+  $autoRegisterSimpleTaskServiceLocalSide();
+  return true;
+})();

@@ -78,6 +78,16 @@ void $registerTaskOrchestratorLocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterTaskOrchestratorLocalSide() {
+  LocalSideRegistry.register<TaskOrchestrator>(
+      $registerTaskOrchestratorLocalSide);
+}
+
+final $_TaskOrchestratorLocalSideRegistered = (() {
+  $autoRegisterTaskOrchestratorLocalSide();
+  return true;
+})();
+
 // Service client for TaskProcessor
 class TaskProcessorClient extends TaskProcessor {
   TaskProcessorClient(this._proxy);
@@ -176,6 +186,15 @@ void $registerTaskProcessorLocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterTaskProcessorLocalSide() {
+  LocalSideRegistry.register<TaskProcessor>($registerTaskProcessorLocalSide);
+}
+
+final $_TaskProcessorLocalSideRegistered = (() {
+  $autoRegisterTaskProcessorLocalSide();
+  return true;
+})();
+
 // Service client for TaskLogger
 class TaskLoggerClient extends TaskLogger {
   TaskLoggerClient(this._proxy);
@@ -263,3 +282,12 @@ void $registerTaskLoggerLocalSide() {
   $registerTaskLoggerClientFactory();
   $registerTaskLoggerMethodIds();
 }
+
+void $autoRegisterTaskLoggerLocalSide() {
+  LocalSideRegistry.register<TaskLogger>($registerTaskLoggerLocalSide);
+}
+
+final $_TaskLoggerLocalSideRegistered = (() {
+  $autoRegisterTaskLoggerLocalSide();
+  return true;
+})();

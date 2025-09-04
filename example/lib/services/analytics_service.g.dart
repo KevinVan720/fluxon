@@ -119,3 +119,13 @@ void $registerAnalyticsServiceLocalSide() {
   $registerAnalyticsServiceClientFactory();
   $registerAnalyticsServiceMethodIds();
 }
+
+void $autoRegisterAnalyticsServiceLocalSide() {
+  LocalSideRegistry.register<AnalyticsService>(
+      $registerAnalyticsServiceLocalSide);
+}
+
+final $_AnalyticsServiceLocalSideRegistered = (() {
+  $autoRegisterAnalyticsServiceLocalSide();
+  return true;
+})();

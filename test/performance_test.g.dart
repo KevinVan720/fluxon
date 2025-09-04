@@ -94,6 +94,16 @@ void $registerPerformanceServiceLocalSide() {
   $registerPerformanceServiceMethodIds();
 }
 
+void $autoRegisterPerformanceServiceLocalSide() {
+  LocalSideRegistry.register<PerformanceService>(
+      $registerPerformanceServiceLocalSide);
+}
+
+final $_PerformanceServiceLocalSideRegistered = (() {
+  $autoRegisterPerformanceServiceLocalSide();
+  return true;
+})();
+
 // Service client for EventReceiverService
 class EventReceiverServiceClient extends EventReceiverService {
   EventReceiverServiceClient(this._proxy);
@@ -152,6 +162,16 @@ void $registerEventReceiverServiceLocalSide() {
   $registerEventReceiverServiceClientFactory();
   $registerEventReceiverServiceMethodIds();
 }
+
+void $autoRegisterEventReceiverServiceLocalSide() {
+  LocalSideRegistry.register<EventReceiverService>(
+      $registerEventReceiverServiceLocalSide);
+}
+
+final $_EventReceiverServiceLocalSideRegistered = (() {
+  $autoRegisterEventReceiverServiceLocalSide();
+  return true;
+})();
 
 // Service client for LoadTestService
 class LoadTestServiceClient extends LoadTestService {
@@ -220,3 +240,13 @@ void $registerLoadTestServiceLocalSide() {
   $registerLoadTestServiceClientFactory();
   $registerLoadTestServiceMethodIds();
 }
+
+void $autoRegisterLoadTestServiceLocalSide() {
+  LocalSideRegistry.register<LoadTestService>(
+      $registerLoadTestServiceLocalSide);
+}
+
+final $_LoadTestServiceLocalSideRegistered = (() {
+  $autoRegisterLoadTestServiceLocalSide();
+  return true;
+})();

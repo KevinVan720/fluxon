@@ -90,3 +90,12 @@ void $registerFlakyServiceLocalSide() {
   $registerFlakyServiceClientFactory();
   $registerFlakyServiceMethodIds();
 }
+
+void $autoRegisterFlakyServiceLocalSide() {
+  LocalSideRegistry.register<FlakyService>($registerFlakyServiceLocalSide);
+}
+
+final $_FlakyServiceLocalSideRegistered = (() {
+  $autoRegisterFlakyServiceLocalSide();
+  return true;
+})();

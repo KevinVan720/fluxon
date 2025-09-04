@@ -54,6 +54,16 @@ void $registerFailingInitServiceLocalSide() {
   $registerFailingInitServiceMethodIds();
 }
 
+void $autoRegisterFailingInitServiceLocalSide() {
+  LocalSideRegistry.register<FailingInitService>(
+      $registerFailingInitServiceLocalSide);
+}
+
+final $_FailingInitServiceLocalSideRegistered = (() {
+  $autoRegisterFailingInitServiceLocalSide();
+  return true;
+})();
+
 // Service client for FailingMethodService
 class FailingMethodServiceClient extends FailingMethodService {
   FailingMethodServiceClient(this._proxy);
@@ -139,6 +149,16 @@ void $registerFailingMethodServiceLocalSide() {
   $registerFailingMethodServiceMethodIds();
 }
 
+void $autoRegisterFailingMethodServiceLocalSide() {
+  LocalSideRegistry.register<FailingMethodService>(
+      $registerFailingMethodServiceLocalSide);
+}
+
+final $_FailingMethodServiceLocalSideRegistered = (() {
+  $autoRegisterFailingMethodServiceLocalSide();
+  return true;
+})();
+
 // Service client for InvalidDependencyService
 class InvalidDependencyServiceClient extends InvalidDependencyService {
   InvalidDependencyServiceClient(this._proxy);
@@ -204,6 +224,16 @@ void $registerInvalidDependencyServiceLocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterInvalidDependencyServiceLocalSide() {
+  LocalSideRegistry.register<InvalidDependencyService>(
+      $registerInvalidDependencyServiceLocalSide);
+}
+
+final $_InvalidDependencyServiceLocalSideRegistered = (() {
+  $autoRegisterInvalidDependencyServiceLocalSide();
+  return true;
+})();
+
 // Service client for CorruptingService
 class CorruptingServiceClient extends CorruptingService {
   CorruptingServiceClient(this._proxy);
@@ -262,6 +292,16 @@ void $registerCorruptingServiceLocalSide() {
   $registerCorruptingServiceClientFactory();
   $registerCorruptingServiceMethodIds();
 }
+
+void $autoRegisterCorruptingServiceLocalSide() {
+  LocalSideRegistry.register<CorruptingService>(
+      $registerCorruptingServiceLocalSide);
+}
+
+final $_CorruptingServiceLocalSideRegistered = (() {
+  $autoRegisterCorruptingServiceLocalSide();
+  return true;
+})();
 
 // Service client for SlowService
 class SlowServiceClient extends SlowService {
@@ -348,6 +388,15 @@ void $registerSlowServiceLocalSide() {
   $registerSlowServiceMethodIds();
 }
 
+void $autoRegisterSlowServiceLocalSide() {
+  LocalSideRegistry.register<SlowService>($registerSlowServiceLocalSide);
+}
+
+final $_SlowServiceLocalSideRegistered = (() {
+  $autoRegisterSlowServiceLocalSide();
+  return true;
+})();
+
 // Service client for MemoryLeakService
 class MemoryLeakServiceClient extends MemoryLeakService {
   MemoryLeakServiceClient(this._proxy);
@@ -406,3 +455,13 @@ void $registerMemoryLeakServiceLocalSide() {
   $registerMemoryLeakServiceClientFactory();
   $registerMemoryLeakServiceMethodIds();
 }
+
+void $autoRegisterMemoryLeakServiceLocalSide() {
+  LocalSideRegistry.register<MemoryLeakService>(
+      $registerMemoryLeakServiceLocalSide);
+}
+
+final $_MemoryLeakServiceLocalSideRegistered = (() {
+  $autoRegisterMemoryLeakServiceLocalSide();
+  return true;
+})();

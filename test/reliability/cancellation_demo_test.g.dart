@@ -90,3 +90,12 @@ void $registerSlowServiceLocalSide() {
   $registerSlowServiceClientFactory();
   $registerSlowServiceMethodIds();
 }
+
+void $autoRegisterSlowServiceLocalSide() {
+  LocalSideRegistry.register<SlowService>($registerSlowServiceLocalSide);
+}
+
+final $_SlowServiceLocalSideRegistered = (() {
+  $autoRegisterSlowServiceLocalSide();
+  return true;
+})();

@@ -85,6 +85,15 @@ void $registerReportServiceLocalSide() {
   $registerReportServiceMethodIds();
 }
 
+void $autoRegisterReportServiceLocalSide() {
+  LocalSideRegistry.register<ReportService>($registerReportServiceLocalSide);
+}
+
+final $_ReportServiceLocalSideRegistered = (() {
+  $autoRegisterReportServiceLocalSide();
+  return true;
+})();
+
 // Service client for Coordinator
 class CoordinatorClient extends Coordinator {
   CoordinatorClient(this._proxy);
@@ -149,3 +158,12 @@ void $registerCoordinatorLocalSide() {
     $registerReportServiceMethodIds();
   } catch (_) {}
 }
+
+void $autoRegisterCoordinatorLocalSide() {
+  LocalSideRegistry.register<Coordinator>($registerCoordinatorLocalSide);
+}
+
+final $_CoordinatorLocalSideRegistered = (() {
+  $autoRegisterCoordinatorLocalSide();
+  return true;
+})();

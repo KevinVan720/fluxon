@@ -110,6 +110,16 @@ void $registerConcurrentServiceLocalSide() {
   $registerConcurrentServiceMethodIds();
 }
 
+void $autoRegisterConcurrentServiceLocalSide() {
+  LocalSideRegistry.register<ConcurrentService>(
+      $registerConcurrentServiceLocalSide);
+}
+
+final $_ConcurrentServiceLocalSideRegistered = (() {
+  $autoRegisterConcurrentServiceLocalSide();
+  return true;
+})();
+
 // Service client for RaceConditionService
 class RaceConditionServiceClient extends RaceConditionService {
   RaceConditionServiceClient(this._proxy);
@@ -180,3 +190,13 @@ void $registerRaceConditionServiceLocalSide() {
   $registerRaceConditionServiceClientFactory();
   $registerRaceConditionServiceMethodIds();
 }
+
+void $autoRegisterRaceConditionServiceLocalSide() {
+  LocalSideRegistry.register<RaceConditionService>(
+      $registerRaceConditionServiceLocalSide);
+}
+
+final $_RaceConditionServiceLocalSideRegistered = (() {
+  $autoRegisterRaceConditionServiceLocalSide();
+  return true;
+})();

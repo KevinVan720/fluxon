@@ -145,3 +145,13 @@ void $registerNotificationServiceLocalSide() {
     $registerUserServiceMethodIds();
   } catch (_) {}
 }
+
+void $autoRegisterNotificationServiceLocalSide() {
+  LocalSideRegistry.register<NotificationService>(
+      $registerNotificationServiceLocalSide);
+}
+
+final $_NotificationServiceLocalSideRegistered = (() {
+  $autoRegisterNotificationServiceLocalSide();
+  return true;
+})();

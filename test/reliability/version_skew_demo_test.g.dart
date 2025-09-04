@@ -81,3 +81,12 @@ void $registerApiV1LocalSide() {
   $registerApiV1ClientFactory();
   $registerApiV1MethodIds();
 }
+
+void $autoRegisterApiV1LocalSide() {
+  LocalSideRegistry.register<ApiV1>($registerApiV1LocalSide);
+}
+
+final $_ApiV1LocalSideRegistered = (() {
+  $autoRegisterApiV1LocalSide();
+  return true;
+})();

@@ -96,3 +96,12 @@ void $registerPolicyServiceLocalSide() {
   $registerPolicyServiceClientFactory();
   $registerPolicyServiceMethodIds();
 }
+
+void $autoRegisterPolicyServiceLocalSide() {
+  LocalSideRegistry.register<PolicyService>($registerPolicyServiceLocalSide);
+}
+
+final $_PolicyServiceLocalSideRegistered = (() {
+  $autoRegisterPolicyServiceLocalSide();
+  return true;
+})();

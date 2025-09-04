@@ -65,6 +65,15 @@ void $registerUserServiceLocalSide() {
   $registerUserServiceMethodIds();
 }
 
+void $autoRegisterUserServiceLocalSide() {
+  LocalSideRegistry.register<UserService>($registerUserServiceLocalSide);
+}
+
+final $_UserServiceLocalSideRegistered = (() {
+  $autoRegisterUserServiceLocalSide();
+  return true;
+})();
+
 // Service client for OrderService
 class OrderServiceClient extends OrderService {
   OrderServiceClient(this._proxy);
@@ -127,6 +136,15 @@ void $registerOrderServiceLocalSide() {
   $registerOrderServiceMethodIds();
 }
 
+void $autoRegisterOrderServiceLocalSide() {
+  LocalSideRegistry.register<OrderService>($registerOrderServiceLocalSide);
+}
+
+final $_OrderServiceLocalSideRegistered = (() {
+  $autoRegisterOrderServiceLocalSide();
+  return true;
+})();
+
 // Service client for NotificationService
 class NotificationServiceClient extends NotificationService {
   NotificationServiceClient(this._proxy);
@@ -174,6 +192,16 @@ void $registerNotificationServiceLocalSide() {
   $registerNotificationServiceClientFactory();
   $registerNotificationServiceMethodIds();
 }
+
+void $autoRegisterNotificationServiceLocalSide() {
+  LocalSideRegistry.register<NotificationService>(
+      $registerNotificationServiceLocalSide);
+}
+
+final $_NotificationServiceLocalSideRegistered = (() {
+  $autoRegisterNotificationServiceLocalSide();
+  return true;
+})();
 
 // Service client for AnalyticsService
 class AnalyticsServiceClient extends AnalyticsService {
@@ -233,3 +261,13 @@ void $registerAnalyticsServiceLocalSide() {
   $registerAnalyticsServiceClientFactory();
   $registerAnalyticsServiceMethodIds();
 }
+
+void $autoRegisterAnalyticsServiceLocalSide() {
+  LocalSideRegistry.register<AnalyticsService>(
+      $registerAnalyticsServiceLocalSide);
+}
+
+final $_AnalyticsServiceLocalSideRegistered = (() {
+  $autoRegisterAnalyticsServiceLocalSide();
+  return true;
+})();

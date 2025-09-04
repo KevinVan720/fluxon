@@ -156,3 +156,12 @@ void $registerTaskServiceLocalSide() {
     $registerStorageServiceMethodIds();
   } catch (_) {}
 }
+
+void $autoRegisterTaskServiceLocalSide() {
+  LocalSideRegistry.register<TaskService>($registerTaskServiceLocalSide);
+}
+
+final $_TaskServiceLocalSideRegistered = (() {
+  $autoRegisterTaskServiceLocalSide();
+  return true;
+})();

@@ -102,6 +102,15 @@ void $registerServiceALocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterServiceALocalSide() {
+  LocalSideRegistry.register<ServiceA>($registerServiceALocalSide);
+}
+
+final $_ServiceALocalSideRegistered = (() {
+  $autoRegisterServiceALocalSide();
+  return true;
+})();
+
 // Service client for ServiceB
 class ServiceBClient extends ServiceB {
   ServiceBClient(this._proxy);
@@ -197,3 +206,12 @@ void $registerServiceBLocalSide() {
     $registerServiceAMethodIds();
   } catch (_) {}
 }
+
+void $autoRegisterServiceBLocalSide() {
+  LocalSideRegistry.register<ServiceB>($registerServiceBLocalSide);
+}
+
+final $_ServiceBLocalSideRegistered = (() {
+  $autoRegisterServiceBLocalSide();
+  return true;
+})();

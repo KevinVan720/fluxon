@@ -149,3 +149,12 @@ void $registerUserServiceLocalSide() {
     $registerStorageServiceMethodIds();
   } catch (_) {}
 }
+
+void $autoRegisterUserServiceLocalSide() {
+  LocalSideRegistry.register<UserService>($registerUserServiceLocalSide);
+}
+
+final $_UserServiceLocalSideRegistered = (() {
+  $autoRegisterUserServiceLocalSide();
+  return true;
+})();

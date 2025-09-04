@@ -80,6 +80,16 @@ void $registerMessageCoordinatorLocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterMessageCoordinatorLocalSide() {
+  LocalSideRegistry.register<MessageCoordinator>(
+      $registerMessageCoordinatorLocalSide);
+}
+
+final $_MessageCoordinatorLocalSideRegistered = (() {
+  $autoRegisterMessageCoordinatorLocalSide();
+  return true;
+})();
+
 // Service client for MessageProcessor
 class MessageProcessorClient extends MessageProcessor {
   MessageProcessorClient(this._proxy);
@@ -177,6 +187,16 @@ void $registerMessageProcessorLocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterMessageProcessorLocalSide() {
+  LocalSideRegistry.register<MessageProcessor>(
+      $registerMessageProcessorLocalSide);
+}
+
+final $_MessageProcessorLocalSideRegistered = (() {
+  $autoRegisterMessageProcessorLocalSide();
+  return true;
+})();
+
 // Service client for MessageLogger
 class MessageLoggerClient extends MessageLogger {
   MessageLoggerClient(this._proxy);
@@ -264,3 +284,12 @@ void $registerMessageLoggerLocalSide() {
   $registerMessageLoggerClientFactory();
   $registerMessageLoggerMethodIds();
 }
+
+void $autoRegisterMessageLoggerLocalSide() {
+  LocalSideRegistry.register<MessageLogger>($registerMessageLoggerLocalSide);
+}
+
+final $_MessageLoggerLocalSideRegistered = (() {
+  $autoRegisterMessageLoggerLocalSide();
+  return true;
+})();

@@ -100,3 +100,12 @@ void $registerStorageServiceLocalSide() {
   $registerStorageServiceClientFactory();
   $registerStorageServiceMethodIds();
 }
+
+void $autoRegisterStorageServiceLocalSide() {
+  LocalSideRegistry.register<StorageService>($registerStorageServiceLocalSide);
+}
+
+final $_StorageServiceLocalSideRegistered = (() {
+  $autoRegisterStorageServiceLocalSide();
+  return true;
+})();

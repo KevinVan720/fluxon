@@ -82,3 +82,13 @@ void $registerSimpleUserServiceLocalSide() {
   $registerSimpleUserServiceClientFactory();
   $registerSimpleUserServiceMethodIds();
 }
+
+void $autoRegisterSimpleUserServiceLocalSide() {
+  LocalSideRegistry.register<SimpleUserService>(
+      $registerSimpleUserServiceLocalSide);
+}
+
+final $_SimpleUserServiceLocalSideRegistered = (() {
+  $autoRegisterSimpleUserServiceLocalSide();
+  return true;
+})();

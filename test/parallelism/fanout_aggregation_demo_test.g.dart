@@ -82,6 +82,15 @@ void $registerPricingServiceLocalSide() {
   $registerPricingServiceMethodIds();
 }
 
+void $autoRegisterPricingServiceLocalSide() {
+  LocalSideRegistry.register<PricingService>($registerPricingServiceLocalSide);
+}
+
+final $_PricingServiceLocalSideRegistered = (() {
+  $autoRegisterPricingServiceLocalSide();
+  return true;
+})();
+
 // Service client for InventoryService
 class InventoryServiceClient extends InventoryService {
   InventoryServiceClient(this._proxy);
@@ -157,3 +166,13 @@ void $registerInventoryServiceLocalSide() {
   $registerInventoryServiceClientFactory();
   $registerInventoryServiceMethodIds();
 }
+
+void $autoRegisterInventoryServiceLocalSide() {
+  LocalSideRegistry.register<InventoryService>(
+      $registerInventoryServiceLocalSide);
+}
+
+final $_InventoryServiceLocalSideRegistered = (() {
+  $autoRegisterInventoryServiceLocalSide();
+  return true;
+})();

@@ -47,8 +47,7 @@ class GeneratedClientRegistry {
   static T? create<T extends BaseService>(ServiceProxy<T> proxy) {
     final dynamic factory = _factories[T];
     if (factory == null) return null;
-    final typedFactory =
-        factory as ServiceClientFactory<T>;
+    final typedFactory = factory as ServiceClientFactory<T>;
     return typedFactory(proxy);
   }
 }
@@ -266,12 +265,14 @@ class ServiceProxyFactory {
   /// Creates a local service proxy.
   LocalServiceProxy<T> createLocalProxy<T extends BaseService>({
     ServiceLogger? logger,
-  }) => LocalServiceProxy<T>(logger: logger);
+  }) =>
+      LocalServiceProxy<T>(logger: logger);
 
   /// Creates a worker service proxy.
   WorkerServiceProxy<T> createWorkerProxy<T extends BaseService>({
     ServiceLogger? logger,
-  }) => WorkerServiceProxy<T>(logger: logger);
+  }) =>
+      WorkerServiceProxy<T>(logger: logger);
 
   /// Creates the appropriate proxy based on the target.
   ServiceProxy<T> createProxy<T extends BaseService>(
@@ -408,8 +409,7 @@ mixin ServiceClientMixin on BaseService {
   T getService<T extends BaseService>() {
     final registry = _proxyRegistry;
     if (registry == null) {
-      throw ServiceException(
-          'Proxy registry not set for service $serviceName');
+      throw ServiceException('Proxy registry not set for service $serviceName');
     }
 
     final proxy = registry.getProxy<T>();
@@ -455,6 +455,33 @@ class ServiceMethodIdRegistry {
     final map = _ids[type];
     return map?[methodName];
   }
+}
+
+/// Registry for local side registration functions (automatically populated by generated code)
+class LocalSideRegistry {
+  static final Map<Type, Function()> _registrationFunctions = {};
+
+  /// Registers a local side registration function for a service type
+  static void register<T extends BaseService>(Function() registrationFunction) {
+    _registrationFunctions[T] = registrationFunction;
+  }
+
+  /// Tries to execute the local side registration for a given service type
+  static bool tryRegisterLocalSide(Type serviceType) {
+    final registrationFunction = _registrationFunctions[serviceType];
+    if (registrationFunction != null) {
+      try {
+        registrationFunction();
+        return true;
+      } catch (_) {
+        return false;
+      }
+    }
+    return false;
+  }
+
+  /// Gets all registered service types
+  static Set<Type> get registeredTypes => _registrationFunctions.keys.toSet();
 }
 
 /// Interceptor for method calls on service proxies.

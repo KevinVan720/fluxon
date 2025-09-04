@@ -122,6 +122,15 @@ void $registerRemoteEmitterLocalSide() {
   } catch (_) {}
 }
 
+void $autoRegisterRemoteEmitterLocalSide() {
+  LocalSideRegistry.register<RemoteEmitter>($registerRemoteEmitterLocalSide);
+}
+
+final $_RemoteEmitterLocalSideRegistered = (() {
+  $autoRegisterRemoteEmitterLocalSide();
+  return true;
+})();
+
 // Service client for RemoteListener
 class RemoteListenerClient extends RemoteListener {
   RemoteListenerClient(this._proxy);
@@ -207,6 +216,15 @@ void $registerRemoteListenerLocalSide() {
   $registerRemoteListenerMethodIds();
 }
 
+void $autoRegisterRemoteListenerLocalSide() {
+  LocalSideRegistry.register<RemoteListener>($registerRemoteListenerLocalSide);
+}
+
+final $_RemoteListenerLocalSideRegistered = (() {
+  $autoRegisterRemoteListenerLocalSide();
+  return true;
+})();
+
 // Service client for LocalHub
 class LocalHubClient extends LocalHub {
   LocalHubClient(this._proxy);
@@ -274,3 +292,12 @@ void $registerLocalHubLocalSide() {
   $registerLocalHubClientFactory();
   $registerLocalHubMethodIds();
 }
+
+void $autoRegisterLocalHubLocalSide() {
+  LocalSideRegistry.register<LocalHub>($registerLocalHubLocalSide);
+}
+
+final $_LocalHubLocalSideRegistered = (() {
+  $autoRegisterLocalHubLocalSide();
+  return true;
+})();

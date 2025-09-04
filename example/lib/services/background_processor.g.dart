@@ -125,3 +125,13 @@ void $registerBackgroundProcessorLocalSide() {
     $registerTaskServiceMethodIds();
   } catch (_) {}
 }
+
+void $autoRegisterBackgroundProcessorLocalSide() {
+  LocalSideRegistry.register<BackgroundProcessor>(
+      $registerBackgroundProcessorLocalSide);
+}
+
+final $_BackgroundProcessorLocalSideRegistered = (() {
+  $autoRegisterBackgroundProcessorLocalSide();
+  return true;
+})();

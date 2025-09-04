@@ -254,6 +254,20 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       }
     }
     buf.writeln('}');
+    buf.writeln();
+
+    // 🚀 AUTO-REGISTRATION: Register the LocalSide function in the global registry
+    buf.writeln('void \$autoRegister${className}LocalSide() {');
+    buf.writeln(
+        '  LocalSideRegistry.register<$className>(\$register${className}LocalSide);');
+    buf.writeln('}');
+    buf.writeln();
+
+    // 🚀 AUTOMATIC CALL: Execute registration immediately when this code is loaded
+    buf.writeln('final \$_${className}LocalSideRegistered = (() {');
+    buf.writeln('  \$autoRegister${className}LocalSide();');
+    buf.writeln('  return true;');
+    buf.writeln('})();');
     return buf.toString();
   }
 
