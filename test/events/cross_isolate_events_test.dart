@@ -243,19 +243,17 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   await locator.registerWorkerServiceProxy<MessageProcessor>(
     serviceName: 'MessageProcessor',
     serviceFactory: () => MessageProcessorWorker(),
-    registerGenerated: registerMessageProcessorGenerated,
   );
 
   await locator.registerWorkerServiceProxy<MessageLogger>(
     serviceName: 'MessageLogger',
     serviceFactory: () => MessageLoggerWorker(),
-    registerGenerated: registerMessageLoggerGenerated,
   );
 
   await locator.initializeAll();
 
   final coordinator = locator.get<MessageCoordinator>();
-  final processor = locator.get<MessageProcessor>();
+  // final processor = locator.get<MessageProcessor>();
   final messageLogger = locator.get<MessageLogger>();
 
   // Send messages - events should flow to all isolates!

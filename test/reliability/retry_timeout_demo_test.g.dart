@@ -68,6 +68,23 @@ void registerFlakyServiceGenerated() {
   _registerFlakyServiceMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class FlakyServiceWorker extends FlakyService {
+  @override
+  Type get clientBaseType => FlakyService;
+  @override
+  Future<void> registerHostSide() async {
+    _registerFlakyServiceClientFactory();
+    _registerFlakyServiceMethodIds();
+  }
+
+  @override
+  Future<void> initialize() async {
+    _registerFlakyServiceDispatcher();
+    await super.initialize();
+  }
+}
+
 // 🚀 FLUX: Single registration call mixin
 mixin FlakyServiceRegistration {
   void registerService() {

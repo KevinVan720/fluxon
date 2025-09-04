@@ -74,6 +74,23 @@ void registerPolicyServiceGenerated() {
   _registerPolicyServiceMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class PolicyServiceWorker extends PolicyService {
+  @override
+  Type get clientBaseType => PolicyService;
+  @override
+  Future<void> registerHostSide() async {
+    _registerPolicyServiceClientFactory();
+    _registerPolicyServiceMethodIds();
+  }
+
+  @override
+  Future<void> initialize() async {
+    _registerPolicyServiceDispatcher();
+    await super.initialize();
+  }
+}
+
 // 🚀 FLUX: Single registration call mixin
 mixin PolicyServiceRegistration {
   void registerService() {

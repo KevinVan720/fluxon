@@ -68,6 +68,23 @@ void registerSlowServiceGenerated() {
   _registerSlowServiceMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class SlowServiceWorker extends SlowService {
+  @override
+  Type get clientBaseType => SlowService;
+  @override
+  Future<void> registerHostSide() async {
+    _registerSlowServiceClientFactory();
+    _registerSlowServiceMethodIds();
+  }
+
+  @override
+  Future<void> initialize() async {
+    _registerSlowServiceDispatcher();
+    await super.initialize();
+  }
+}
+
 // 🚀 FLUX: Single registration call mixin
 mixin SlowServiceRegistration {
   void registerService() {

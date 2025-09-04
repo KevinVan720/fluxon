@@ -201,6 +201,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           '// Worker implementation that auto-registers the dispatcher');
       buf.writeln('class ${className}Worker extends $className {');
       buf.writeln('  @override');
+      buf.writeln('  Type get clientBaseType => $className;');
+      buf.writeln('  @override');
+      buf.writeln('  Future<void> registerHostSide() async {');
+      buf.writeln('    _register${className}ClientFactory();');
+      buf.writeln('    _register${className}MethodIds();');
+      buf.writeln('  }');
+      buf.writeln('  @override');
       buf.writeln('  Future<void> initialize() async {');
       buf.writeln('    _register${className}Dispatcher();');
       buf.writeln('    await super.initialize();');

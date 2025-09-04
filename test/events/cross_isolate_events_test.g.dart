@@ -126,6 +126,14 @@ void registerMessageProcessorGenerated() {
 // Worker implementation that auto-registers the dispatcher
 class MessageProcessorWorker extends MessageProcessor {
   @override
+  Type get clientBaseType => MessageProcessor;
+  @override
+  Future<void> registerHostSide() async {
+    _registerMessageProcessorClientFactory();
+    _registerMessageProcessorMethodIds();
+  }
+
+  @override
   Future<void> initialize() async {
     _registerMessageProcessorDispatcher();
     await super.initialize();
@@ -206,6 +214,14 @@ void registerMessageLoggerGenerated() {
 
 // Worker implementation that auto-registers the dispatcher
 class MessageLoggerWorker extends MessageLogger {
+  @override
+  Type get clientBaseType => MessageLogger;
+  @override
+  Future<void> registerHostSide() async {
+    _registerMessageLoggerClientFactory();
+    _registerMessageLoggerMethodIds();
+  }
+
   @override
   Future<void> initialize() async {
     _registerMessageLoggerDispatcher();

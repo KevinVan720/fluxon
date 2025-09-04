@@ -4,24 +4,12 @@ import 'package:dart_service_framework/dart_service_framework.dart';
 part 'cancellation_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-abstract class SlowService extends BaseService {
-  Future<String> sleepMs(int ms);
-  Future<String> quick();
-}
-
-class SlowServiceImpl extends SlowService {
-  @override
-  Future<void> initialize() async {
-    _registerSlowServiceDispatcher();
-  }
-
-  @override
+class SlowService extends FluxService {
   Future<String> sleepMs(int ms) async {
     await Future.delayed(Duration(milliseconds: ms));
     return 'slept ${ms}ms';
   }
 
-  @override
   Future<String> quick() async => 'quick-ok';
 }
 
@@ -30,8 +18,7 @@ Future<void> _runCancellationdemoDemo() async {
   try {
     await locator.registerWorkerServiceProxy<SlowService>(
       serviceName: 'SlowService',
-      serviceFactory: () => SlowServiceImpl(),
-      registerGenerated: registerSlowServiceGenerated,
+      serviceFactory: () => SlowServiceWorker(),
     );
 
     await locator.initializeAll();
@@ -53,8 +40,9 @@ Future<void> _runCancellationdemoDemo() async {
     }
 
     // Verify subsequent call still works
-    final ok = await proxy.callMethod<String>('quick', [],
-        options: const ServiceCallOptions(timeout: Duration(seconds: 2)));} finally {
+    await proxy.callMethod<String>('quick', [],
+        options: const ServiceCallOptions(timeout: Duration(seconds: 2)));
+  } finally {
     await locator.destroyAll();
   }
 }

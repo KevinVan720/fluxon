@@ -62,6 +62,14 @@ void registerPricingServiceGenerated() {
 // Worker implementation that auto-registers the dispatcher
 class PricingServiceWorker extends PricingService {
   @override
+  Type get clientBaseType => PricingService;
+  @override
+  Future<void> registerHostSide() async {
+    _registerPricingServiceClientFactory();
+    _registerPricingServiceMethodIds();
+  }
+
+  @override
   Future<void> initialize() async {
     _registerPricingServiceDispatcher();
     await super.initialize();
@@ -130,6 +138,14 @@ void registerInventoryServiceGenerated() {
 
 // Worker implementation that auto-registers the dispatcher
 class InventoryServiceWorker extends InventoryService {
+  @override
+  Type get clientBaseType => InventoryService;
+  @override
+  Future<void> registerHostSide() async {
+    _registerInventoryServiceClientFactory();
+    _registerInventoryServiceMethodIds();
+  }
+
   @override
   Future<void> initialize() async {
     _registerInventoryServiceDispatcher();

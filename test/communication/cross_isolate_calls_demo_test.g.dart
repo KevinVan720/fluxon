@@ -62,6 +62,14 @@ void registerServiceAGenerated() {
 // Worker implementation that auto-registers the dispatcher
 class ServiceAWorker extends ServiceA {
   @override
+  Type get clientBaseType => ServiceA;
+  @override
+  Future<void> registerHostSide() async {
+    _registerServiceAClientFactory();
+    _registerServiceAMethodIds();
+  }
+
+  @override
   Future<void> initialize() async {
     _registerServiceADispatcher();
     await super.initialize();
@@ -130,6 +138,14 @@ void registerServiceBGenerated() {
 
 // Worker implementation that auto-registers the dispatcher
 class ServiceBWorker extends ServiceB {
+  @override
+  Type get clientBaseType => ServiceB;
+  @override
+  Future<void> registerHostSide() async {
+    _registerServiceBClientFactory();
+    _registerServiceBMethodIds();
+  }
+
   @override
   Future<void> initialize() async {
     _registerServiceBDispatcher();

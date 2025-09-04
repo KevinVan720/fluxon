@@ -4,30 +4,17 @@ import 'package:dart_service_framework/dart_service_framework.dart';
 part 'policy_timeout_retry_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-abstract class PolicyService extends BaseService {
-  @ServiceMethod(retryAttempts: 2, retryDelayMs: 50)
-  Future<String> flaky();
-
-  @ServiceMethod(timeoutMs: 100)
-  Future<String> slow();
-}
-
-class PolicyServiceImpl extends PolicyService {
+class PolicyService extends FluxService {
   int _n = 0;
 
-  @override
-  Future<void> initialize() async {
-    _registerPolicyServiceDispatcher();
-  }
-
-  @override
+  @ServiceMethod(retryAttempts: 2, retryDelayMs: 50)
   Future<String> flaky() async {
     _n++;
     if (_n < 3) throw StateError('flaky');
     return 'ok-after-$_n';
   }
 
-  @override
+  @ServiceMethod(timeoutMs: 100)
   Future<String> slow() async {
     await Future.delayed(const Duration(milliseconds: 300));
     return 'slow-finished';
@@ -39,8 +26,7 @@ Future<void> _runPolicytimeoutretrydemoDemo() async {
   try {
     await locator.registerWorkerServiceProxy<PolicyService>(
       serviceName: 'PolicyService',
-      serviceFactory: () => PolicyServiceImpl(),
-      registerGenerated: registerPolicyServiceGenerated,
+      serviceFactory: () => PolicyServiceWorker(),
     );
 
     await locator.initializeAll();

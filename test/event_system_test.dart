@@ -91,7 +91,7 @@ class TestServiceA extends BaseService with ServiceEventMixin {
     onEvent<TestEvent>((event) async {
       receivedEvents.add(event);
       processedMessages.add('A processed: ${event.message}');
-      
+
       return EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 10),
@@ -102,7 +102,7 @@ class TestServiceA extends BaseService with ServiceEventMixin {
     onEvent<CriticalEvent>((event) async {
       receivedEvents.add(event);
       processedMessages.add('A handled critical: ${event.alertLevel}');
-      
+
       return EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 50),
@@ -124,13 +124,13 @@ class TestServiceB extends BaseService with ServiceEventMixin {
     // Set up event listeners
     onEvent<TestEvent>((event) async {
       receivedEvents.add(event);
-      
+
       if (shouldFail) {
         throw Exception('Service B intentionally failed');
       }
-      
+
       processedMessages.add('B processed: ${event.message}');
-      
+
       return EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 20),
@@ -146,10 +146,10 @@ class TestServiceB extends BaseService with ServiceEventMixin {
           processingTime: Duration(milliseconds: 1),
         );
       }
-      
+
       receivedEvents.add(event);
       processedMessages.add('B handled high critical: ${event.alertLevel}');
-      
+
       return EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 30),
@@ -175,10 +175,10 @@ class TestServiceC extends BaseService with ServiceEventMixin {
           processingTime: Duration(milliseconds: 1),
         );
       }
-      
+
       receivedEvents.add(event);
       processedMessages.add('C processed high priority: ${event.message}');
-      
+
       return EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 15),
@@ -255,9 +255,11 @@ void main() {
       final result = await serviceA.broadcastEvent(event);
 
       expect(result.isSuccess, isTrue);
-      expect(result.successCount, equals(1)); // Only serviceB processes priority 3
+      expect(
+          result.successCount, equals(1)); // Only serviceB processes priority 3
       expect(serviceB.receivedEvents, hasLength(1));
-      expect(serviceB.processedMessages, contains('B processed: Broadcast message'));
+      expect(serviceB.processedMessages,
+          contains('B processed: Broadcast message'));
       expect(serviceC.receivedEvents, isEmpty); // Priority too low for serviceC
     });
 
@@ -281,8 +283,10 @@ void main() {
       expect(result.successCount, equals(2));
       expect(serviceB.receivedEvents, hasLength(1));
       expect(serviceC.receivedEvents, hasLength(1));
-      expect(serviceB.processedMessages, contains('B processed: Targeted message'));
-      expect(serviceC.processedMessages, contains('C processed high priority: Targeted message'));
+      expect(serviceB.processedMessages,
+          contains('B processed: Targeted message'));
+      expect(serviceC.processedMessages,
+          contains('C processed high priority: Targeted message'));
     });
 
     test('should handle event processing failures gracefully', () async {
@@ -328,7 +332,8 @@ void main() {
       // ServiceC should only receive the high priority event
       expect(serviceC.receivedEvents, hasLength(1));
       expect(serviceC.receivedEvents.first.eventId, equals('high-priority'));
-      expect(serviceC.processedMessages, contains('C processed high priority: High priority'));
+      expect(serviceC.processedMessages,
+          contains('C processed high priority: High priority'));
     });
 
     test('should handle critical events with priority', () async {
@@ -351,13 +356,14 @@ void main() {
       expect(serviceA.receivedEvents, hasLength(1));
       expect(serviceB.receivedEvents, hasLength(1));
       expect(serviceA.processedMessages, contains('A handled critical: HIGH'));
-      expect(serviceB.processedMessages, contains('B handled high critical: HIGH'));
+      expect(serviceB.processedMessages,
+          contains('B handled high critical: HIGH'));
     });
 
     test('should support event subscriptions', () async {
       final receivedEvents = <TestEvent>[];
       final subscription = serviceA.subscribeToEvents<TestEvent>();
-      
+
       subscription.stream.listen((event) {
         receivedEvents.add(event as TestEvent);
       });
@@ -401,7 +407,7 @@ void main() {
 
       final stats = dispatcher.getStatistics();
       expect(stats, isNotEmpty);
-      
+
       final testEventStats = stats['TestEvent'];
       expect(testEventStats, isNotNull);
       expect(testEventStats!.totalSent, greaterThan(0));
@@ -427,7 +433,8 @@ void main() {
       );
 
       expect(result.isSuccess, isTrue);
-      expect(result.successCount, equals(2)); // ServiceB (targeted) + ServiceC (broadcast)
+      expect(result.successCount,
+          equals(2)); // ServiceB (targeted) + ServiceC (broadcast)
       expect(serviceB.receivedEvents, hasLength(1));
       expect(serviceC.receivedEvents, hasLength(1));
     });
@@ -475,7 +482,7 @@ void main() {
       );
 
       final stopwatch = Stopwatch()..start();
-      final result = await serviceA.sendEvent(event, distribution: distribution);
+      await serviceA.sendEvent(event, distribution: distribution);
       stopwatch.stop();
 
       // Should complete quickly due to timeout
@@ -523,7 +530,8 @@ void main() {
       );
 
       final distribution = EventDistribution.broadcast();
-      final result = await serviceA.sendEvent(event, distribution: distribution);
+      final result =
+          await serviceA.sendEvent(event, distribution: distribution);
 
       expect(result.responses.length, equals(2)); // ServiceB and ServiceC
       expect(result.successCount, equals(2));
@@ -540,7 +548,8 @@ void main() {
 
       final targets = [EventTarget(serviceType: TestServiceC)];
       final distribution = EventDistribution.targeted(targets);
-      final result = await serviceA.sendEvent(event, distribution: distribution);
+      final result =
+          await serviceA.sendEvent(event, distribution: distribution);
 
       expect(result.responses.length, equals(1)); // Only ServiceC
       expect(result.successCount, equals(1));
@@ -561,7 +570,8 @@ void main() {
         strategy: EventDistributionStrategy.broadcastExcept,
         excludeServices: [TestServiceB],
       );
-      final result = await serviceA.sendEvent(event, distribution: distribution);
+      final result =
+          await serviceA.sendEvent(event, distribution: distribution);
 
       expect(result.responses.length, equals(1)); // Only ServiceC
       expect(result.successCount, equals(1));

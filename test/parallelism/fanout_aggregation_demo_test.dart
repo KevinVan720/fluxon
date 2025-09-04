@@ -62,18 +62,16 @@ Future<void> _runFanoutaggregationdemoDemo() async {
   await locator.registerWorkerServiceProxy<PricingService>(
     serviceName: 'PricingService',
     serviceFactory: () => PricingServiceWorker(),
-    registerGenerated: registerPricingServiceGenerated,
   );
   await locator.registerWorkerServiceProxy<InventoryService>(
     serviceName: 'InventoryService',
     serviceFactory: () => InventoryServiceWorker(),
-    registerGenerated: registerInventoryServiceGenerated,
   );
 
   await locator.initializeAll();
 
   final agg = locator.get<Aggregator>();
-  final offer = await agg.getOffer('SKU-123');
+  await agg.getOffer('SKU-123');
 
   await locator.destroyAll();
 }

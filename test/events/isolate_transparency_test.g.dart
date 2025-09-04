@@ -125,6 +125,14 @@ void registerTaskProcessorGenerated() {
 // Worker implementation that auto-registers the dispatcher
 class TaskProcessorWorker extends TaskProcessor {
   @override
+  Type get clientBaseType => TaskProcessor;
+  @override
+  Future<void> registerHostSide() async {
+    _registerTaskProcessorClientFactory();
+    _registerTaskProcessorMethodIds();
+  }
+
+  @override
   Future<void> initialize() async {
     _registerTaskProcessorDispatcher();
     await super.initialize();
@@ -205,6 +213,14 @@ void registerTaskLoggerGenerated() {
 
 // Worker implementation that auto-registers the dispatcher
 class TaskLoggerWorker extends TaskLogger {
+  @override
+  Type get clientBaseType => TaskLogger;
+  @override
+  Future<void> registerHostSide() async {
+    _registerTaskLoggerClientFactory();
+    _registerTaskLoggerMethodIds();
+  }
+
   @override
   Future<void> initialize() async {
     _registerTaskLoggerDispatcher();

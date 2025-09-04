@@ -1,6 +1,4 @@
 import 'package:test/test.dart';
-import 'dart:math';
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
 part 'parallel_workers_demo_test.g.dart';

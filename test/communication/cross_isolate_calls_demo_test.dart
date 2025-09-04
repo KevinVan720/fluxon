@@ -62,12 +62,10 @@ Future<void> _runCrossisolatecallsdemoDemo() async {
   await locator.registerWorkerServiceProxy<ServiceA>(
     serviceName: 'ServiceA',
     serviceFactory: () => ServiceAWorker(),
-    registerGenerated: registerServiceAGenerated,
   );
   await locator.registerWorkerServiceProxy<ServiceB>(
     serviceName: 'ServiceB',
     serviceFactory: () => ServiceBWorker(),
-    registerGenerated: registerServiceBGenerated,
   );
 
   await locator.initializeAll();

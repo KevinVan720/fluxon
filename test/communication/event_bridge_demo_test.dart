@@ -94,18 +94,16 @@ Future<void> _runEventbridgedemoDemo() async {
   await locator.registerWorkerServiceProxy<RemoteListener>(
     serviceName: 'RemoteListener',
     serviceFactory: () => RemoteListenerWorker(),
-    registerGenerated: registerRemoteListenerGenerated,
   );
   await locator.registerWorkerServiceProxy<RemoteEmitter>(
     serviceName: 'RemoteEmitter',
     serviceFactory: () => RemoteEmitterWorker(),
-    registerGenerated: registerRemoteEmitterGenerated,
   );
 
   await locator.initializeAll();
 
   final orchestrator = locator.get<Orchestrator>();
-  final count = await orchestrator.run();
+  await orchestrator.run();
 
   await locator.destroyAll();
 }

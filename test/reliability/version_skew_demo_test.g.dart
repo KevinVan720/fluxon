@@ -59,6 +59,23 @@ void registerApiV1Generated() {
   _registerApiV1MethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class ApiV1Worker extends ApiV1 {
+  @override
+  Type get clientBaseType => ApiV1;
+  @override
+  Future<void> registerHostSide() async {
+    _registerApiV1ClientFactory();
+    _registerApiV1MethodIds();
+  }
+
+  @override
+  Future<void> initialize() async {
+    _registerApiV1Dispatcher();
+    await super.initialize();
+  }
+}
+
 // 🚀 FLUX: Single registration call mixin
 mixin ApiV1Registration {
   void registerService() {

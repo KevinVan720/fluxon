@@ -62,6 +62,23 @@ void registerReportServiceGenerated() {
   _registerReportServiceMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class ReportServiceWorker extends ReportService {
+  @override
+  Type get clientBaseType => ReportService;
+  @override
+  Future<void> registerHostSide() async {
+    _registerReportServiceClientFactory();
+    _registerReportServiceMethodIds();
+  }
+
+  @override
+  Future<void> initialize() async {
+    _registerReportServiceDispatcher();
+    await super.initialize();
+  }
+}
+
 // 🚀 FLUX: Single registration call mixin
 mixin ReportServiceRegistration {
   void registerService() {

@@ -18,6 +18,7 @@ import 'events/event_dispatcher.dart';
 import 'events/event_bridge.dart';
 import 'events/event_mixin.dart';
 import 'events/service_event.dart';
+import 'flux_service.dart';
 
 /// Central registry and manager for all services in the application.
 ///
@@ -404,10 +405,13 @@ class ServiceLocator {
     required ServiceFactory<T> serviceFactory,
     List<dynamic> args = const [],
     ExceptionManager? exceptionManager,
-    void Function()? registerGenerated,
   }) async {
     try {
-      registerGenerated?.call();
+      // Call host-side registration hook if available (FluxService override in worker)
+      final temp = serviceFactory();
+      if (temp is FluxService) {
+        await temp.registerHostSide();
+      }
     } catch (e, st) {
       _logger.error('Error during generated registration',
           error: e, stackTrace: st);
@@ -423,7 +427,14 @@ class ServiceLocator {
     await worker.initializeService();
     final workerProxy = WorkerServiceProxy<T>(logger: _logger);
     await workerProxy.connect(worker);
-    _proxyRegistry.registerProxyForType(T, workerProxy);
+    // Register proxy under the base client type for transparency
+    try {
+      final temp = serviceFactory();
+      final clientType = temp.clientBaseType;
+      _proxyRegistry.registerProxyForType(clientType, workerProxy);
+    } catch (_) {
+      _proxyRegistry.registerProxyForType(T, workerProxy);
+    }
 
     // 🚀 REGISTER WORKER FOR EVENT BRIDGING
     _workerRegistry[serviceName] = worker;

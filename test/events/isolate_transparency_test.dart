@@ -114,7 +114,6 @@ class TaskProcessor extends FluxService {
     await super.initialize();
   }
 
-  @override
   Future<Map<String, dynamic>> processTask(
       String taskId, Map<String, dynamic> data) async {
     logger.info('Processing task', metadata: {'taskId': taskId});
@@ -192,20 +191,18 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
   await locator.registerWorkerServiceProxy<TaskProcessor>(
     serviceName: 'TaskProcessor',
     serviceFactory: () => TaskProcessorWorker(),
-    registerGenerated: registerTaskProcessorGenerated,
   );
 
   await locator.registerWorkerServiceProxy<TaskLogger>(
     serviceName: 'TaskLogger',
     serviceFactory: () => TaskLoggerWorker(),
-    registerGenerated: registerTaskLoggerGenerated,
   );
 
   // 🚀 OPTIMIZATION: All event infrastructure is set up automatically!
   await locator.initializeAll();
 
   final orchestrator = locator.get<TaskOrchestrator>();
-  final processor = locator.get<TaskProcessor>();
+  // final processor = locator.get<TaskProcessor>();
   final taskLogger = locator.get<TaskLogger>();
 
   // Execute tasks - completely transparent API!
@@ -267,7 +264,7 @@ void main() {
 
       await locator.initializeAll();
 
-      final orchestrator = locator.get<TaskOrchestrator>();
+      // final orchestrator = locator.get<TaskOrchestrator>();
 
       // The service should have event infrastructure automatically set up
       // (This would be verified by checking internal state in a real implementation)

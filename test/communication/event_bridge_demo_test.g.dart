@@ -62,6 +62,14 @@ void registerRemoteEmitterGenerated() {
 // Worker implementation that auto-registers the dispatcher
 class RemoteEmitterWorker extends RemoteEmitter {
   @override
+  Type get clientBaseType => RemoteEmitter;
+  @override
+  Future<void> registerHostSide() async {
+    _registerRemoteEmitterClientFactory();
+    _registerRemoteEmitterMethodIds();
+  }
+
+  @override
   Future<void> initialize() async {
     _registerRemoteEmitterDispatcher();
     await super.initialize();
@@ -139,6 +147,14 @@ void registerRemoteListenerGenerated() {
 
 // Worker implementation that auto-registers the dispatcher
 class RemoteListenerWorker extends RemoteListener {
+  @override
+  Type get clientBaseType => RemoteListener;
+  @override
+  Future<void> registerHostSide() async {
+    _registerRemoteListenerClientFactory();
+    _registerRemoteListenerMethodIds();
+  }
+
   @override
   Future<void> initialize() async {
     _registerRemoteListenerDispatcher();

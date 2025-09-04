@@ -4,18 +4,7 @@ import 'package:dart_service_framework/dart_service_framework.dart';
 part 'version_skew_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-abstract class ApiV1 extends BaseService {
-  Future<String> greet(String name);
-}
-
-// Intentionally mismatched implementation that uses different ordering
-class ApiV1Impl extends ApiV1 {
-  @override
-  Future<void> initialize() async {
-    _registerApiV1Dispatcher();
-  }
-
-  @override
+class ApiV1 extends FluxService {
   Future<String> greet(String name) async => 'hello $name';
 }
 
@@ -25,8 +14,7 @@ Future<void> _runVersionskewdemoDemo() async {
     // Register worker with ApiV1
     await locator.registerWorkerServiceProxy<ApiV1>(
       serviceName: 'ApiV1',
-      serviceFactory: () => ApiV1Impl(),
-      registerGenerated: registerApiV1Generated,
+      serviceFactory: () => ApiV1Worker(),
     );
 
     await locator.initializeAll();
@@ -39,9 +27,10 @@ Future<void> _runVersionskewdemoDemo() async {
 
     final client = locator.proxyRegistry.getProxy<ApiV1>();
     try {
-      final res = await client.callMethod<String>('greet', ['world']);} on ServiceRetryExceededException catch (e) {
+      await client.callMethod<String>('greet', ['world']);
+    } on ServiceRetryExceededException catch (e) {
       print('Version skew detected (retry exceeded): ${e.message}');
-    } on ServiceException catch (e) {}
+    } on ServiceException {}
   } finally {
     await locator.destroyAll();
   }
