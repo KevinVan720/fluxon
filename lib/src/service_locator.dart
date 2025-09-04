@@ -14,6 +14,10 @@ import 'service_worker.dart';
 import 'package:squadron/squadron.dart';
 import 'types/service_types.dart';
 import 'codegen/dispatcher_registry.dart';
+import 'events/event_dispatcher.dart';
+import 'events/event_bridge.dart';
+import 'events/event_mixin.dart';
+import 'events/service_event.dart';
 
 /// Central registry and manager for all services in the application.
 ///
@@ -31,12 +35,24 @@ class ServiceLocator {
     _dependencyResolver = DependencyResolver();
     _registry = ServiceRegistry(logger: _logger);
     _proxyRegistry = ServiceProxyRegistry(logger: _logger);
+
+    // Initialize automatic event infrastructure
+    _eventDispatcher = EventDispatcher(logger: _logger);
+    _eventBridge = EventBridge(isolateName: 'MainIsolate', logger: _logger);
+    _eventBridge.initialize(_eventDispatcher,
+        workerBroadcastCallback: _broadcastEventToAllWorkers);
+
+    _logger.info('ServiceLocator created with automatic event infrastructure');
   }
 
   final ServiceLogger _logger;
   late final DependencyResolver _dependencyResolver;
   late final ServiceRegistry _registry;
   late final ServiceProxyRegistry _proxyRegistry;
+
+  // Automatic event infrastructure
+  late final EventDispatcher _eventDispatcher;
+  late final EventBridge _eventBridge;
 
   final Map<Type, ServiceFactory> _factories = {};
   final Map<Type, BaseService> _instances = {};
@@ -54,6 +70,9 @@ class ServiceLocator {
   final Map<Type, SendPort> _isolatePorts = {};
   final List<ReceivePort> _bridgePorts = [];
   final List<StreamSubscription> _bridgeSubscriptions = [];
+
+  // Event bridging for cross-isolate communication
+  final Map<String, ServiceWorker> _workerRegistry = {};
 
   /// Gets whether the service locator has been initialized.
   bool get isInitialized => _isInitialized;
@@ -183,20 +202,40 @@ class ServiceLocator {
       throw ServiceLocatorNotInitializedException();
     }
 
+    // Try local services first
     final instance = _instances[serviceType];
-    if (instance == null) {
-      final remote = _registry.getService<T>();
-      if (remote != null) return remote;
-      throw ServiceNotFoundException(serviceName);
+    if (instance != null) {
+      if (instance is! T) {
+        throw InvalidServiceTypeException(
+            'Service "$serviceName" is not of type $T');
+      }
+      instance.ensureNotDestroyed();
+      return instance;
     }
 
-    if (instance is! T) {
-      throw InvalidServiceTypeException(
-          'Service "$serviceName" is not of type $T');
+    // 🚀 OPTIMIZATION: Try remote services via proxy registry
+    if (_proxyRegistry.hasProxy<T>()) {
+      final proxy = _proxyRegistry.getProxy<T>();
+
+      // For local proxies, return the actual instance
+      if (proxy is LocalServiceProxy) {
+        final localInstance = (proxy as LocalServiceProxy).peekInstance();
+        if (localInstance != null && localInstance is T) {
+          return localInstance as T;
+        }
+      }
+
+      // For remote proxies, return the generated client
+      final generated =
+          GeneratedClientRegistry.create<T>(proxy as ServiceProxy<T>);
+      if (generated != null) return generated;
     }
 
-    instance.ensureNotDestroyed();
-    return instance;
+    // Try service registry as fallback
+    final remote = _registry.getService<T>();
+    if (remote != null) return remote;
+
+    throw ServiceNotFoundException(serviceName);
   }
 
   /// Tries to get a service instance.
@@ -247,6 +286,7 @@ class ServiceLocator {
   ServiceProxyRegistry get proxyRegistry => _proxyRegistry;
 
   void _setupProxyRegistry() {
+    // Set up for initialized services
     for (final type in initializedServiceTypes) {
       _registerLocalProxy(type);
     }
@@ -255,6 +295,68 @@ class ServiceLocator {
       if (service is ServiceClientMixin) {
         service.setProxyRegistry(_proxyRegistry);
       }
+
+      // 🚀 AUTOMATIC EVENT INFRASTRUCTURE SETUP
+      if (service is ServiceEventMixin) {
+        service.setEventDispatcher(_eventDispatcher);
+        service.setEventBridge(_eventBridge);
+
+        // Auto-register this isolate in the event bridge
+        _eventBridge.registerIsolate(type.toString());
+
+        _logger.debug('Automatic event infrastructure configured', metadata: {
+          'serviceType': type.toString(),
+        });
+      }
+    }
+
+    // Also set up for registered but not yet initialized services
+    _setupEventInfrastructureForRegisteredServices();
+
+    // Auto-discover remote services for event routing
+    _autoDiscoverRemoteServices();
+  }
+
+  /// Set up event infrastructure for registered services before initialization
+  void _setupEventInfrastructureForRegisteredServices() {
+    for (final type in registeredServiceTypes) {
+      if (!_instances.containsKey(type)) {
+        // Create service instance to set up infrastructure
+        final factory = _factories[type]!;
+        final service = factory();
+
+        // Set up complete infrastructure
+        if (service is ServiceEventMixin) {
+          service.setEventDispatcher(_eventDispatcher);
+          service.setEventBridge(_eventBridge);
+        }
+
+        if (service is ServiceClientMixin) {
+          service.setProxyRegistry(_proxyRegistry);
+        }
+
+        _logger.debug('Pre-initialized service infrastructure', metadata: {
+          'serviceType': type.toString(),
+        });
+
+        // Replace the factory to return this configured instance
+        _factories[type] = () => service;
+      }
+    }
+  }
+
+  /// Automatically discover and register remote services for event routing
+  void _autoDiscoverRemoteServices() {
+    final remoteTypes = _proxyRegistry.registeredTypes.where((type) {
+      final proxy = _proxyRegistry.tryGetProxyByType(type);
+      return proxy is WorkerServiceProxy;
+    });
+
+    for (final type in remoteTypes) {
+      _eventBridge.registerIsolate(type.toString());
+      _logger.debug('Auto-registered remote service for events', metadata: {
+        'serviceType': type.toString(),
+      });
     }
   }
 
@@ -325,8 +427,15 @@ class ServiceLocator {
     await workerProxy.connect(worker);
     _proxyRegistry.registerProxyForType(T, workerProxy);
 
+    // 🚀 REGISTER WORKER FOR EVENT BRIDGING
+    _workerRegistry[serviceName] = worker;
+
     final sub = bridge.listen((message) async {
-      if (message is Map && message['cmd'] == 'outboundCall') {
+      if (message is Map && message['cmd'] == 'broadcastEvent') {
+        // 🚀 HANDLE EVENT BROADCAST FROM WORKER
+        await _handleEventBroadcastFromWorker(
+            Map<String, dynamic>.from(message));
+      } else if (message is Map && message['cmd'] == 'outboundCall') {
         final replyTo = message['replyTo'] as SendPort?;
         try {
           final serviceTypeStr = message['serviceType'] as String;
@@ -380,6 +489,81 @@ class ServiceLocator {
     _logger.info('Worker service proxy registered: $T');
   }
 
+  /// Broadcast event to all worker isolates (called from main isolate)
+  Future<void> _broadcastEventToAllWorkers(ServiceEvent event) async {
+    _logger.debug('Broadcasting event to all workers', metadata: {
+      'eventId': event.eventId,
+      'eventType': event.eventType,
+      'targetWorkers': _workerRegistry.keys.toList(),
+    });
+
+    // Send to all worker isolates
+    for (final entry in _workerRegistry.entries) {
+      final workerName = entry.key;
+      final worker = entry.value;
+
+      try {
+        await worker.sendEventToWorker(event);
+        _logger.debug('Event sent to worker', metadata: {
+          'eventId': event.eventId,
+          'targetWorker': workerName,
+        });
+      } catch (error) {
+        _logger.debug('Failed to send event to worker', metadata: {
+          'eventId': event.eventId,
+          'targetWorker': workerName,
+          'error': error.toString(),
+        });
+      }
+    }
+  }
+
+  /// Handle event broadcast request from worker isolate
+  Future<void> _handleEventBroadcastFromWorker(
+      Map<String, dynamic> message) async {
+    try {
+      final eventData = message['eventData'] as Map<String, dynamic>;
+      final sourceIsolate = message['sourceIsolate'] as String;
+
+      _logger
+          .debug('Broadcasting event from worker to all isolates', metadata: {
+        'eventId': eventData['eventId'],
+        'eventType': eventData['eventType'],
+        'sourceIsolate': sourceIsolate,
+        'targetWorkers': _workerRegistry.keys.toList(),
+      });
+
+      // Send to local services in main isolate
+      final event = GenericServiceEvent.fromJson(eventData);
+      await _eventDispatcher.sendEvent(event, EventDistribution.broadcast());
+
+      // Send to all other worker isolates
+      for (final entry in _workerRegistry.entries) {
+        final workerName = entry.key;
+        final worker = entry.value;
+
+        if (workerName != sourceIsolate) {
+          try {
+            await worker.sendEventToWorker(event);
+            _logger.debug('Event sent to worker', metadata: {
+              'eventId': event.eventId,
+              'targetWorker': workerName,
+            });
+          } catch (error) {
+            _logger.debug('Failed to send event to worker', metadata: {
+              'eventId': event.eventId,
+              'targetWorker': workerName,
+              'error': error.toString(),
+            });
+          }
+        }
+      }
+    } catch (error, stackTrace) {
+      _logger.error('Error handling event broadcast from worker',
+          error: error, stackTrace: stackTrace);
+    }
+  }
+
   /// Initializes all registered services in dependency order.
   ///
   /// This must be called before using any services.
@@ -412,6 +596,9 @@ class ServiceLocator {
         'order': initOrder.map((t) => t.toString()).toList(),
       });
 
+      // 🚀 OPTIMIZATION: Set up proxy registry and event infrastructure FIRST
+      _setupProxyRegistry();
+
       // Initialize services in order
       for (final serviceType in initOrder) {
         await _initializeService(serviceType);
@@ -422,7 +609,6 @@ class ServiceLocator {
 
       // Enhanced hooks
       await _performDependencyInjection();
-      _setupProxyRegistry();
 
       // Call initialization callbacks
       for (final callback in _initializationCallbacks) {

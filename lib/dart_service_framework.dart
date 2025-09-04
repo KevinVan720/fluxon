@@ -31,6 +31,8 @@ export 'src/codegen/dispatcher_registry.dart';
 export 'src/events/service_event.dart';
 export 'src/events/event_dispatcher.dart';
 export 'src/events/event_mixin.dart';
+export 'src/events/event_bridge.dart';
+export 'src/events/event_type_registry.dart';
 
 // Exception exports
 export 'src/exceptions/service_exceptions.dart';

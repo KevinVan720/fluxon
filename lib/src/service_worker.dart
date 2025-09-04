@@ -12,6 +12,11 @@ import 'service_logger.dart';
 import 'types/service_types.dart';
 import 'codegen/dispatcher_registry.dart';
 import 'service_proxy.dart';
+import 'events/event_dispatcher.dart';
+import 'events/event_bridge.dart';
+import 'events/event_mixin.dart';
+import 'events/service_event.dart';
+import 'events/event_type_registry.dart';
 
 /// A Squadron worker wrapper that runs a service in an isolate.
 class ServiceWorker extends Worker {
@@ -62,6 +67,16 @@ class ServiceWorker extends Worker {
   Future<Map<String, dynamic>> getServiceInfo() async {
     return await send(_ServiceWorkerCommands.getInfo);
   }
+
+  /// Send an event to this worker isolate
+  Future<void> sendEventToWorker(ServiceEvent event) async {
+    await send(_ServiceWorkerCommands.sendEvent, args: [event.toJson()]);
+  }
+
+  /// Request this worker to broadcast an event to all isolates
+  Future<void> broadcastEventFromWorker(ServiceEvent event) async {
+    await send(_ServiceWorkerCommands.broadcastEvent, args: [event.toJson()]);
+  }
 }
 
 /// Entry point for the service worker isolate.
@@ -91,6 +106,8 @@ class _ServiceWorkerCommands {
   static const int getInfo = 5;
   static const int callMethodById = 6;
   static const int outboundCallById = 7; // worker->host bridge
+  static const int sendEvent = 8; // send event from host to worker
+  static const int broadcastEvent = 9; // send event from worker to all isolates
 }
 
 /// Service implementation that runs in the worker isolate.
@@ -111,6 +128,10 @@ class _ServiceWorkerService implements WorkerService {
 
   BaseService? _service;
   late ServiceLogger _logger;
+
+  // Event infrastructure for worker isolate
+  EventDispatcher? _eventDispatcher;
+  EventBridge? _eventBridge;
 
   /// Initializes the worker service.
   Future<void> install() async {
@@ -146,6 +167,8 @@ class _ServiceWorkerService implements WorkerService {
         _ServiceWorkerCommands.outboundCallById: _handleOutboundCallById,
         _ServiceWorkerCommands.healthCheck: _handleHealthCheck,
         _ServiceWorkerCommands.getInfo: _handleGetInfo,
+        _ServiceWorkerCommands.sendEvent: _handleSendEvent,
+        _ServiceWorkerCommands.broadcastEvent: _handleBroadcastEvent,
       };
 
   Future<void> _handleInitialize(WorkerRequest request) async {
@@ -163,6 +186,25 @@ class _ServiceWorkerService implements WorkerService {
       }
 
       _logger.info('Initializing service');
+
+      // 🚀 SET UP EVENT INFRASTRUCTURE IN WORKER ISOLATE
+      _eventDispatcher = EventDispatcher(logger: _logger);
+      _eventBridge = EventBridge(
+        isolateName: _serviceName,
+        logger: _logger,
+      );
+      _eventBridge!.initialize(_eventDispatcher!, hostPort: _hostBridgePort);
+
+      // Register event types in this worker isolate
+      _registerEventTypes();
+
+      // Set up event infrastructure for the service
+      if (_service is ServiceEventMixin) {
+        (_service as ServiceEventMixin).setEventDispatcher(_eventDispatcher!);
+        (_service as ServiceEventMixin).setEventBridge(_eventBridge!);
+        _logger.info('Event infrastructure set up in worker isolate');
+      }
+
       // Inject bridge registry for cross-service calls from within worker
       if (_hostBridgePort != null && _service is ServiceClientMixin) {
         final registry = WorkerBridgeRegistry(
@@ -171,6 +213,7 @@ class _ServiceWorkerService implements WorkerService {
         );
         (_service as ServiceClientMixin).setProxyRegistry(registry);
       }
+
       await _service!.internalInitialize();
       _logger.info('Service initialized successfully');
     } catch (error, stackTrace) {
@@ -288,6 +331,85 @@ class _ServiceWorkerService implements WorkerService {
       'destroyedAt': info.destroyedAt?.toIso8601String(),
       'error': info.error?.toString(),
     };
+  }
+
+  /// Handle incoming event from host isolate
+  Future<void> _handleSendEvent(WorkerRequest request) async {
+    try {
+      final eventData = request.args[0] as Map<String, dynamic>;
+
+      if (_eventDispatcher == null) {
+        _logger.warning('Event received but no event dispatcher available');
+        return;
+      }
+
+      // Reconstruct event from JSON
+      final event = _reconstructEventFromJson(eventData);
+
+      // Send to local event dispatcher in this isolate
+      await _eventDispatcher!.sendEvent(
+        event,
+        EventDistribution.broadcast(),
+      );
+
+      _logger.debug('Event processed in worker isolate', metadata: {
+        'eventId': event.eventId,
+        'eventType': event.eventType,
+      });
+    } catch (error, stackTrace) {
+      _logger.error('Error handling incoming event',
+          error: error, stackTrace: stackTrace);
+    }
+  }
+
+  /// Handle broadcast event request from worker to all isolates
+  Future<void> _handleBroadcastEvent(WorkerRequest request) async {
+    try {
+      final eventData = request.args[0] as Map<String, dynamic>;
+
+      if (_hostBridgePort == null) {
+        _logger.warning('Cannot broadcast event - no host bridge port');
+        return;
+      }
+
+      // Send event to host for distribution to other isolates
+      _hostBridgePort!.send({
+        'cmd': 'broadcastEvent',
+        'eventData': eventData,
+        'sourceIsolate': _serviceName,
+      });
+
+      _logger.debug('Event broadcast request sent to host', metadata: {
+        'eventId': eventData['eventId'],
+        'eventType': eventData['eventType'],
+      });
+    } catch (error, stackTrace) {
+      _logger.error('Error handling broadcast event request',
+          error: error, stackTrace: stackTrace);
+    }
+  }
+
+  /// Register event types in worker isolate
+  void _registerEventTypes() {
+    // Register common event types that can be reconstructed from JSON
+    // In a real implementation, this would be generated code
+    try {
+      // Register GenericServiceEvent as fallback
+      EventTypeRegistry.register<GenericServiceEvent>(
+          (json) => GenericServiceEvent.fromJson(json));
+
+      _logger.debug('Event types registered in worker isolate');
+    } catch (error) {
+      _logger.warning('Failed to register event types',
+          metadata: {'error': error.toString()});
+    }
+  }
+
+  /// Reconstruct event from JSON data
+  ServiceEvent _reconstructEventFromJson(Map<String, dynamic> json) {
+    // Try to create the correct event type using the registry
+    final event = EventTypeRegistry.createFromJson(json);
+    return event ?? GenericServiceEvent.fromJson(json);
   }
 
   // Reflection path removed.

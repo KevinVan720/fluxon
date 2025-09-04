@@ -8,12 +8,15 @@ import '../base_service.dart';
 import '../exceptions/service_exceptions.dart';
 import 'service_event.dart';
 import 'event_dispatcher.dart';
+import 'event_bridge.dart';
 
 /// Mixin that provides event capabilities to services
 mixin ServiceEventMixin on BaseService {
   EventDispatcher? _eventDispatcher;
+  EventBridge? _eventBridge;
   final List<EventSubscription> _subscriptions = [];
   final List<StreamSubscription> _streamSubscriptions = [];
+  final List<String> _remoteSubscriptions = [];
 
   /// Set the event dispatcher for this service
   void setEventDispatcher(EventDispatcher dispatcher) {
@@ -22,26 +25,44 @@ mixin ServiceEventMixin on BaseService {
     logger.debug('Event dispatcher set for service');
   }
 
-  /// Send an event to other services
+  /// Set the event bridge for cross-isolate communication
+  void setEventBridge(EventBridge bridge) {
+    _eventBridge = bridge;
+    logger.debug('Event bridge set for service');
+  }
+
+  /// Send an event to other services (both local and remote)
   Future<EventDistributionResult> sendEvent(
     ServiceEvent event, {
     EventDistribution? distribution,
+    bool includeRemote = true,
   }) async {
     if (_eventDispatcher == null) {
-      throw ServiceException('Event dispatcher not set for service $serviceName');
+      throw ServiceException(
+          'Event dispatcher not set for service $serviceName');
     }
 
-    final dist = distribution ?? EventDistribution.broadcast(
-      excludeServices: [runtimeType],
-    );
+    final dist = distribution ??
+        EventDistribution.broadcast(
+          excludeServices: [runtimeType],
+        );
 
     logger.debug('Sending event', metadata: {
       'eventId': event.eventId,
       'eventType': event.eventType,
       'distribution': dist.toString(),
+      'includeRemote': includeRemote,
     });
 
-    return await _eventDispatcher!.sendEvent(event, dist);
+    // Send to local services via event dispatcher
+    final localResult = await _eventDispatcher!.sendEvent(event, dist);
+
+    // Send to remote services via event bridge if available
+    if (includeRemote && _eventBridge != null) {
+      await _sendEventToAllRemoteIsolates(event);
+    }
+
+    return localResult;
   }
 
   /// Send an event to specific services
@@ -85,6 +106,79 @@ mixin ServiceEventMixin on BaseService {
     );
   }
 
+  /// Send an event to a specific remote isolate
+  Future<void> sendEventToRemote(
+    ServiceEvent event,
+    String targetIsolate,
+  ) async {
+    if (_eventBridge == null) {
+      throw ServiceException('Event bridge not set for service $serviceName');
+    }
+
+    logger.debug('Sending event to specific remote isolate', metadata: {
+      'eventId': event.eventId,
+      'eventType': event.eventType,
+      'targetIsolate': targetIsolate,
+    });
+
+    await _eventBridge!.sendEventToRemote(event, targetIsolate);
+  }
+
+  /// Send event to all known remote isolates
+  Future<void> _sendEventToAllRemoteIsolates(ServiceEvent event) async {
+    try {
+      if (_eventBridge != null) {
+        await _eventBridge!.sendEventToAllRemotes(event);
+      }
+    } catch (error) {
+      logger.debug('Error sending to remote isolates', metadata: {
+        'eventId': event.eventId,
+        'error': error.toString(),
+      });
+      // Don't fail the local event distribution if remote fails
+    }
+  }
+
+  /// Subscribe to events from remote isolates
+  Future<String> subscribeToRemoteEvents<T extends ServiceEvent>(
+    EventHandler<T> handler, {
+    int priority = 0,
+    bool Function(T event)? condition,
+  }) async {
+    if (_eventBridge == null) {
+      throw ServiceException('Event bridge not set for service $serviceName');
+    }
+
+    final subscriptionId = await _eventBridge!.subscribeToRemoteEvents<T>(
+      T,
+      handler,
+    );
+
+    _remoteSubscriptions.add(subscriptionId);
+
+    logger.debug('Subscribed to remote events', metadata: {
+      'eventType': T.toString(),
+      'subscriptionId': subscriptionId,
+      'priority': priority,
+    });
+
+    return subscriptionId;
+  }
+
+  /// Unsubscribe from remote events
+  Future<void> unsubscribeFromRemoteEvents(String subscriptionId) async {
+    if (_eventBridge == null) {
+      throw ServiceException('Event bridge not set for service $serviceName');
+    }
+
+    await _eventBridge!.unsubscribeFromRemoteEvents(subscriptionId);
+    _remoteSubscriptions.remove(subscriptionId);
+
+    logger.debug('Unsubscribed from remote events', metadata: {
+      'subscriptionId': subscriptionId,
+    });
+  }
+
   /// Register an event listener
   void onEvent<T extends ServiceEvent>(
     EventHandler<T> handler, {
@@ -92,7 +186,8 @@ mixin ServiceEventMixin on BaseService {
     bool Function(T event)? condition,
   }) {
     if (_eventDispatcher == null) {
-      throw ServiceException('Event dispatcher not set for service $serviceName');
+      throw ServiceException(
+          'Event dispatcher not set for service $serviceName');
     }
 
     final listener = EventListener<T>(
@@ -114,7 +209,8 @@ mixin ServiceEventMixin on BaseService {
   /// Subscribe to events of a specific type
   EventSubscription subscribeToEvents<T extends ServiceEvent>() {
     if (_eventDispatcher == null) {
-      throw ServiceException('Event dispatcher not set for service $serviceName');
+      throw ServiceException(
+          'Event dispatcher not set for service $serviceName');
     }
 
     final subscription = _eventDispatcher!.subscribe<T>(runtimeType, T);
@@ -188,6 +284,19 @@ mixin ServiceEventMixin on BaseService {
     }
     _subscriptions.clear();
 
+    // Cancel all remote subscriptions
+    for (final subscriptionId in _remoteSubscriptions) {
+      try {
+        await unsubscribeFromRemoteEvents(subscriptionId);
+      } catch (error) {
+        logger.warning('Failed to unsubscribe from remote events', metadata: {
+          'subscriptionId': subscriptionId,
+          'error': error.toString()
+        });
+      }
+    }
+    _remoteSubscriptions.clear();
+
     // Cancel all stream subscriptions
     for (final subscription in _streamSubscriptions) {
       await subscription.cancel();
@@ -213,12 +322,14 @@ extension ServiceEventExtensions on ServiceEventMixin {
     Duration timeout = const Duration(seconds: 10),
     int retryCount = 2,
   }) async {
-    final targets = criticalServices.map((serviceType) => EventTarget(
-      serviceType: serviceType,
-      waitUntilProcessed: true,
-      timeout: timeout,
-      retryCount: retryCount,
-    )).toList();
+    final targets = criticalServices
+        .map((serviceType) => EventTarget(
+              serviceType: serviceType,
+              waitUntilProcessed: true,
+              timeout: timeout,
+              retryCount: retryCount,
+            ))
+        .toList();
 
     return await sendEventTo(event, targets);
   }

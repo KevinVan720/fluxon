@@ -8,6 +8,7 @@ import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'service_worker.dart';
 import 'types/service_types.dart';
+import 'events/event_mixin.dart';
 
 /// Interface for service proxy implementations.
 abstract class ServiceProxy<T extends BaseService> {
@@ -400,6 +401,17 @@ mixin ServiceClientMixin on BaseService {
   /// Sets the proxy registry for this service.
   void setProxyRegistry(ServiceProxyRegistry registry) {
     _proxyRegistry = registry;
+
+    // Automatically set up event infrastructure if this service uses events
+    if (this is ServiceEventMixin) {
+      _setupEventInfrastructure(registry);
+    }
+  }
+
+  /// Automatically set up event infrastructure
+  void _setupEventInfrastructure(ServiceProxyRegistry registry) {
+    // This will be called automatically when the service is registered
+    // The ServiceLocator will handle the actual setup
   }
 
   /// Gets a service client for calling another service.
