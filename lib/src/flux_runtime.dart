@@ -1,5 +1,5 @@
-/// Service locator for registering and managing services.
-library service_locator;
+/// Flux Runtime - Central service management and orchestration.
+library flux_runtime;
 
 import 'dart:async';
 import 'dart:isolate';
@@ -17,25 +17,23 @@ import 'exceptions/service_exceptions.dart';
 import 'flux_service.dart';
 import 'service_logger.dart';
 import 'service_proxy.dart';
-import 'service_registry.dart';
 import 'service_worker.dart';
 import 'types/service_types.dart';
 
-/// Central registry and manager for all services in the application.
+/// Central runtime for all services in the Flux application.
 ///
-/// The ServiceLocator provides a single point for:
-/// - Registering services with their factories
-/// - Managing service dependencies
-/// - Initializing services in the correct order
-/// - Retrieving service instances
-/// - Managing service lifecycle
+/// FluxRuntime provides:
+/// - Unified registration for local and remote services
+/// - Automatic dependency injection and lifecycle management
+/// - Transparent cross-isolate communication
+/// - Automatic event infrastructure setup
+/// - Zero-configuration service orchestration
 class FluxRuntime {
-  /// Creates a service locator.
+  /// Creates a Flux runtime.
   FluxRuntime({
     ServiceLogger? logger,
   }) : _logger = logger ?? ServiceLogger(serviceName: 'FluxRuntime') {
     _dependencyResolver = DependencyResolver();
-    _registry = ServiceRegistry(logger: _logger);
     _proxyRegistry = ServiceProxyRegistry(logger: _logger);
 
     // Initialize automatic event infrastructure
@@ -49,7 +47,6 @@ class FluxRuntime {
 
   final ServiceLogger _logger;
   late final DependencyResolver _dependencyResolver;
-  late final ServiceRegistry _registry;
   late final ServiceProxyRegistry _proxyRegistry;
 
   // Automatic event infrastructure
@@ -75,13 +72,13 @@ class FluxRuntime {
   // Event bridging for cross-isolate communication
   final Map<String, ServiceWorker> _workerRegistry = {};
 
-  /// Gets whether the service locator has been initialized.
+  /// Gets whether the runtime has been initialized.
   bool get isInitialized => _isInitialized;
 
-  /// Gets whether the service locator is currently initializing.
+  /// Gets whether the runtime is currently initializing.
   bool get isInitializing => _isInitializing;
 
-  /// Gets whether the service locator is currently being destroyed.
+  /// Gets whether the runtime is currently being destroyed.
   bool get isDestroying => _isDestroying;
 
   /// Gets the number of registered services.
@@ -99,7 +96,7 @@ class FluxRuntime {
   /// Gets the dependency resolver.
   DependencyResolver get dependencyResolver => _dependencyResolver;
 
-  /// Registers a service with the locator.
+  /// Registers a service with the runtime.
   ///
   /// [T] must extend [BaseService].
   /// [factory] is called to create the service instance when needed.
@@ -115,7 +112,7 @@ class FluxRuntime {
 
     if (_isInitialized) {
       throw const ServiceStateException(
-        'ServiceLocator',
+        'FluxRuntime',
         'initialized',
         'not initialized',
       );
@@ -175,7 +172,7 @@ class FluxRuntime {
     });
   }
 
-  /// Unregisters a service from the locator.
+  /// Unregisters a service from the runtime.
   ///
   /// The service must not be initialized and no other services should depend on it.
   void unregister<T extends BaseService>() {
@@ -214,7 +211,7 @@ class FluxRuntime {
   /// The service must be registered and initialized.
   ///
   /// Throws [ServiceNotFoundException] if the service is not registered.
-  /// Throws [ServiceLocatorNotInitializedException] if the locator is not initialized.
+  /// Throws [ServiceLocatorNotInitializedException] if the runtime is not initialized.
   T get<T extends BaseService>() {
     final serviceType = T;
     final serviceName = serviceType.toString();
@@ -251,10 +248,6 @@ class FluxRuntime {
           GeneratedClientRegistry.create<T>(proxy as ServiceProxy<T>);
       if (generated != null) return generated;
     }
-
-    // Try service registry as fallback
-    final remote = _registry.getService<T>();
-    if (remote != null) return remote;
 
     throw ServiceNotFoundException(serviceName);
   }
@@ -293,11 +286,9 @@ class FluxRuntime {
   List<ServiceInfo> getAllServiceInfo() => List.from(_serviceInfos.values);
 
   // Enhanced helpers
-  bool isServiceAvailable<T extends BaseService>() =>
-      isRegistered<T>() || _registry.hasService<T>();
+  bool isServiceAvailable<T extends BaseService>() => isRegistered<T>();
 
   // Expose registries for advanced scenarios (e.g., direct proxy usage in demos)
-  ServiceRegistry get registry => _registry;
   ServiceProxyRegistry get proxyRegistry => _proxyRegistry;
 
   void _setupProxyRegistry() {
@@ -624,13 +615,13 @@ class FluxRuntime {
   /// This must be called before using any services.
   Future<void> initializeAll() async {
     if (_isInitialized) {
-      _logger.warning('Service locator is already initialized');
+      _logger.warning('Flux runtime is already initialized');
       return;
     }
 
     if (_isInitializing) {
       throw const ServiceStateException(
-        'ServiceLocator',
+        'FluxRuntime',
         'initializing',
         'not initializing',
       );
@@ -645,8 +636,6 @@ class FluxRuntime {
         await Future.wait(_pendingRemoteRegistrations);
         _pendingRemoteRegistrations.clear();
       }
-      // Initialize registry
-      await _registry.initialize();
       // Validate dependencies
       _dependencyResolver.validateDependencies();
 
@@ -673,7 +662,7 @@ class FluxRuntime {
       // Call initialization callbacks
       for (final callback in _initializationCallbacks) {
         try {
-          await callback('ServiceLocator');
+          await callback('FluxRuntime');
         } catch (error, stackTrace) {
           _logger.error('Initialization callback failed',
               error: error, stackTrace: stackTrace);
@@ -694,12 +683,12 @@ class FluxRuntime {
   /// Destroys all services in reverse dependency order.
   Future<void> destroyAll() async {
     if (!_isInitialized) {
-      _logger.warning('Service locator is not initialized');
+      _logger.warning('Flux runtime is not initialized');
       return;
     }
 
     if (_isDestroying) {
-      _logger.warning('Service locator is already being destroyed');
+      _logger.warning('Flux runtime is already being destroyed');
       return;
     }
 
@@ -710,7 +699,7 @@ class FluxRuntime {
       // Call destruction callbacks
       for (final callback in _destructionCallbacks) {
         try {
-          await callback('ServiceLocator');
+          await callback('FluxRuntime');
         } catch (error, stackTrace) {
           _logger.error('Destruction callback failed',
               error: error, stackTrace: stackTrace);
@@ -732,7 +721,6 @@ class FluxRuntime {
       _logger.info('All services destroyed successfully');
 
       // Enhanced cleanup
-      _registry.dispose();
       await _proxyRegistry.disconnectAll();
       for (final sub in _bridgeSubscriptions) {
         try {
@@ -827,7 +815,7 @@ class FluxRuntime {
     _initializationCallbacks.clear();
     _destructionCallbacks.clear();
 
-    _logger.info('Service locator cleared');
+    _logger.info('Flux runtime cleared');
   }
 
   Future<void> _initializeService(Type serviceType) async {

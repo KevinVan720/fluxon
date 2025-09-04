@@ -1,6 +1,6 @@
-# Dart Service Framework
+# Flux
 
-A comprehensive service locator and services framework for Dart applications with **complete isolate transparency** and **automatic event-driven communication**.
+A comprehensive service framework for Dart applications with **complete isolate transparency** and **automatic event-driven communication**.
 
 ## 🚀 Key Features
 
@@ -17,7 +17,7 @@ A comprehensive service locator and services framework for Dart applications wit
 - **Event type registry** for proper reconstruction across isolates
 
 ### 🔧 **Automatic Service Management**
-- **ServiceLocator** automatically sets up all infrastructure
+- **FluxRuntime** automatically sets up all infrastructure
 - **EventDispatcher** and **EventBridge** created automatically
 - **Worker isolates** get full event infrastructure automatically
 - **Service discovery** works transparently for local and remote services
@@ -33,11 +33,62 @@ Main Isolate                Worker Isolate 1              Worker Isolate 2
 └─────────────┘            └──────────────┘              └──────────────┘
        ▲                           ▲                             ▲
        │                           │                             │
-   ServiceLocator ◄────────────────┼─────────────────────────────┘
+   FluxRuntime ◄──────────────────┼─────────────────────────────┘
    (Automatic routing & infrastructure)
 ```
 
 ## 🎯 **Simple Usage**
+
+### **Unified Registration**
+```dart
+final runtime = FluxRuntime();
+
+// 🚀 Same API for local and remote services!
+runtime.register<UserService>(() => UserService());           // Local
+runtime.register<EmailService>(() => EmailServiceWorker());   // Remote (auto-detected)
+runtime.register<PaymentService>(() => PaymentServiceWorker()); // Remote (auto-detected)
+
+await runtime.initializeAll();
+```
+
+### **Transparent Service Calls**
+```dart
+// 🚀 Works identically for local OR remote services
+final userService = runtime.get<UserService>();
+final emailService = runtime.get<EmailService>();    // Could be remote!
+final paymentService = runtime.get<PaymentService>(); // Could be remote!
+
+// All calls look the same regardless of location
+final user = await userService.createUser('alice');
+await emailService.sendWelcomeEmail(user.id);
+await paymentService.setupBilling(user.id);
+```
+
+### **Automatic Event Communication**
+```dart
+@ServiceContract(remote: true)
+class EmailService extends FluxService {
+  @override
+  Future<void> initialize() async {
+    // 🚀 Events work automatically across isolates
+    onEvent<UserCreatedEvent>((event) async {
+      await sendWelcomeEmail(event.userId);
+      
+      // Send completion event to ALL services (local + remote)
+      await sendEvent(createEvent(
+        ({required String eventId, required String sourceService, required DateTime timestamp}) =>
+          EmailSentEvent(userId: event.userId, type: 'welcome', eventId: eventId, sourceService: sourceService, timestamp: timestamp)
+      ));
+      
+      return EventProcessingResponse(result: EventProcessingResult.success);
+    });
+    
+    await super.initialize();
+  }
+}
+```
+
+## 🔥 **Zero Boilerplate**
 
 ### **Before (Complex Setup)**
 ```dart
@@ -47,172 +98,150 @@ final eventBridge = EventBridge();
 final service = MyService();
 service.setEventDispatcher(eventDispatcher);
 service.setEventBridge(eventBridge);
-// ... lots more setup
+
+await locator.registerWorkerServiceProxy<MyService>(
+  serviceName: 'MyService',
+  serviceFactory: () => MyServiceWorker(),
+  registerGenerated: registerMyServiceGenerated,
+);
+
+_registerMyServiceDispatcher();
+_registerMyServiceClientFactory();
 ```
 
-### **After (Automatic)**
+### **After (Zero Boilerplate)**
 ```dart
-// 🚀 Zero setup required!
-final locator = ServiceLocator();
-locator.register<MyService>(() => MyService());
-await locator.initializeAll();
-
-final service = locator.get<MyService>(); // Works for local OR remote!
-await service.doSomething(); // Completely transparent!
-await service.sendEvent(myEvent); // Goes to ALL services automatically!
+// 🚀 Automatic everything!
+final runtime = FluxRuntime();
+runtime.register<MyService>(() => MyServiceWorker());
+await runtime.initializeAll();
 ```
 
-## 📋 **Core Components**
+## 📱 **Complete Example**
 
-### **1. ServiceLocator** - Complete Automation
-- **Automatic EventDispatcher** creation
-- **Automatic EventBridge** setup for all isolates  
-- **Transparent service resolution** (local/remote)
-- **Automatic worker registration** for event routing
-
-### **2. ServiceEventMixin** - Unified Event API
 ```dart
-// Same API everywhere - works in any isolate!
-await sendEvent(myEvent); // → ALL services (local + remote)
-await sendEventTo(myEvent, targets); // → Specific services
-onEvent<MyEvent>((event) => { /* handle */ }); // Listen anywhere
-```
+import 'package:dart_service_framework/dart_service_framework.dart';
 
-### **3. Cross-Isolate Event Bridge**
-- **Automatic event routing** between isolates
-- **Event serialization/deserialization** 
-- **Event type registry** for proper reconstruction
-- **Graceful degradation** when isolates unavailable
+part 'main.g.dart'; // Generated code
 
-### **4. Transparent Service Calls**
-```dart
-// This code works identically whether PaymentService is local or remote!
-final paymentService = getService<PaymentService>();
-await paymentService.processPayment(amount); // Completely transparent!
-```
+// Event types
+class UserCreatedEvent extends ServiceEvent {
+  const UserCreatedEvent({
+    required this.userId,
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+  });
 
-## 🧪 **Comprehensive Test Suite**
+  final String userId;
 
-### **Core Tests:**
-- **`isolate_transparency_test.dart`** - Complete API transparency demonstration
-- **`cross_isolate_events_test.dart`** - Cross-isolate event flow and infrastructure  
-- **`local_to_local_events_test.dart`** - Local service event communication
-- **`event_error_handling_test.dart`** - Error handling, retries, circuit breakers
-- **`event_performance_test.dart`** - Performance benchmarks and load testing
+  @override
+  Map<String, dynamic> eventDataToJson() => {'userId': userId};
 
-### **Test Results:**
-```
-✅ Services communicate transparently across isolates
-✅ Event infrastructure set up in all isolates  
-✅ Events route from main isolate to workers
-✅ Worker isolates process events
-✅ ServiceLocator automatically manages everything
-✅ Complete API transparency achieved
-```
+  factory UserCreatedEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return UserCreatedEvent(
+      userId: data['userId'],
+      eventId: json['eventId'],
+      sourceService: json['sourceService'],
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
+}
 
-## 🎯 **Developer Experience**
-
-### **Service Definition**
-```dart
 // Local service
 @ServiceContract(remote: false)
-class UserService extends BaseService with ServiceEventMixin, ServiceClientMixin {
-  @override
-  Future<void> initialize() async {
-    // Listen for events from ANY isolate
-    onEvent<UserCreatedEvent>((event) async {
-      // Handle event
-      return EventProcessingResponse.success();
-    });
-  }
-  
-  Future<void> createUser(String name) async {
-    // Call remote service transparently
-    final validator = getService<ValidationService>();
-    await validator.validateUser(name);
+class UserService extends FluxService {
+  Future<Map<String, dynamic>> createUser(String name) async {
+    final user = {'id': 'user_${DateTime.now().millisecondsSinceEpoch}', 'name': name};
     
     // Send event to ALL services automatically
-    await sendEvent(UserCreatedEvent(name: name));
+    await sendEvent(createEvent(
+      ({required String eventId, required String sourceService, required DateTime timestamp}) =>
+        UserCreatedEvent(userId: user['id']!, eventId: eventId, sourceService: sourceService, timestamp: timestamp)
+    ));
+    
+    return user;
   }
 }
 
-// Remote service (runs in worker isolate)
+// Remote service (runs in isolate)
 @ServiceContract(remote: true)
-abstract class ValidationService extends BaseService {
-  Future<bool> validateUser(String name);
-}
-
-class ValidationServiceImpl extends ValidationService with ServiceEventMixin {
+class EmailService extends FluxService {
   @override
-  Future<bool> validateUser(String name) async {
-    // Same event API works in worker isolates!
-    await sendEvent(ValidationEvent(name: name, valid: true));
-    return true;
+  Future<void> initialize() async {
+    // Listen for events from any service
+    onEvent<UserCreatedEvent>((event) async {
+      await sendWelcomeEmail(event.userId);
+      return EventProcessingResponse(result: EventProcessingResult.success);
+    });
+    
+    await super.initialize();
+  }
+
+  Future<void> sendWelcomeEmail(String userId) async {
+    logger.info('Sending welcome email', metadata: {'userId': userId});
+    // Email logic here...
   }
 }
-```
 
-### **Application Setup**
-```dart
 void main() async {
-  final locator = ServiceLocator(); // Automatic infrastructure!
+  // Register event types
+  EventTypeRegistry.register<UserCreatedEvent>((json) => UserCreatedEvent.fromJson(json));
 
-  // Register services
-  locator.register<UserService>(() => UserService());
+  // Create runtime and register services
+  final runtime = FluxRuntime();
   
-  // Register remote services
-  await locator.registerWorkerServiceProxy<ValidationService>(
-    serviceName: 'ValidationService',
-    serviceFactory: () => ValidationServiceImpl(),
-    registerGenerated: registerValidationServiceGenerated,
-  );
-
-  await locator.initializeAll(); // Everything automatic!
+  // 🚀 Same registration API for local and remote!
+  runtime.register<UserService>(() => UserService());
+  runtime.register<EmailService>(() => EmailServiceWorker()); // Auto-detected as remote
+  
+  await runtime.initializeAll();
 
   // Use services transparently
-  final userService = locator.get<UserService>();
-  await userService.createUser('John'); // Works across isolates!
-
-  await locator.destroyAll();
+  final userService = runtime.get<UserService>();
+  final user = await userService.createUser('Alice');
+  
+  // Events automatically flow to EmailService in its isolate!
+  
+  await runtime.destroyAll();
 }
 ```
 
-## 🏆 **Achievement Summary**
+## 🏗️ **Code Generation**
 
-### ✅ **Complete Isolate Transparency**
-- Local and remote services use **identical APIs**
-- **Zero manual setup** required for cross-isolate communication
-- **Automatic service discovery** and routing
-- **Transparent method calls** regardless of isolate location
+Add to your `pubspec.yaml`:
 
-### ✅ **Unified Event System**  
-- **Single `sendEvent()` API** for all communication
-- **Automatic event routing** to all isolates
-- **Event serialization** with type preservation
-- **Cross-isolate event listeners** work seamlessly
+```yaml
+dev_dependencies:
+  build_runner: ^2.4.0
 
-### ✅ **Production Ready**
-- **Comprehensive error handling** with retries and circuit breakers
-- **Performance optimized** with direct local access and proxy caching
-- **Memory efficient** with automatic cleanup
-- **Fully tested** with extensive test coverage
+dependencies:
+  dart_service_framework:
+    path: ../dart-service-framework  # or pub version when published
+```
 
-## 🔧 **Technical Details**
+Run code generation:
 
-### **Dependencies**
-- **Squadron**: Worker isolate management
-- **Test**: Unit and integration testing  
-- **Build Runner**: Code generation for service proxies
+```bash
+dart run build_runner build
+```
 
-### **Dart Version**
-- Minimum: Dart 3.0.0
-- Null safety required
-- Modern async/await patterns
+## 🎯 **Key Benefits**
 
-### **Performance**
-- **Service initialization**: < 50ms per service
-- **Cross-isolate calls**: < 5ms latency  
-- **Event distribution**: 9000+ events/second
-- **Memory overhead**: Minimal per isolate
+1. **Zero Configuration**: FluxRuntime sets up everything automatically
+2. **Isolate Transparency**: Local and remote services have identical APIs
+3. **Automatic Events**: Cross-isolate event communication works out of the box
+4. **Type Safety**: Full compile-time type checking with generics
+5. **Performance**: True parallelism with Squadron worker isolates
+6. **Scalability**: Services can be moved between local/remote without code changes
 
-**The framework delivers complete isolate transparency where developers can write services without caring about isolate boundaries!** 🎉
+## 📚 **Documentation**
+
+- See `USAGE.md` for detailed examples
+- Check `test/` directory for comprehensive usage patterns
+- Generated code provides transparent proxy classes
+
+---
+
+**Flux** - Where services flow seamlessly across isolates! 🌊
