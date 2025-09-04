@@ -144,10 +144,10 @@ class MessageProcessorWorker extends MessageProcessor {
     $registerMessageProcessorMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
-      _registerMessageLoggerClientFactory();
+      $registerMessageLoggerClientFactory();
     } catch (_) {}
     try {
-      _registerMessageLoggerMethodIds();
+      $registerMessageLoggerMethodIds();
     } catch (_) {}
   }
 
@@ -156,10 +156,10 @@ class MessageProcessorWorker extends MessageProcessor {
     $registerMessageProcessorDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
-      _registerMessageLoggerClientFactory();
+      $registerMessageLoggerClientFactory();
     } catch (_) {}
     try {
-      _registerMessageLoggerMethodIds();
+      $registerMessageLoggerMethodIds();
     } catch (_) {}
     await super.initialize();
   }

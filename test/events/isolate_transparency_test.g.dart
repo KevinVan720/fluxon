@@ -143,10 +143,10 @@ class TaskProcessorWorker extends TaskProcessor {
     $registerTaskProcessorMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
-      _registerTaskLoggerClientFactory();
+      $registerTaskLoggerClientFactory();
     } catch (_) {}
     try {
-      _registerTaskLoggerMethodIds();
+      $registerTaskLoggerMethodIds();
     } catch (_) {}
   }
 
@@ -155,10 +155,10 @@ class TaskProcessorWorker extends TaskProcessor {
     $registerTaskProcessorDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
-      _registerTaskLoggerClientFactory();
+      $registerTaskLoggerClientFactory();
     } catch (_) {}
     try {
-      _registerTaskLoggerMethodIds();
+      $registerTaskLoggerMethodIds();
     } catch (_) {}
     await super.initialize();
   }

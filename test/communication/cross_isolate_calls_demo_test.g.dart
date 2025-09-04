@@ -69,10 +69,10 @@ class ServiceAWorker extends ServiceA {
     $registerServiceAMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
-      _registerServiceBClientFactory();
+      $registerServiceBClientFactory();
     } catch (_) {}
     try {
-      _registerServiceBMethodIds();
+      $registerServiceBMethodIds();
     } catch (_) {}
   }
 
@@ -81,10 +81,10 @@ class ServiceAWorker extends ServiceA {
     $registerServiceADispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
-      _registerServiceBClientFactory();
+      $registerServiceBClientFactory();
     } catch (_) {}
     try {
-      _registerServiceBMethodIds();
+      $registerServiceBMethodIds();
     } catch (_) {}
     await super.initialize();
   }
@@ -165,10 +165,10 @@ class ServiceBWorker extends ServiceB {
     $registerServiceBMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
-      _registerServiceAClientFactory();
+      $registerServiceAClientFactory();
     } catch (_) {}
     try {
-      _registerServiceAMethodIds();
+      $registerServiceAMethodIds();
     } catch (_) {}
   }
 
@@ -177,10 +177,10 @@ class ServiceBWorker extends ServiceB {
     $registerServiceBDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
-      _registerServiceAClientFactory();
+      $registerServiceAClientFactory();
     } catch (_) {}
     try {
-      _registerServiceAMethodIds();
+      $registerServiceAMethodIds();
     } catch (_) {}
     await super.initialize();
   }

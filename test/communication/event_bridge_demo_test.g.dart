@@ -69,17 +69,17 @@ class RemoteEmitterWorker extends RemoteEmitter {
     $registerRemoteEmitterMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
-      _registerLocalHubClientFactory();
+      $registerLocalHubClientFactory();
     } catch (_) {}
     try {
-      _registerLocalHubMethodIds();
+      $registerLocalHubMethodIds();
     } catch (_) {}
     // Auto-registered from dependencies/optionalDependencies
     try {
-      _registerRemoteListenerClientFactory();
+      $registerRemoteListenerClientFactory();
     } catch (_) {}
     try {
-      _registerRemoteListenerMethodIds();
+      $registerRemoteListenerMethodIds();
     } catch (_) {}
   }
 
@@ -88,17 +88,17 @@ class RemoteEmitterWorker extends RemoteEmitter {
     $registerRemoteEmitterDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
-      _registerLocalHubClientFactory();
+      $registerLocalHubClientFactory();
     } catch (_) {}
     try {
-      _registerLocalHubMethodIds();
+      $registerLocalHubMethodIds();
     } catch (_) {}
     // Ensure worker isolate can create clients for dependencies
     try {
-      _registerRemoteListenerClientFactory();
+      $registerRemoteListenerClientFactory();
     } catch (_) {}
     try {
-      _registerRemoteListenerMethodIds();
+      $registerRemoteListenerMethodIds();
     } catch (_) {}
     await super.initialize();
   }

@@ -218,8 +218,8 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           buf.writeln(
               '    // Auto-registered from dependencies/optionalDependencies');
           buf.writeln(
-              '    try { _register${dep}ClientFactory(); } catch (_) {}');
-          buf.writeln('    try { _register${dep}MethodIds(); } catch (_) {}');
+              '    try { \$register${dep}ClientFactory(); } catch (_) {}');
+          buf.writeln('    try { \$register${dep}MethodIds(); } catch (_) {}');
         }
       }
       buf.writeln('  }');
@@ -231,8 +231,8 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           buf.writeln(
               '    // Ensure worker isolate can create clients for dependencies');
           buf.writeln(
-              '    try { _register${dep}ClientFactory(); } catch (_) {}');
-          buf.writeln('    try { _register${dep}MethodIds(); } catch (_) {}');
+              '    try { \$register${dep}ClientFactory(); } catch (_) {}');
+          buf.writeln('    try { \$register${dep}MethodIds(); } catch (_) {}');
         }
       }
       buf.writeln('    await super.initialize();');
