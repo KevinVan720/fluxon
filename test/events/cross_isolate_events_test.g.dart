@@ -6,164 +6,163 @@ part of 'cross_isolate_events_test.dart';
 // ServiceGenerator
 // **************************************************************************
 
-// Service client for OrderService
-class OrderServiceClient extends OrderService {
-  OrderServiceClient(this._proxy);
-  final ServiceProxy<OrderService> _proxy;
+// Service client for MessageCoordinator
+class MessageCoordinatorClient extends MessageCoordinator {
+  MessageCoordinatorClient(this._proxy);
+  final ServiceProxy<MessageCoordinator> _proxy;
 }
 
-void _registerOrderServiceClientFactory() {
-  GeneratedClientRegistry.register<OrderService>(
-    (proxy) => OrderServiceClient(proxy),
+void _registerMessageCoordinatorClientFactory() {
+  GeneratedClientRegistry.register<MessageCoordinator>(
+    (proxy) => MessageCoordinatorClient(proxy),
   );
 }
 
-class _OrderServiceMethods {}
+class _MessageCoordinatorMethods {}
 
-Future<dynamic> _OrderServiceDispatcher(
+Future<dynamic> _MessageCoordinatorDispatcher(
   BaseService service,
   int methodId,
   List<dynamic> positionalArgs,
   Map<String, dynamic> namedArgs,
 ) async {
-  final s = service as OrderService;
+  final s = service as MessageCoordinator;
   switch (methodId) {
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
 }
 
-void _registerOrderServiceDispatcher() {
-  GeneratedDispatcherRegistry.register<OrderService>(
-    _OrderServiceDispatcher,
+void _registerMessageCoordinatorDispatcher() {
+  GeneratedDispatcherRegistry.register<MessageCoordinator>(
+    _MessageCoordinatorDispatcher,
   );
 }
 
-void _registerOrderServiceMethodIds() {
-  ServiceMethodIdRegistry.register<OrderService>({});
+void _registerMessageCoordinatorMethodIds() {
+  ServiceMethodIdRegistry.register<MessageCoordinator>({});
 }
 
-void registerOrderServiceGenerated() {
-  _registerOrderServiceClientFactory();
-  _registerOrderServiceMethodIds();
+void registerMessageCoordinatorGenerated() {
+  _registerMessageCoordinatorClientFactory();
+  _registerMessageCoordinatorMethodIds();
 }
 
-// Service client for PaymentService
-class PaymentServiceClient extends PaymentService {
-  PaymentServiceClient(this._proxy);
-  final ServiceProxy<PaymentService> _proxy;
+// Service client for MessageProcessor
+class MessageProcessorClient extends MessageProcessor {
+  MessageProcessorClient(this._proxy);
+  final ServiceProxy<MessageProcessor> _proxy;
 
   @override
-  Future<String> processPayment(String orderId, double amount) async {
+  Future<void> processMessage(String messageId, String content) async {
     return await _proxy
-        .callMethod('processPayment', [orderId, amount], namedArgs: {});
+        .callMethod('processMessage', [messageId, content], namedArgs: {});
   }
 }
 
-void _registerPaymentServiceClientFactory() {
-  GeneratedClientRegistry.register<PaymentService>(
-    (proxy) => PaymentServiceClient(proxy),
+void _registerMessageProcessorClientFactory() {
+  GeneratedClientRegistry.register<MessageProcessor>(
+    (proxy) => MessageProcessorClient(proxy),
   );
 }
 
-class _PaymentServiceMethods {
-  static const int processPaymentId = 1;
+class _MessageProcessorMethods {
+  static const int processMessageId = 1;
 }
 
-Future<dynamic> _PaymentServiceDispatcher(
+Future<dynamic> _MessageProcessorDispatcher(
   BaseService service,
   int methodId,
   List<dynamic> positionalArgs,
   Map<String, dynamic> namedArgs,
 ) async {
-  final s = service as PaymentService;
+  final s = service as MessageProcessor;
   switch (methodId) {
-    case _PaymentServiceMethods.processPaymentId:
-      return await s.processPayment(positionalArgs[0], positionalArgs[1]);
+    case _MessageProcessorMethods.processMessageId:
+      return await s.processMessage(positionalArgs[0], positionalArgs[1]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
 }
 
-void _registerPaymentServiceDispatcher() {
-  GeneratedDispatcherRegistry.register<PaymentService>(
-    _PaymentServiceDispatcher,
+void _registerMessageProcessorDispatcher() {
+  GeneratedDispatcherRegistry.register<MessageProcessor>(
+    _MessageProcessorDispatcher,
   );
 }
 
-void _registerPaymentServiceMethodIds() {
-  ServiceMethodIdRegistry.register<PaymentService>({
-    'processPayment': _PaymentServiceMethods.processPaymentId,
+void _registerMessageProcessorMethodIds() {
+  ServiceMethodIdRegistry.register<MessageProcessor>({
+    'processMessage': _MessageProcessorMethods.processMessageId,
   });
 }
 
-void registerPaymentServiceGenerated() {
-  _registerPaymentServiceClientFactory();
-  _registerPaymentServiceMethodIds();
+void registerMessageProcessorGenerated() {
+  _registerMessageProcessorClientFactory();
+  _registerMessageProcessorMethodIds();
 }
 
-// Service client for NotificationService
-class NotificationServiceClient extends NotificationService {
-  NotificationServiceClient(this._proxy);
-  final ServiceProxy<NotificationService> _proxy;
+// Service client for MessageLogger
+class MessageLoggerClient extends MessageLogger {
+  MessageLoggerClient(this._proxy);
+  final ServiceProxy<MessageLogger> _proxy;
 
   @override
-  Future<String> sendNotification(
-      String userId, String message, String channel) async {
-    return await _proxy.callMethod(
-        'sendNotification', [userId, message, channel],
-        namedArgs: {});
+  Future<void> logMessage(
+      String messageId, String status, String content) async {
+    return await _proxy
+        .callMethod('logMessage', [messageId, status, content], namedArgs: {});
   }
 
   @override
-  Future<int> getNotificationCount() async {
-    return await _proxy.callMethod('getNotificationCount', [], namedArgs: {});
+  Future<List<Map<String, dynamic>>> getMessageLogs() async {
+    return await _proxy.callMethod('getMessageLogs', [], namedArgs: {});
   }
 }
 
-void _registerNotificationServiceClientFactory() {
-  GeneratedClientRegistry.register<NotificationService>(
-    (proxy) => NotificationServiceClient(proxy),
+void _registerMessageLoggerClientFactory() {
+  GeneratedClientRegistry.register<MessageLogger>(
+    (proxy) => MessageLoggerClient(proxy),
   );
 }
 
-class _NotificationServiceMethods {
-  static const int sendNotificationId = 1;
-  static const int getNotificationCountId = 2;
+class _MessageLoggerMethods {
+  static const int logMessageId = 1;
+  static const int getMessageLogsId = 2;
 }
 
-Future<dynamic> _NotificationServiceDispatcher(
+Future<dynamic> _MessageLoggerDispatcher(
   BaseService service,
   int methodId,
   List<dynamic> positionalArgs,
   Map<String, dynamic> namedArgs,
 ) async {
-  final s = service as NotificationService;
+  final s = service as MessageLogger;
   switch (methodId) {
-    case _NotificationServiceMethods.sendNotificationId:
-      return await s.sendNotification(
+    case _MessageLoggerMethods.logMessageId:
+      return await s.logMessage(
           positionalArgs[0], positionalArgs[1], positionalArgs[2]);
-    case _NotificationServiceMethods.getNotificationCountId:
-      return await s.getNotificationCount();
+    case _MessageLoggerMethods.getMessageLogsId:
+      return await s.getMessageLogs();
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
 }
 
-void _registerNotificationServiceDispatcher() {
-  GeneratedDispatcherRegistry.register<NotificationService>(
-    _NotificationServiceDispatcher,
+void _registerMessageLoggerDispatcher() {
+  GeneratedDispatcherRegistry.register<MessageLogger>(
+    _MessageLoggerDispatcher,
   );
 }
 
-void _registerNotificationServiceMethodIds() {
-  ServiceMethodIdRegistry.register<NotificationService>({
-    'sendNotification': _NotificationServiceMethods.sendNotificationId,
-    'getNotificationCount': _NotificationServiceMethods.getNotificationCountId,
+void _registerMessageLoggerMethodIds() {
+  ServiceMethodIdRegistry.register<MessageLogger>({
+    'logMessage': _MessageLoggerMethods.logMessageId,
+    'getMessageLogs': _MessageLoggerMethods.getMessageLogsId,
   });
 }
 
-void registerNotificationServiceGenerated() {
-  _registerNotificationServiceClientFactory();
-  _registerNotificationServiceMethodIds();
+void registerMessageLoggerGenerated() {
+  _registerMessageLoggerClientFactory();
+  _registerMessageLoggerMethodIds();
 }

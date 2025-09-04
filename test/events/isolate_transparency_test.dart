@@ -1,7 +1,7 @@
 import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 
-part 'optimized_transparency_demo.g.dart';
+part 'isolate_transparency_test.g.dart';
 
 // Demo event
 class TaskEvent extends ServiceEvent {
@@ -247,9 +247,8 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
 }
 
 void main() {
-  group('Optimized Transparency Demo', () {
-    test('Complete isolate transparency with automatic infrastructure',
-        () async {
+  group('Isolate Transparency Tests', () {
+    test('Services communicate transparently across isolates', () async {
       final result = await _runOptimizedTransparencyDemo();
 
       // Verify the system worked
@@ -272,7 +271,8 @@ void main() {
       print('  • No @ServiceContract(remote: true/false) differences in API');
     });
 
-    test('Event infrastructure is automatically configured', () async {
+    test('ServiceLocator automatically configures event infrastructure',
+        () async {
       final locator = ServiceLocator();
 
       // Verify event infrastructure exists

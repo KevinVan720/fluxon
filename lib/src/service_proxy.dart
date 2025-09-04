@@ -425,8 +425,8 @@ mixin ServiceClientMixin on BaseService {
     final proxy = registry.getProxy<T>();
     // Prefer returning the real local instance when available
     if (proxy is LocalServiceProxy) {
-      final instance = (proxy as LocalServiceProxy).peekInstance();
-      if (instance != null && instance is T) return instance as T;
+      final instance = proxy.peekInstance();
+      if (instance != null && instance is T) return instance;
     }
     final generated =
         GeneratedClientRegistry.create<T>(proxy as ServiceProxy<T>);

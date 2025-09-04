@@ -412,7 +412,7 @@ class ServiceRegistry {
           service.optionalDependencies.contains(serviceType)) {
         final dependency = getService();
         if (dependency != null) {
-          service.onDependencyAvailable(serviceType, dependency as BaseService);
+          service.onDependencyAvailable(serviceType, dependency);
         }
       }
     }

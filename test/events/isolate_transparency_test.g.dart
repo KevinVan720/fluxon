@@ -1,6 +1,6 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'optimized_transparency_demo.dart';
+part of 'isolate_transparency_test.dart';
 
 // **************************************************************************
 // ServiceGenerator

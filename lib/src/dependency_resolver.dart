@@ -2,7 +2,6 @@
 library dependency_resolver;
 
 import 'exceptions/service_exceptions.dart';
-import 'types/service_types.dart';
 
 /// Resolves service dependencies and determines initialization order.
 class DependencyResolver {

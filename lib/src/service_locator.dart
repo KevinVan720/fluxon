@@ -66,8 +66,6 @@ class ServiceLocator {
   final List<ServiceLifecycleCallback> _destructionCallbacks = [];
 
   // Enhanced features
-  final Map<Type, Isolate> _serviceIsolates = {};
-  final Map<Type, SendPort> _isolatePorts = {};
   final List<ReceivePort> _bridgePorts = [];
   final List<StreamSubscription> _bridgeSubscriptions = [];
 
@@ -219,9 +217,9 @@ class ServiceLocator {
 
       // For local proxies, return the actual instance
       if (proxy is LocalServiceProxy) {
-        final localInstance = (proxy as LocalServiceProxy).peekInstance();
+        final localInstance = proxy.peekInstance();
         if (localInstance != null && localInstance is T) {
-          return localInstance as T;
+          return localInstance;
         }
       }
 
