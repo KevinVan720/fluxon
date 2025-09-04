@@ -49,7 +49,7 @@ class RemoteListener extends FluxService {
   Future<int> count() async => _count;
 }
 
-// 🚀 SINGLE CLASS: Local hub service
+// 🚀 SINGLE CLASS: Local hub service (stays in main isolate)
 @ServiceContract(remote: false)
 class LocalHub extends FluxService {
   int _ticks = 0;
@@ -65,6 +65,8 @@ class LocalHub extends FluxService {
     _ticks++;
     logger.info('Hub received tick', metadata: {'id': id, 'ticks': _ticks});
   }
+
+  Future<int> getTicks() async => _ticks;
 }
 
 // 🚀 SINGLE CLASS: Implementation moved into main classes above
@@ -87,12 +89,10 @@ class Orchestrator extends FluxService {
 Future<void> _runEventbridgedemoDemo() async {
   final locator = ServiceLocator();
 
-  // Local hub must register IDs for host-side dispatch
+  // 🚀 WORKER-TO-MAIN: LocalHub stays local, workers call it via bridge
   registerLocalHubGenerated();
   locator.register<LocalHub>(() => LocalHub());
   locator.register<Orchestrator>(() => Orchestrator());
-
-  // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<RemoteListener>(
     serviceName: 'RemoteListener',
     serviceFactory: () => RemoteListener(),
