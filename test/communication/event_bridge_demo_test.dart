@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'event_bridge_demo_test.g.dart';
 
@@ -80,7 +80,7 @@ class Orchestrator extends FluxService {
     final listener = getService<RemoteListener>();
     await emitter.emitTick('tick-1');
     await emitter.emitTick('tick-2');
-    return await listener.count();
+    return listener.count();
   }
 }
 
@@ -89,10 +89,10 @@ Future<void> _runEventbridgedemoDemo() async {
 
   // 🚀 WORKER-TO-MAIN: LocalHub stays local, workers call it via bridge
   registerLocalHubGenerated();
-  locator.register<LocalHub>(() => LocalHub());
-  locator.register<Orchestrator>(() => Orchestrator());
-  locator.register<RemoteListener>(() => RemoteListenerWorker());
-  locator.register<RemoteEmitter>(() => RemoteEmitterWorker());
+  locator.register<LocalHub>(LocalHub.new);
+  locator.register<Orchestrator>(Orchestrator.new);
+  locator.register<RemoteListener>(RemoteListenerWorker.new);
+  locator.register<RemoteEmitter>(RemoteEmitterWorker.new);
 
   await locator.initializeAll();
 

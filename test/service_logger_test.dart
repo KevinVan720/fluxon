@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/src/service_logger.dart';
 import 'package:dart_service_framework/src/types/service_types.dart';
+import 'package:test/test.dart';
 
 void main() {
   group('ServiceLogger', () {
@@ -107,7 +107,7 @@ void main() {
     test('should store log entries in memory', () {
       final writer = MemoryLogWriter(maxEntries: 3);
 
-      for (int i = 0; i < 5; i++) {
+      for (var i = 0; i < 5; i++) {
         writer.write(ServiceLogEntry(
           timestamp: DateTime.now(),
           level: ServiceLogLevel.info,
@@ -184,7 +184,7 @@ void main() {
       final memoryWriter = MemoryLogWriter();
       final filteredWriter = FilteredLogWriter(
         writer: memoryWriter,
-        serviceNameFilter: r'Service[AB]',
+        serviceNameFilter: 'Service[AB]',
       );
 
       filteredWriter.write(ServiceLogEntry(

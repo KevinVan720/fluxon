@@ -1,9 +1,10 @@
 import 'dart:async';
-import 'package:test/test.dart';
+
 import 'package:dart_service_framework/src/base_service.dart';
+import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
 import 'package:dart_service_framework/src/service_logger.dart';
 import 'package:dart_service_framework/src/types/service_types.dart';
-import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
+import 'package:test/test.dart';
 
 // Test service implementations
 class TestService extends BaseService {
@@ -277,7 +278,7 @@ void main() {
     });
 
     test('should retry operations', () async {
-      int attempts = 0;
+      var attempts = 0;
       
       final result = await service.withRetry('test operation', () async {
         attempts++;

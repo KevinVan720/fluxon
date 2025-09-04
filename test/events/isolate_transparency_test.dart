@@ -1,13 +1,10 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'isolate_transparency_test.g.dart';
 
 // Demo event
 class TaskEvent extends ServiceEvent {
-  final String taskId;
-  final String action;
-  final Map<String, dynamic> payload;
 
   const TaskEvent({
     required this.taskId,
@@ -19,13 +16,6 @@ class TaskEvent extends ServiceEvent {
     super.metadata = const {},
     super.correlationId,
   });
-
-  @override
-  Map<String, dynamic> eventDataToJson() => {
-        'taskId': taskId,
-        'action': action,
-        'payload': payload,
-      };
 
   factory TaskEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -40,6 +30,16 @@ class TaskEvent extends ServiceEvent {
       metadata: json['metadata'] ?? {},
     );
   }
+  final String taskId;
+  final String action;
+  final Map<String, dynamic> payload;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+        'taskId': taskId,
+        'action': action,
+        'payload': payload,
+      };
 }
 
 // 🚀 SINGLE CLASS: Local service with automatic infrastructure
@@ -63,7 +63,7 @@ class TaskOrchestrator extends FluxService {
         logger.info('Task completed', metadata: {'taskId': event.taskId});
       }
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 5),
       );
@@ -123,7 +123,7 @@ class TaskProcessor extends FluxService {
     await taskLogger.logTaskProgress(taskId, 'processing', data);
 
     // Simulate processing
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
 
     final result = {
       ...data,
@@ -185,11 +185,11 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
 
   // Register services - event infrastructure is set up automatically
   registerTaskOrchestratorGenerated();
-  locator.register<TaskOrchestrator>(() => TaskOrchestrator());
+  locator.register<TaskOrchestrator>(TaskOrchestrator.new);
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  locator.register<TaskProcessor>(() => TaskProcessorWorker());
-  locator.register<TaskLogger>(() => TaskLoggerWorker());
+  locator.register<TaskProcessor>(TaskProcessorWorker.new);
+  locator.register<TaskLogger>(TaskLoggerWorker.new);
 
   // 🚀 OPTIMIZATION: All event infrastructure is set up automatically!
   await locator.initializeAll();
@@ -205,7 +205,7 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
       .executeTask('task-2', {'priority': 'normal', 'user': 'bob'});
 
   // Wait for processing
-  await Future.delayed(Duration(milliseconds: 500));
+  await Future.delayed(const Duration(milliseconds: 500));
 
   // Get results
   final taskLogs = await taskLogger.getTaskLogs();
@@ -253,7 +253,7 @@ void main() {
 
       // Register a simple service
       registerTaskOrchestratorGenerated();
-      locator.register<TaskOrchestrator>(() => TaskOrchestrator());
+      locator.register<TaskOrchestrator>(TaskOrchestrator.new);
 
       await locator.initializeAll();
 

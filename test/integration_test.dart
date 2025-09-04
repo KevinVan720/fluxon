@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 // Example services for integration testing
 class DatabaseService extends BaseService {
@@ -75,7 +75,7 @@ class CacheService extends BaseService {
     _cache.clear();
   }
 
-  void set(String key, dynamic value) {
+  void set(String key, value) {
     ensureInitialized();
     _cache[key] = value;
     logger.debug('Cache set', metadata: {'key': key});
@@ -215,10 +215,10 @@ void main() {
 
     test('should initialize services in correct dependency order', () async {
       // Register services in random order
-      locator.register<NotificationService>(() => NotificationService());
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<UserService>(() => UserService());
-      locator.register<CacheService>(() => CacheService());
+      locator.register<NotificationService>(NotificationService.new);
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<UserService>(UserService.new);
+      locator.register<CacheService>(CacheService.new);
 
       await locator.initializeAll();
 
@@ -238,9 +238,9 @@ void main() {
     });
 
     test('should handle service communication through proxy system', () async {
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<CacheService>(() => CacheService());
-      locator.register<UserService>(() => UserService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<CacheService>(CacheService.new);
+      locator.register<UserService>(UserService.new);
 
       await locator.initializeAll();
 
@@ -272,8 +272,8 @@ void main() {
 
     test('should handle optional dependencies correctly', () async {
       // Register only required dependencies
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<UserService>(() => UserService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<UserService>(UserService.new);
       // CacheService is not registered (optional dependency)
 
       await locator.initializeAll();
@@ -295,9 +295,9 @@ void main() {
     });
 
     test('should perform health checks on all services', () async {
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<CacheService>(() => CacheService());
-      locator.register<UserService>(() => UserService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<CacheService>(CacheService.new);
+      locator.register<UserService>(UserService.new);
 
       await locator.initializeAll();
 
@@ -336,10 +336,10 @@ void main() {
     });
 
     test('should handle complex dependency scenarios', () async {
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<CacheService>(() => CacheService());
-      locator.register<UserService>(() => UserService());
-      locator.register<NotificationService>(() => NotificationService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<CacheService>(CacheService.new);
+      locator.register<UserService>(UserService.new);
+      locator.register<NotificationService>(NotificationService.new);
 
       await locator.initializeAll();
 
@@ -378,8 +378,8 @@ void main() {
     });
 
     test('should provide comprehensive logging', () async {
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<UserService>(() => UserService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<UserService>(UserService.new);
 
       await locator.initializeAll();
 
@@ -402,8 +402,8 @@ void main() {
 
     test('should handle service failure gracefully', () async {
       // Create a service that will fail
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<UserService>(() => UserService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<UserService>(UserService.new);
       
       await locator.initializeAll();
 
@@ -417,10 +417,10 @@ void main() {
     });
 
     test('should provide dependency statistics and visualization', () {
-      locator.register<DatabaseService>(() => DatabaseService());
-      locator.register<CacheService>(() => CacheService());
-      locator.register<UserService>(() => UserService());
-      locator.register<NotificationService>(() => NotificationService());
+      locator.register<DatabaseService>(DatabaseService.new);
+      locator.register<CacheService>(CacheService.new);
+      locator.register<UserService>(UserService.new);
+      locator.register<NotificationService>(NotificationService.new);
 
       final stats = locator.getDependencyStatistics();
       

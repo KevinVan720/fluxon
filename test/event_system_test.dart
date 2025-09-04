@@ -2,8 +2,9 @@
 library event_system_test;
 
 import 'dart:async';
-import 'package:test/test.dart';
+
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 // Test event types
 class TestEvent extends ServiceEvent {
@@ -11,22 +12,9 @@ class TestEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    super.correlationId,
+    required this.message, required this.priority, super.correlationId,
     super.metadata = const {},
-    required this.message,
-    required this.priority,
   });
-
-  final String message;
-  final int priority;
-
-  @override
-  Map<String, dynamic> eventDataToJson() {
-    return {
-      'message': message,
-      'priority': priority,
-    };
-  }
 
   factory TestEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -40,6 +28,15 @@ class TestEvent extends ServiceEvent {
       priority: data['priority'] as int,
     );
   }
+
+  final String message;
+  final int priority;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+      'message': message,
+      'priority': priority,
+    };
 }
 
 class CriticalEvent extends ServiceEvent {
@@ -47,22 +44,9 @@ class CriticalEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    super.correlationId,
+    required this.alertLevel, required this.details, super.correlationId,
     super.metadata = const {},
-    required this.alertLevel,
-    required this.details,
   });
-
-  final String alertLevel;
-  final Map<String, dynamic> details;
-
-  @override
-  Map<String, dynamic> eventDataToJson() {
-    return {
-      'alertLevel': alertLevel,
-      'details': details,
-    };
-  }
 
   factory CriticalEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -76,6 +60,15 @@ class CriticalEvent extends ServiceEvent {
       details: Map<String, dynamic>.from(data['details'] as Map),
     );
   }
+
+  final String alertLevel;
+  final Map<String, dynamic> details;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+      'alertLevel': alertLevel,
+      'details': details,
+    };
 }
 
 // Test services
@@ -92,7 +85,7 @@ class TestServiceA extends BaseService with ServiceEventMixin {
       receivedEvents.add(event);
       processedMessages.add('A processed: ${event.message}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 10),
         data: {'processed': true, 'service': 'A'},
@@ -103,7 +96,7 @@ class TestServiceA extends BaseService with ServiceEventMixin {
       receivedEvents.add(event);
       processedMessages.add('A handled critical: ${event.alertLevel}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 50),
         data: {'handled': true, 'service': 'A'},
@@ -131,7 +124,7 @@ class TestServiceB extends BaseService with ServiceEventMixin {
 
       processedMessages.add('B processed: ${event.message}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 20),
         data: {'processed': true, 'service': 'B'},
@@ -141,7 +134,7 @@ class TestServiceB extends BaseService with ServiceEventMixin {
     // Only handle high priority critical events
     onEvent<CriticalEvent>((event) async {
       if (event.alertLevel != 'HIGH') {
-        return EventProcessingResponse(
+        return const EventProcessingResponse(
           result: EventProcessingResult.ignored,
           processingTime: Duration(milliseconds: 1),
         );
@@ -150,7 +143,7 @@ class TestServiceB extends BaseService with ServiceEventMixin {
       receivedEvents.add(event);
       processedMessages.add('B handled high critical: ${event.alertLevel}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 30),
         data: {'handled': true, 'service': 'B'},
@@ -170,7 +163,7 @@ class TestServiceC extends BaseService with ServiceEventMixin {
     // Only listen to test events with high priority
     onEvent<TestEvent>((event) async {
       if (event.priority < 5) {
-        return EventProcessingResponse(
+        return const EventProcessingResponse(
           result: EventProcessingResult.ignored,
           processingTime: Duration(milliseconds: 1),
         );
@@ -179,7 +172,7 @@ class TestServiceC extends BaseService with ServiceEventMixin {
       receivedEvents.add(event);
       processedMessages.add('C processed high priority: ${event.message}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 15),
         data: {'processed': true, 'service': 'C'},
@@ -225,7 +218,7 @@ void main() {
         sourceService: 'TestService',
         timestamp: DateTime.now(),
         correlationId: 'corr-456',
-        metadata: {'version': '1.0'},
+        metadata: const {'version': '1.0'},
         message: 'Hello World',
         priority: 5,
       );
@@ -273,8 +266,8 @@ void main() {
       );
 
       final targets = [
-        EventTarget(serviceType: TestServiceB, waitUntilProcessed: true),
-        EventTarget(serviceType: TestServiceC, waitUntilProcessed: false),
+        const EventTarget(serviceType: TestServiceB, waitUntilProcessed: true),
+        const EventTarget(serviceType: TestServiceC),
       ];
 
       final result = await serviceA.sendEventTo(event, targets);
@@ -342,13 +335,13 @@ void main() {
         sourceService: 'TestServiceA',
         timestamp: DateTime.now(),
         alertLevel: 'HIGH',
-        details: {'system': 'database', 'error': 'connection lost'},
+        details: const {'system': 'database', 'error': 'connection lost'},
       );
 
       final result = await serviceA.sendCriticalEvent(
         criticalEvent,
         [TestServiceA, TestServiceB],
-        timeout: Duration(seconds: 5),
+        timeout: const Duration(seconds: 5),
       );
 
       expect(result.isSuccess, isTrue);
@@ -379,7 +372,7 @@ void main() {
       await serviceB.broadcastEvent(event);
 
       // Give some time for the event to propagate
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       expect(receivedEvents, hasLength(1));
       expect(receivedEvents.first.message, equals('Subscription test'));
@@ -424,7 +417,7 @@ void main() {
       );
 
       final priorityTargets = [
-        EventTarget(serviceType: TestServiceB, waitUntilProcessed: true),
+        const EventTarget(serviceType: TestServiceB, waitUntilProcessed: true),
       ];
 
       final result = await serviceA.sendEventTargetedThenBroadcast(
@@ -451,7 +444,7 @@ void main() {
       );
 
       final targets = [
-        EventTarget(
+        const EventTarget(
           serviceType: TestServiceB,
           waitUntilProcessed: true,
           retryCount: 2,
@@ -476,7 +469,7 @@ void main() {
         priority: 5,
       );
 
-      final distribution = EventDistribution(
+      const distribution = EventDistribution(
         strategy: EventDistributionStrategy.broadcast,
         globalTimeout: Duration(milliseconds: 1), // Very short timeout
       );
@@ -546,7 +539,7 @@ void main() {
         priority: 6,
       );
 
-      final targets = [EventTarget(serviceType: TestServiceC)];
+      final targets = [const EventTarget(serviceType: TestServiceC)];
       final distribution = EventDistribution.targeted(targets);
       final result =
           await serviceA.sendEvent(event, distribution: distribution);
@@ -566,7 +559,7 @@ void main() {
         priority: 6,
       );
 
-      final distribution = EventDistribution(
+      const distribution = EventDistribution(
         strategy: EventDistributionStrategy.broadcastExcept,
         excludeServices: [TestServiceB],
       );

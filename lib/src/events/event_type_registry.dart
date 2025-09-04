@@ -1,8 +1,8 @@
 /// Event type registry for cross-isolate event reconstruction
 library event_type_registry;
 
-import 'service_event.dart';
 import 'event_bridge.dart';
+import 'service_event.dart';
 
 /// Factory function for creating events from JSON
 typedef EventFactory<T extends ServiceEvent> = T Function(
@@ -32,9 +32,7 @@ class EventTypeRegistry {
   }
 
   /// Check if an event type is registered
-  static bool isRegistered(String eventType) {
-    return _factories.containsKey(eventType);
-  }
+  static bool isRegistered(String eventType) => _factories.containsKey(eventType);
 
   /// Get all registered event types
   static Set<String> get registeredTypes => Set.from(_factories.keys);

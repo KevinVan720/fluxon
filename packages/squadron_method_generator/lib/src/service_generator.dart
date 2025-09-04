@@ -6,11 +6,11 @@ import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
 // Note: we'll detect @ServiceContract by name to avoid a hard dependency loop.
-final _serviceContractChecker = const TypeChecker.fromUrl(
+const _serviceContractChecker = TypeChecker.fromUrl(
   'package:dart_service_framework/src/annotations/service_annotations.dart#ServiceContract',
 );
 
-final _serviceMethodChecker = const TypeChecker.fromUrl(
+const _serviceMethodChecker = TypeChecker.fromUrl(
   'package:dart_service_framework/src/annotations/service_annotations.dart#ServiceMethod',
 );
 
@@ -24,7 +24,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     if (element is! ClassElement) return '';
     if (!_serviceContractChecker.hasAnnotationOf(element)) return '';
 
-    final classEl = element as ClassElement;
+    final classEl = element;
     final className = classEl.name;
     final isRemote = annotation.peek('remote')?.boolValue ?? false;
 
@@ -44,7 +44,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln('class $clientName extends $className {');
     buf.writeln('  $clientName(this._proxy);');
     buf.writeln('  final ServiceProxy<$className> _proxy;');
-    buf.writeln('');
+    buf.writeln();
 
     var nextId = 1;
     final methodIds = <String, int>{};
@@ -102,7 +102,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           .join(', ');
       // Build optional ServiceCallOptions from @ServiceMethod annotation
       final methodAnno = _serviceMethodChecker.firstAnnotationOf(m);
-      String optionsArg = '';
+      var optionsArg = '';
       if (methodAnno != null) {
         final reader = ConstantReader(methodAnno);
         final timeoutMs = reader.peek('timeoutMs')?.intValue;
@@ -127,26 +127,26 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln('  @override');
       buf.writeln('  $returnType $methodName($paramsSig) async {');
       buf.writeln(
-          "    return await _proxy.callMethod('$methodName', [${positionalNames.join(', ')}], namedArgs: {${namedNames}}$optionsArg);");
+          "    return await _proxy.callMethod('$methodName', [${positionalNames.join(', ')}], namedArgs: {$namedNames}$optionsArg);");
       buf.writeln('  }');
-      buf.writeln('');
+      buf.writeln();
     }
 
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
     buf.writeln('void _register${className}ClientFactory() {');
     buf.writeln('  GeneratedClientRegistry.register<$className>(');
     buf.writeln('    (proxy) => $clientName(proxy),');
     buf.writeln('  );');
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
     // Dispatcher & method IDs
     buf.writeln('class _${className}Methods {');
     methodIds.forEach((name, id) {
       buf.writeln('  static const int ${name}Id = $id;');
     });
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
     buf.writeln('Future<dynamic> _${className}Dispatcher(');
     buf.writeln('  BaseService service,');
     buf.writeln('  int methodId,');
@@ -163,7 +163,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
         var positionalIndex = 0;
         for (final p in method.parameters) {
           if (p.isPositional) {
-            parts.add('positionalArgs[' + (positionalIndex++).toString() + ']');
+            parts.add('positionalArgs[${positionalIndex++}]');
           } else if (p.isNamed) {
             parts.add("${p.name}: namedArgs['${p.name}']");
           }
@@ -178,13 +178,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
         "      throw ServiceException('Unknown method id: \$methodId');");
     buf.writeln('  }');
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
     buf.writeln('void _register${className}Dispatcher() {');
     buf.writeln('  GeneratedDispatcherRegistry.register<$className>(');
     buf.writeln('    _${className}Dispatcher,');
     buf.writeln('  );');
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
     // Register method IDs for client-side lookup
     buf.writeln('void _register${className}MethodIds() {');
     buf.writeln('  ServiceMethodIdRegistry.register<$className>({');
@@ -193,13 +193,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     }
     buf.writeln('  });');
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
     // Public registrar for host-side (client + method IDs)
     buf.writeln('void register${className}Generated() {');
     buf.writeln('  _register${className}ClientFactory();');
     buf.writeln('  _register${className}MethodIds();');
     buf.writeln('}');
-    buf.writeln('');
+    buf.writeln();
 
     // Generate a worker-side concrete class that auto-registers the dispatcher.
     // Consumers should use <ClassName>Worker as the serviceFactory for remote services.
@@ -238,7 +238,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln('    await super.initialize();');
       buf.writeln('  }');
       buf.writeln('}');
-      buf.writeln('');
+      buf.writeln();
     }
 
     // 🚀 LOCAL AUTO-REGISTRATION: emit a hidden registrar invoked by ServiceLocator

@@ -39,7 +39,7 @@ class ServiceLogger {
   }
 
   /// Adds metadata that will be included in all log entries.
-  void addMetadata(String key, dynamic value) {
+  void addMetadata(String key, value) {
     _metadata[key] = value;
   }
 
@@ -171,9 +171,7 @@ class ServiceLogger {
     _writer.write(entry);
   }
 
-  bool _shouldLog(ServiceLogLevel logLevel) {
-    return logLevel.index >= _level.index;
-  }
+  bool _shouldLog(ServiceLogLevel logLevel) => logLevel.index >= _level.index;
 }
 
 /// Represents a single log entry.
@@ -231,15 +229,13 @@ class ServiceLogEntry {
   }
 
   /// Converts the log entry to JSON.
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'timestamp': timestamp.toIso8601String(),
       'level': level.name,
       'serviceName': serviceName,
       'message': message,
       'metadata': metadata,
     };
-  }
 
   @override
   String toString() => format();
@@ -325,8 +321,7 @@ class MemoryLogWriter extends ServiceLogWriter {
     String? serviceName,
     DateTime? since,
     DateTime? until,
-  }) {
-    return _entries.where((entry) {
+  }) => _entries.where((entry) {
       if (minLevel != null && entry.level.index < minLevel.index) {
         return false;
       }
@@ -341,7 +336,6 @@ class MemoryLogWriter extends ServiceLogWriter {
       }
       return true;
     }).toList();
-  }
 }
 
 /// A log writer that writes to multiple other writers.

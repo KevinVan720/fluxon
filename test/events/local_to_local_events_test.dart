@@ -2,8 +2,9 @@
 library local_to_local_events_test;
 
 import 'dart:async';
-import 'package:test/test.dart';
+
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 // Test event types for local communication
 class UserCreatedEvent extends ServiceEvent {
@@ -11,25 +12,9 @@ class UserCreatedEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    super.correlationId,
+    required this.userId, required this.userName, required this.email, super.correlationId,
     super.metadata = const {},
-    required this.userId,
-    required this.userName,
-    required this.email,
   });
-
-  final String userId;
-  final String userName;
-  final String email;
-
-  @override
-  Map<String, dynamic> eventDataToJson() {
-    return {
-      'userId': userId,
-      'userName': userName,
-      'email': email,
-    };
-  }
 
   factory UserCreatedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -44,6 +29,17 @@ class UserCreatedEvent extends ServiceEvent {
       email: data['email'] as String,
     );
   }
+
+  final String userId;
+  final String userName;
+  final String email;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+      'userId': userId,
+      'userName': userName,
+      'email': email,
+    };
 }
 
 class OrderPlacedEvent extends ServiceEvent {
@@ -51,28 +47,9 @@ class OrderPlacedEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    super.correlationId,
+    required this.orderId, required this.userId, required this.amount, required this.items, super.correlationId,
     super.metadata = const {},
-    required this.orderId,
-    required this.userId,
-    required this.amount,
-    required this.items,
   });
-
-  final String orderId;
-  final String userId;
-  final double amount;
-  final List<String> items;
-
-  @override
-  Map<String, dynamic> eventDataToJson() {
-    return {
-      'orderId': orderId,
-      'userId': userId,
-      'amount': amount,
-      'items': items,
-    };
-  }
 
   factory OrderPlacedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -88,6 +65,19 @@ class OrderPlacedEvent extends ServiceEvent {
       items: List<String>.from(data['items'] as List),
     );
   }
+
+  final String orderId;
+  final String userId;
+  final double amount;
+  final List<String> items;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+      'orderId': orderId,
+      'userId': userId,
+      'amount': amount,
+      'items': items,
+    };
 }
 
 class SystemAlertEvent extends ServiceEvent {
@@ -95,25 +85,9 @@ class SystemAlertEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    super.correlationId,
+    required this.level, required this.message, required this.component, super.correlationId,
     super.metadata = const {},
-    required this.level,
-    required this.message,
-    required this.component,
   });
-
-  final String level; // INFO, WARNING, ERROR, CRITICAL
-  final String message;
-  final String component;
-
-  @override
-  Map<String, dynamic> eventDataToJson() {
-    return {
-      'level': level,
-      'message': message,
-      'component': component,
-    };
-  }
 
   factory SystemAlertEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -128,6 +102,17 @@ class SystemAlertEvent extends ServiceEvent {
       component: data['component'] as String,
     );
   }
+
+  final String level; // INFO, WARNING, ERROR, CRITICAL
+  final String message;
+  final String component;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+      'level': level,
+      'message': message,
+      'component': component,
+    };
 }
 
 // Local test services with event communication
@@ -174,7 +159,7 @@ class UserService extends BaseService with ServiceEventMixin {
 
         await broadcastEvent(alertEvent);
 
-        return EventProcessingResponse(
+        return const EventProcessingResponse(
           result: EventProcessingResult.failed,
           processingTime: Duration(milliseconds: 5),
           error: 'User not found',
@@ -185,7 +170,7 @@ class UserService extends BaseService with ServiceEventMixin {
           .add('Order ${event.orderId} validated for user ${event.userId}');
       return EventProcessingResponse(
         result: EventProcessingResult.success,
-        processingTime: Duration(milliseconds: 10),
+        processingTime: const Duration(milliseconds: 10),
         data: {'validated': true, 'userId': event.userId},
       );
     }, priority: 100);
@@ -245,7 +230,7 @@ class OrderService extends BaseService with ServiceEventMixin {
 
       return EventProcessingResponse(
         result: EventProcessingResult.success,
-        processingTime: Duration(milliseconds: 5),
+        processingTime: const Duration(milliseconds: 5),
         data: {'userTracked': true, 'userId': event.userId},
       );
     });
@@ -259,7 +244,7 @@ class OrderService extends BaseService with ServiceEventMixin {
         // Could implement retry logic, notifications, etc.
       }
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 3),
       );
@@ -323,7 +308,7 @@ class NotificationService extends BaseService with ServiceEventMixin {
       notifications.add(notification);
       processedMessages.add('Sent welcome notification to ${event.userName}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 15),
         data: {'notificationSent': true, 'type': 'welcome'},
@@ -338,7 +323,7 @@ class NotificationService extends BaseService with ServiceEventMixin {
       notifications.add(notification);
       processedMessages.add('Sent order confirmation for ${event.orderId}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 12),
         data: {'notificationSent': true, 'type': 'order_confirmation'},
@@ -358,7 +343,7 @@ class NotificationService extends BaseService with ServiceEventMixin {
 
       return EventProcessingResponse(
         result: EventProcessingResult.success,
-        processingTime: Duration(milliseconds: 8),
+        processingTime: const Duration(milliseconds: 8),
         data: {'alertProcessed': true, 'level': event.level},
       );
     });
@@ -378,7 +363,7 @@ class AnalyticsService extends BaseService with ServiceEventMixin {
       eventCounts['userCreated'] = (eventCounts['userCreated'] ?? 0) + 1;
       processedMessages.add('Tracked user creation: ${event.userId}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 5),
         data: {'tracked': true, 'type': 'user_created'},
@@ -391,7 +376,7 @@ class AnalyticsService extends BaseService with ServiceEventMixin {
       processedMessages
           .add('Tracked order: ${event.orderId} amount \$${event.amount}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 5),
         data: {'tracked': true, 'type': 'order_placed'},
@@ -405,7 +390,7 @@ class AnalyticsService extends BaseService with ServiceEventMixin {
           (eventCounts['${event.level.toLowerCase()}Alert'] ?? 0) + 1;
       processedMessages.add('Tracked system alert: ${event.level}');
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 3),
         data: {'tracked': true, 'type': 'system_alert'},
@@ -462,7 +447,7 @@ void main() {
           await userService.createUser('John Doe', 'john@example.com');
 
       // Give time for event propagation
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify user was created
       expect(userId, isNotEmpty);
@@ -473,7 +458,7 @@ void main() {
       expect(orderService.receivedEvents, hasLength(1));
       expect(orderService.receivedEvents.first, isA<UserCreatedEvent>());
       expect(orderService.processedMessages,
-          contains('User John Doe (${userId}) is now available for orders'));
+          contains('User John Doe ($userId) is now available for orders'));
 
       // Verify notification service sent welcome message
       expect(notificationService.receivedEvents, hasLength(1));
@@ -486,14 +471,14 @@ void main() {
       expect(analyticsService.receivedEvents, hasLength(1));
       expect(analyticsService.eventCounts['userCreated'], equals(1));
       expect(analyticsService.processedMessages,
-          contains('Tracked user creation: ${userId}'));
+          contains('Tracked user creation: $userId'));
     });
 
     test('should handle order placement workflow with event cascade', () async {
       // First create a user
       final userId =
           await userService.createUser('Jane Smith', 'jane@example.com');
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Clear previous events for cleaner testing
       orderService.receivedEvents.clear();
@@ -508,7 +493,7 @@ void main() {
       );
 
       // Give time for event propagation
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify order was created
       expect(orderId, isNotEmpty);
@@ -517,22 +502,22 @@ void main() {
       expect(orderService.orders.first['amount'], equals(99.99));
 
       // Verify user service validated the order
-      expect(userService.receivedEvents.where((e) => e is OrderPlacedEvent),
+      expect(userService.receivedEvents.whereType<OrderPlacedEvent>(),
           hasLength(1));
       expect(userService.processedMessages,
-          contains('Order ${orderId} validated for user ${userId}'));
+          contains('Order $orderId validated for user $userId'));
 
       // Verify notification service sent order confirmation
       expect(
           notificationService.receivedEvents
-              .where((e) => e is OrderPlacedEvent),
+              .whereType<OrderPlacedEvent>(),
           hasLength(1));
       expect(notificationService.notifications,
-          contains('Order ${orderId} confirmed! Total: \$99.99'));
+          contains('Order $orderId confirmed! Total: \$99.99'));
 
       // Verify analytics tracked the order
       expect(
-          analyticsService.receivedEvents.where((e) => e is OrderPlacedEvent),
+          analyticsService.receivedEvents.whereType<OrderPlacedEvent>(),
           hasLength(1));
       expect(analyticsService.eventCounts['orderPlaced'], equals(1));
     });
@@ -546,24 +531,24 @@ void main() {
       );
 
       // Give time for event propagation and error handling
-      await Future.delayed(Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       // Verify order was created but validation failed
       expect(orderService.orders, hasLength(1));
       expect(orderService.orders.first['userId'], equals('nonexistent_user'));
 
       // Verify user service detected the error and sent an alert
-      expect(userService.receivedEvents.where((e) => e is OrderPlacedEvent),
+      expect(userService.receivedEvents.whereType<OrderPlacedEvent>(),
           hasLength(1));
       expect(
           userService.processedMessages,
           contains(
-              'ERROR: Order ${orderId} placed for non-existent user nonexistent_user'));
+              'ERROR: Order $orderId placed for non-existent user nonexistent_user'));
 
       // Verify notification service received the system alert
       expect(
           notificationService.receivedEvents
-              .where((e) => e is SystemAlertEvent),
+              .whereType<SystemAlertEvent>(),
           hasLength(1));
       final alertEvent = notificationService.receivedEvents
           .whereType<SystemAlertEvent>()
@@ -573,7 +558,7 @@ void main() {
       expect(alertEvent.component, equals('UserService'));
 
       // Verify order service received the system alert
-      expect(orderService.receivedEvents.where((e) => e is SystemAlertEvent),
+      expect(orderService.receivedEvents.whereType<SystemAlertEvent>(),
           hasLength(1));
       expect(orderService.processedMessages,
           contains('Received alert: Order placed for non-existent user'));
@@ -605,10 +590,10 @@ void main() {
       // Create user and place order
       final userId =
           await userService.createUser('Stream Test', 'stream@example.com');
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       await orderService.placeOrder(userId, 25.50, ['Streamed Item']);
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Verify subscription events
       expect(receivedUserEvents, hasLength(1));
@@ -624,7 +609,7 @@ void main() {
       // Create multiple users and orders rapidly
       final futures = <Future>[];
 
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         futures.add(userService.createUser('User $i', 'user$i@example.com'));
       }
 
@@ -632,10 +617,10 @@ void main() {
       futures.clear();
 
       // Wait for user creation events to propagate
-      await Future.delayed(Duration(milliseconds: 200));
+      await Future.delayed(const Duration(milliseconds: 200));
 
       // Place orders for all users
-      for (int i = 0; i < 10; i++) {
+      for (var i = 0; i < 10; i++) {
         final userId = 'user_${i + 1}';
         futures
             .add(orderService.placeOrder(userId, 10.0 * (i + 1), ['Item $i']));
@@ -644,7 +629,7 @@ void main() {
       await Future.wait(futures);
 
       // Wait for all events to propagate
-      await Future.delayed(Duration(milliseconds: 300));
+      await Future.delayed(const Duration(milliseconds: 300));
 
       stopwatch.stop();
 
@@ -671,7 +656,7 @@ void main() {
           await userService.createUser('Correlated User', 'corr@example.com');
 
       // Wait for event propagation
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Find the user created event and verify it has proper correlation tracking
       final userEvent =
@@ -685,14 +670,14 @@ void main() {
     test('should track event statistics correctly', () async {
       // Generate various events
       await userService.createUser('Stats User', 'stats@example.com');
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       await orderService.placeOrder('user_1', 100.0, ['Stats Item']);
-      await Future.delayed(Duration(milliseconds: 50));
+      await Future.delayed(const Duration(milliseconds: 50));
 
       // Try invalid order to generate error
       await orderService.placeOrder('invalid_user', 50.0, ['Error Item']);
-      await Future.delayed(Duration(milliseconds: 150));
+      await Future.delayed(const Duration(milliseconds: 150));
 
       // Verify event processing worked (statistics tracking needs infrastructure update)
       print('Event statistics test completed successfully');

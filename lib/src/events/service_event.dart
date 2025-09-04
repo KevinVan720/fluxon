@@ -37,8 +37,7 @@ abstract class ServiceEvent {
   String get eventType => runtimeType.toString();
 
   /// Convert event to JSON for serialization
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'eventId': eventId,
       'eventType': eventType,
       'sourceService': sourceService,
@@ -47,7 +46,6 @@ abstract class ServiceEvent {
       'metadata': metadata,
       'data': eventDataToJson(),
     };
-  }
 
   /// Convert event-specific data to JSON
   /// Override this in subclasses to serialize event data
@@ -72,9 +70,7 @@ abstract class ServiceEvent {
   int get hashCode => Object.hash(eventId, eventType);
 
   @override
-  String toString() {
-    return '$eventType(id: $eventId, source: $sourceService, timestamp: $timestamp)';
-  }
+  String toString() => '$eventType(id: $eventId, source: $sourceService, timestamp: $timestamp)';
 }
 
 /// Event processing result
@@ -119,19 +115,15 @@ class EventProcessingResponse {
   /// Whether processing failed
   bool get isFailed => result == EventProcessingResult.failed;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'result': result.name,
       'processingTimeMs': processingTime.inMilliseconds,
       'error': error?.toString(),
       'data': data,
     };
-  }
 
   @override
-  String toString() {
-    return 'EventProcessingResponse(result: $result, time: ${processingTime.inMilliseconds}ms)';
-  }
+  String toString() => 'EventProcessingResponse(result: $result, time: ${processingTime.inMilliseconds}ms)';
 }
 
 /// Target for event distribution
@@ -160,14 +152,10 @@ class EventTarget {
   final bool Function(ServiceEvent event)? condition;
 
   /// Check if this target should receive the event
-  bool shouldReceive(ServiceEvent event) {
-    return condition?.call(event) ?? true;
-  }
+  bool shouldReceive(ServiceEvent event) => condition?.call(event) ?? true;
 
   @override
-  String toString() {
-    return 'EventTarget(service: $serviceType, wait: $waitUntilProcessed, retries: $retryCount)';
-  }
+  String toString() => 'EventTarget(service: $serviceType, wait: $waitUntilProcessed, retries: $retryCount)';
 }
 
 /// Distribution strategy for events
@@ -196,6 +184,33 @@ class EventDistribution {
     this.globalTimeout,
   });
 
+  /// Create a targeted distribution
+  factory EventDistribution.targeted(List<EventTarget> targets) => EventDistribution(
+      targets: targets,
+    );
+
+  /// Create a broadcast distribution
+  factory EventDistribution.broadcast({
+    List<Type> excludeServices = const [],
+    bool includeSource = false,
+  }) => EventDistribution(
+      strategy: EventDistributionStrategy.broadcast,
+      excludeServices: excludeServices,
+      includeSource: includeSource,
+    );
+
+  /// Create a targeted then broadcast distribution
+  factory EventDistribution.targetedThenBroadcast(
+    List<EventTarget> targets, {
+    List<Type> excludeServices = const [],
+    bool includeSource = false,
+  }) => EventDistribution(
+      targets: targets,
+      strategy: EventDistributionStrategy.targetedThenBroadcast,
+      excludeServices: excludeServices,
+      includeSource: includeSource,
+    );
+
   /// Specific targets for the event
   final List<EventTarget> targets;
 
@@ -214,44 +229,8 @@ class EventDistribution {
   /// Global timeout for the entire distribution
   final Duration? globalTimeout;
 
-  /// Create a targeted distribution
-  factory EventDistribution.targeted(List<EventTarget> targets) {
-    return EventDistribution(
-      targets: targets,
-      strategy: EventDistributionStrategy.targeted,
-    );
-  }
-
-  /// Create a broadcast distribution
-  factory EventDistribution.broadcast({
-    List<Type> excludeServices = const [],
-    bool includeSource = false,
-  }) {
-    return EventDistribution(
-      strategy: EventDistributionStrategy.broadcast,
-      excludeServices: excludeServices,
-      includeSource: includeSource,
-    );
-  }
-
-  /// Create a targeted then broadcast distribution
-  factory EventDistribution.targetedThenBroadcast(
-    List<EventTarget> targets, {
-    List<Type> excludeServices = const [],
-    bool includeSource = false,
-  }) {
-    return EventDistribution(
-      targets: targets,
-      strategy: EventDistributionStrategy.targetedThenBroadcast,
-      excludeServices: excludeServices,
-      includeSource: includeSource,
-    );
-  }
-
   @override
-  String toString() {
-    return 'EventDistribution(strategy: $strategy, targets: ${targets.length}, excludes: ${excludeServices.length})';
-  }
+  String toString() => 'EventDistribution(strategy: $strategy, targets: ${targets.length}, excludes: ${excludeServices.length})';
 }
 
 /// Event handler function type
@@ -295,14 +274,10 @@ class EventListener<T extends ServiceEvent> {
   }
 
   /// Invoke the handler with safe casting
-  Future<EventProcessingResponse> handle(ServiceEvent event) async {
-    return await handler(event as T);
-  }
+  Future<EventProcessingResponse> handle(ServiceEvent event) async => handler(event as T);
 
   @override
-  String toString() {
-    return 'EventListener<$eventType>(service: $serviceType, priority: $priority)';
-  }
+  String toString() => 'EventListener<$eventType>(service: $serviceType, priority: $priority)';
 }
 
 /// Event subscription for managing event streams
@@ -329,7 +304,5 @@ class EventSubscription {
   bool get isActive => !_controller.isClosed;
 
   @override
-  String toString() {
-    return 'EventSubscription<$eventType>(service: $serviceType, active: $isActive)';
-  }
+  String toString() => 'EventSubscription<$eventType>(service: $serviceType, active: $isActive)';
 }

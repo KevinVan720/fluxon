@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'cross_isolate_calls_demo_test.g.dart';
 
@@ -35,18 +35,18 @@ class Orchestrator extends FluxService {
     final a = getService<ServiceA>();
     final b = getService<ServiceB>();
     final inc = await a.increment(x);
-    return await b.doubleIt(inc);
+    return b.doubleIt(inc);
   }
 }
 
 Future<void> _runCrossisolatecallsdemoDemo() async {
   final locator = ServiceLocator();
 
-  locator.register<Orchestrator>(() => Orchestrator());
+  locator.register<Orchestrator>(Orchestrator.new);
 
   // 🚀 SIMPLE API: same register() for local and remote (worker auto-detected)
-  locator.register<ServiceA>(() => ServiceAWorker());
-  locator.register<ServiceB>(() => ServiceBWorker());
+  locator.register<ServiceA>(ServiceAWorker.new);
+  locator.register<ServiceB>(ServiceBWorker.new);
 
   await locator.initializeAll();
 

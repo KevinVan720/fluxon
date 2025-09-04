@@ -147,8 +147,7 @@ class ServiceInfo {
     DateTime? registeredAt,
     DateTime? initializedAt,
     DateTime? destroyedAt,
-  }) {
-    return ServiceInfo(
+  }) => ServiceInfo(
       name: name ?? this.name,
       type: type ?? this.type,
       dependencies: dependencies ?? this.dependencies,
@@ -160,13 +159,10 @@ class ServiceInfo {
       initializedAt: initializedAt ?? this.initializedAt,
       destroyedAt: destroyedAt ?? this.destroyedAt,
     );
-  }
 
   @override
-  String toString() {
-    return 'ServiceInfo(name: $name, type: $type, state: $state, '
+  String toString() => 'ServiceInfo(name: $name, type: $type, state: $state, '
         'dependencies: ${dependencies.length})';
-  }
 }
 
 /// Dependency relationship between services.
@@ -197,14 +193,10 @@ class ServiceDependency {
   }
 
   @override
-  int get hashCode {
-    return dependent.hashCode ^ dependency.hashCode ^ isRequired.hashCode;
-  }
+  int get hashCode => dependent.hashCode ^ dependency.hashCode ^ isRequired.hashCode;
 
   @override
-  String toString() {
-    return 'ServiceDependency($dependent -> $dependency, required: $isRequired)';
-  }
+  String toString() => 'ServiceDependency($dependent -> $dependency, required: $isRequired)';
 }
 
 /// Result of a service operation.
@@ -309,19 +301,15 @@ class ServiceHealthCheck {
   bool get isHealthy => status == ServiceHealthStatus.healthy;
 
   /// Converts the health check to JSON
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'status': status.name,
       'timestamp': timestamp.toIso8601String(),
       'message': message,
       'details': details,
       'duration': duration?.inMicroseconds,
     };
-  }
 
   @override
-  String toString() {
-    return 'ServiceHealthCheck(status: $status, message: $message, '
+  String toString() => 'ServiceHealthCheck(status: $status, message: $message, '
         'timestamp: $timestamp)';
-  }
 }

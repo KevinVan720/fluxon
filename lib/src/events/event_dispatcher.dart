@@ -29,8 +29,7 @@ class EventStatistics {
 
   double get successRate => totalSent > 0 ? totalProcessed / totalSent : 0.0;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'eventType': eventType,
       'totalSent': totalSent,
       'totalProcessed': totalProcessed,
@@ -39,12 +38,9 @@ class EventStatistics {
       'averageProcessingTimeMs': averageProcessingTime.inMilliseconds,
       'lastSent': lastSent?.toIso8601String(),
     };
-  }
 
   @override
-  String toString() {
-    return 'EventStatistics($eventType: sent=$totalSent, processed=$totalProcessed, success=${(successRate * 100).toStringAsFixed(1)}%)';
-  }
+  String toString() => 'EventStatistics($eventType: sent=$totalSent, processed=$totalProcessed, success=${(successRate * 100).toStringAsFixed(1)}%)';
 }
 
 /// Result of event distribution
@@ -72,8 +68,7 @@ class EventDistributionResult {
   /// Whether the distribution was completely successful
   bool get isSuccess => errors.isEmpty && failureCount == 0;
 
-  Map<String, dynamic> toJson() {
-    return {
+  Map<String, dynamic> toJson() => {
       'eventId': event.eventId,
       'eventType': event.eventType,
       'distribution': distribution.toString(),
@@ -83,12 +78,9 @@ class EventDistributionResult {
       'errors': errors,
       'responses': responses.map((k, v) => MapEntry(k.toString(), v.toJson())),
     };
-  }
 
   @override
-  String toString() {
-    return 'EventDistributionResult(${event.eventType}: success=$successCount, failed=$failureCount, time=${totalTime.inMilliseconds}ms)';
-  }
+  String toString() => 'EventDistributionResult(${event.eventType}: success=$successCount, failed=$failureCount, time=${totalTime.inMilliseconds}ms)';
 }
 
 /// Central event dispatcher for the service framework
@@ -358,7 +350,7 @@ class EventDispatcher {
   ) async {
     final timeout = target.timeout ?? const Duration(seconds: 30);
     var attempts = 0;
-    var lastError;
+    Object? lastError;
 
     while (attempts <= target.retryCount) {
       try {
@@ -557,14 +549,10 @@ class EventDispatcher {
   }
 
   /// Get event statistics
-  Map<String, EventStatistics> getStatistics() {
-    return Map.unmodifiable(_statistics);
-  }
+  Map<String, EventStatistics> getStatistics() => Map.unmodifiable(_statistics);
 
   /// Get statistics for a specific event type
-  EventStatistics? getEventStatistics(String eventType) {
-    return _statistics[eventType];
-  }
+  EventStatistics? getEventStatistics(String eventType) => _statistics[eventType];
 
   /// Clear all statistics
   void clearStatistics() {

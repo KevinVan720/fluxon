@@ -1,6 +1,6 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/src/dependency_resolver.dart';
 import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
+import 'package:test/test.dart';
 
 // Mock service types for testing
 class ServiceA {}

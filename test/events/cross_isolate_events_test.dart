@@ -1,14 +1,10 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'cross_isolate_events_test.g.dart';
 
 // Test event for cross-isolate communication
 class MessageEvent extends ServiceEvent {
-  final String messageId;
-  final String content;
-  final String sender;
-  final String recipient;
 
   const MessageEvent({
     required this.messageId,
@@ -21,14 +17,6 @@ class MessageEvent extends ServiceEvent {
     super.metadata = const {},
     super.correlationId,
   });
-
-  @override
-  Map<String, dynamic> eventDataToJson() => {
-        'messageId': messageId,
-        'content': content,
-        'sender': sender,
-        'recipient': recipient,
-      };
 
   factory MessageEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
@@ -44,6 +32,18 @@ class MessageEvent extends ServiceEvent {
       metadata: json['metadata'] ?? {},
     );
   }
+  final String messageId;
+  final String content;
+  final String sender;
+  final String recipient;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => {
+        'messageId': messageId,
+        'content': content,
+        'sender': sender,
+        'recipient': recipient,
+      };
 }
 
 // 🚀 SINGLE CLASS: Local message coordinator
@@ -68,7 +68,7 @@ class MessageCoordinator extends FluxService {
         'recipient': event.recipient,
       });
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 5),
       );
@@ -155,7 +155,7 @@ class MessageProcessor extends FluxService {
         ),
       ));
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 20),
       );
@@ -169,7 +169,7 @@ class MessageProcessor extends FluxService {
     });
 
     // Simulate processing
-    await Future.delayed(Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 50));
 
     // Call another remote service
     final messageLogger = getService<MessageLogger>();
@@ -197,7 +197,7 @@ class MessageLogger extends FluxService {
       // Log the event
       await logMessage(event.messageId, 'received', event.content);
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration(milliseconds: 10),
       );
@@ -229,17 +229,17 @@ class MessageLogger extends FluxService {
 Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   // 🚀 REGISTER EVENT TYPES FOR CROSS-ISOLATE RECONSTRUCTION
   EventTypeRegistry.register<MessageEvent>(
-      (json) => MessageEvent.fromJson(json));
+      MessageEvent.fromJson);
 
   // 🚀 COMPLETE CROSS-ISOLATE EVENT SYSTEM
   final locator = ServiceLocator();
 
   // Register all services
-  locator.register<MessageCoordinator>(() => MessageCoordinator());
+  locator.register<MessageCoordinator>(MessageCoordinator.new);
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  locator.register<MessageProcessor>(() => MessageProcessorWorker());
-  locator.register<MessageLogger>(() => MessageLoggerWorker());
+  locator.register<MessageProcessor>(MessageProcessorWorker.new);
+  locator.register<MessageLogger>(MessageLoggerWorker.new);
 
   await locator.initializeAll();
 
@@ -254,7 +254,7 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
       'Cross-isolate events working!', 'Coordinator', 'Workers');
 
   // Wait for cross-isolate event processing
-  await Future.delayed(Duration(seconds: 1));
+  await Future.delayed(const Duration(seconds: 1));
 
   final logs = await messageLogger.getMessageLogs();
 
@@ -297,7 +297,7 @@ void main() {
 
       // Register MessageEvent
       EventTypeRegistry.register<MessageEvent>(
-          (json) => MessageEvent.fromJson(json));
+          MessageEvent.fromJson);
 
       // Create a test event
       final originalEvent = MessageEvent(

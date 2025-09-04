@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'policy_timeout_retry_demo_test.g.dart';
 
@@ -24,7 +24,7 @@ class PolicyService extends FluxService {
 Future<void> _runPolicytimeoutretrydemoDemo() async {
   final locator = ServiceLocator();
   try {
-    locator.register<PolicyService>(() => PolicyServiceWorker());
+    locator.register<PolicyService>(PolicyServiceWorker.new);
 
     await locator.initializeAll();
 

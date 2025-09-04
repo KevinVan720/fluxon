@@ -7,8 +7,8 @@ import 'dart:isolate';
 import 'package:meta/meta.dart';
 
 import 'base_service.dart';
-import 'service_logger.dart';
 import 'exceptions/service_exceptions.dart';
+import 'service_logger.dart';
 
 /// Message types for cross-isolate communication
 enum ServiceMessageType {
@@ -33,30 +33,7 @@ class ServiceMessage {
     this.stackTrace,
   });
 
-  final ServiceMessageType type;
-  final String serviceType;
-  final String requestId;
-  final String? methodName;
-  final Map<String, dynamic>? arguments;
-  final dynamic result;
-  final String? error;
-  final String? stackTrace;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'type': type.name,
-      'serviceType': serviceType,
-      'requestId': requestId,
-      'methodName': methodName,
-      'arguments': arguments,
-      'result': result,
-      'error': error,
-      'stackTrace': stackTrace,
-    };
-  }
-
-  factory ServiceMessage.fromJson(Map<String, dynamic> json) {
-    return ServiceMessage(
+  factory ServiceMessage.fromJson(Map<String, dynamic> json) => ServiceMessage(
       type: ServiceMessageType.values.byName(json['type'] as String),
       serviceType: json['serviceType'] as String,
       requestId: json['requestId'] as String,
@@ -66,7 +43,26 @@ class ServiceMessage {
       error: json['error'] as String?,
       stackTrace: json['stackTrace'] as String?,
     );
-  }
+
+  final ServiceMessageType type;
+  final String serviceType;
+  final String requestId;
+  final String? methodName;
+  final Map<String, dynamic>? arguments;
+  final dynamic result;
+  final String? error;
+  final String? stackTrace;
+
+  Map<String, dynamic> toJson() => {
+      'type': type.name,
+      'serviceType': serviceType,
+      'requestId': requestId,
+      'methodName': methodName,
+      'arguments': arguments,
+      'result': result,
+      'error': error,
+      'stackTrace': stackTrace,
+    };
 }
 
 /// Service proxy for transparent cross-isolate method calls
@@ -166,7 +162,7 @@ class ServiceRegistryProxy<T extends BaseService> {
   void dispose() {
     for (final completer in _pendingRequests.values) {
       if (!completer.isCompleted) {
-        completer.completeError(ServiceException('Service proxy disposed'));
+        completer.completeError(const ServiceException('Service proxy disposed'));
       }
     }
     _pendingRequests.clear();
@@ -247,14 +243,10 @@ class ServiceRegistry {
   }
 
   /// Check if a service is available
-  bool hasService<T extends BaseService>() {
-    return _localServices.containsKey(T) || _remoteServices.containsKey(T);
-  }
+  bool hasService<T extends BaseService>() => _localServices.containsKey(T) || _remoteServices.containsKey(T);
 
   /// Get all available service types
-  Set<Type> get availableServices {
-    return {..._localServices.keys, ..._remoteServices.keys};
-  }
+  Set<Type> get availableServices => {..._localServices.keys, ..._remoteServices.keys};
 
   /// Handle incoming messages
   void _handleMessage(ServiceMessage message) {
@@ -337,7 +329,7 @@ class ServiceRegistry {
   }
 
   /// Send method response
-  void _sendResponse(ServiceMessage originalMessage, dynamic result) {
+  void _sendResponse(ServiceMessage originalMessage, result) {
     final response = ServiceMessage(
       type: ServiceMessageType.methodResponse,
       serviceType: originalMessage.serviceType,
@@ -453,9 +445,7 @@ mixin ServiceCommunicationMixin on BaseService {
 
   /// Get a service through the registry (local or remote)
   @protected
-  T? getRegistryService<T extends BaseService>() {
-    return _registry?.getService<T>();
-  }
+  T? getRegistryService<T extends BaseService>() => _registry?.getService<T>();
 
   /// Override dependency getter to use registry
   @override

@@ -2,12 +2,12 @@
 library flux_service;
 
 import 'dart:async';
+
 import 'package:meta/meta.dart';
 
 import 'base_service.dart';
 import 'events/event_mixin.dart';
 import 'service_proxy.dart';
-import 'service_logger.dart';
 
 /// 🚀 FLUX: The ultimate simplified service class!
 ///

@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'version_skew_demo_test.g.dart';
 
@@ -12,7 +12,7 @@ Future<void> _runVersionskewdemoDemo() async {
   final locator = ServiceLocator();
   try {
     // Register worker with ApiV1
-    locator.register<ApiV1>(() => ApiV1Worker());
+    locator.register<ApiV1>(ApiV1Worker.new);
 
     await locator.initializeAll();
 
@@ -27,7 +27,7 @@ Future<void> _runVersionskewdemoDemo() async {
       await client.callMethod<String>('greet', ['world']);
     } on ServiceRetryExceededException catch (e) {
       print('Version skew detected (retry exceeded): ${e.message}');
-    } on ServiceException {}
+    }
   } finally {
     await locator.destroyAll();
   }

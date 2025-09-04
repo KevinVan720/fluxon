@@ -1,9 +1,9 @@
-import 'package:test/test.dart';
-import 'package:dart_service_framework/src/service_locator.dart';
 import 'package:dart_service_framework/src/base_service.dart';
+import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
+import 'package:dart_service_framework/src/service_locator.dart';
 import 'package:dart_service_framework/src/service_logger.dart';
 import 'package:dart_service_framework/src/types/service_types.dart';
-import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
+import 'package:test/test.dart';
 
 // Test service implementations
 class ServiceA extends BaseService {
@@ -103,7 +103,7 @@ void main() {
     });
 
     test('should register services', () {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       expect(locator.isRegistered<ServiceA>(), isTrue);
       expect(locator.serviceCount, equals(1));
@@ -111,16 +111,16 @@ void main() {
     });
 
     test('should prevent duplicate registration', () {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       expect(
-        () => locator.register<ServiceA>(() => ServiceA()),
+        () => locator.register<ServiceA>(ServiceA.new),
         throwsA(isA<ServiceAlreadyRegisteredException>()),
       );
     });
 
     test('should unregister services', () {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       expect(locator.isRegistered<ServiceA>(), isTrue);
       
@@ -138,7 +138,7 @@ void main() {
     });
 
     test('should prevent unregistering initialized services', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       await locator.initializeAll();
       
       expect(
@@ -148,9 +148,9 @@ void main() {
     });
 
     test('should initialize services in dependency order', () async {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<ServiceB>(() => ServiceB());
-      locator.register<ServiceC>(() => ServiceC());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<ServiceB>(ServiceB.new);
+      locator.register<ServiceC>(ServiceC.new);
       
       await locator.initializeAll();
       
@@ -167,7 +167,7 @@ void main() {
     });
 
     test('should get initialized services', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       await locator.initializeAll();
       
       final service = locator.get<ServiceA>();
@@ -186,7 +186,7 @@ void main() {
     });
 
     test('should throw when getting service before initialization', () {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       expect(
         () => locator.get<ServiceA>(),
@@ -195,7 +195,7 @@ void main() {
     });
 
     test('should try get services safely', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       await locator.initializeAll();
       
       final service = locator.tryGet<ServiceA>();
@@ -206,7 +206,7 @@ void main() {
     });
 
     test('should check service initialization status', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       expect(locator.isServiceInitialized<ServiceA>(), isFalse);
       
@@ -216,8 +216,8 @@ void main() {
     });
 
     test('should handle initialization failure', () async {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<FailingService>(() => FailingService());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<FailingService>(FailingService.new);
       
       expect(
         () => locator.initializeAll(),
@@ -228,8 +228,8 @@ void main() {
     });
 
     test('should clean up on initialization failure', () async {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<FailingService>(() => FailingService());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<FailingService>(FailingService.new);
       
       try {
         await locator.initializeAll();
@@ -259,7 +259,7 @@ void main() {
     });
 
     test('should handle optional dependencies', () async {
-      locator.register<OptionalDependencyService>(() => OptionalDependencyService());
+      locator.register<OptionalDependencyService>(OptionalDependencyService.new);
       // ServiceA is not registered but it's optional
       
       await locator.initializeAll();
@@ -271,8 +271,8 @@ void main() {
     });
 
     test('should handle optional dependencies when available', () async {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<OptionalDependencyService>(() => OptionalDependencyService());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<OptionalDependencyService>(OptionalDependencyService.new);
       
       await locator.initializeAll();
       
@@ -286,7 +286,7 @@ void main() {
     });
 
     test('should get service information', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       final info = locator.getServiceInfo<ServiceA>();
       
@@ -296,8 +296,8 @@ void main() {
     });
 
     test('should get all service information', () async {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<ServiceB>(() => ServiceB());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<ServiceB>(ServiceB.new);
       
       final allInfo = locator.getAllServiceInfo();
       
@@ -306,7 +306,7 @@ void main() {
     });
 
     test('should perform health checks', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       await locator.initializeAll();
       
       final healthChecks = await locator.performHealthChecks();
@@ -317,9 +317,9 @@ void main() {
     });
 
     test('should get dependency statistics', () {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<ServiceB>(() => ServiceB());
-      locator.register<ServiceC>(() => ServiceC());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<ServiceB>(ServiceB.new);
+      locator.register<ServiceC>(ServiceC.new);
       
       final stats = locator.getDependencyStatistics();
       
@@ -329,8 +329,8 @@ void main() {
     });
 
     test('should visualize dependency graph', () {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<ServiceB>(() => ServiceB());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<ServiceB>(ServiceB.new);
       
       final visualization = locator.visualizeDependencyGraph();
       
@@ -340,8 +340,8 @@ void main() {
     });
 
     test('should support lifecycle callbacks', () async {
-      bool initCallbackCalled = false;
-      bool destroyCallbackCalled = false;
+      var initCallbackCalled = false;
+      var destroyCallbackCalled = false;
       
       locator.addInitializationCallback((_) async {
         initCallbackCalled = true;
@@ -351,7 +351,7 @@ void main() {
         destroyCallbackCalled = true;
       });
       
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       await locator.initializeAll();
       expect(initCallbackCalled, isTrue);
@@ -361,8 +361,8 @@ void main() {
     });
 
     test('should clear all services', () async {
-      locator.register<ServiceA>(() => ServiceA());
-      locator.register<ServiceB>(() => ServiceB());
+      locator.register<ServiceA>(ServiceA.new);
+      locator.register<ServiceB>(ServiceB.new);
       
       await locator.initializeAll();
       
@@ -379,13 +379,13 @@ void main() {
       await locator.initializeAll();
       
       expect(
-        () => locator.register<ServiceA>(() => ServiceA()),
+        () => locator.register<ServiceA>(ServiceA.new),
         throwsA(isA<ServiceStateException>()),
       );
     });
 
     test('should handle multiple initialization calls', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       
       await locator.initializeAll();
       
@@ -396,7 +396,7 @@ void main() {
     });
 
     test('should handle multiple destruction calls', () async {
-      locator.register<ServiceA>(() => ServiceA());
+      locator.register<ServiceA>(ServiceA.new);
       await locator.initializeAll();
       
       await locator.destroyAll();

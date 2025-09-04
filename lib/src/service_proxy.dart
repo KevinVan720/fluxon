@@ -4,11 +4,11 @@ library service_proxy;
 import 'dart:async';
 
 import 'base_service.dart';
+import 'events/event_mixin.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'service_worker.dart';
 import 'types/service_types.dart';
-import 'events/event_mixin.dart';
 
 /// Interface for service proxy implementations.
 abstract class ServiceProxy<T extends BaseService> {
@@ -27,7 +27,7 @@ abstract class ServiceProxy<T extends BaseService> {
   });
 
   /// Connects the proxy to a service instance or worker.
-  Future<void> connect(dynamic target);
+  Future<void> connect(target);
 
   /// Disconnects the proxy.
   Future<void> disconnect();
@@ -47,7 +47,7 @@ class GeneratedClientRegistry {
   static T? create<T extends BaseService>(ServiceProxy<T> proxy) {
     final dynamic factory = _factories[T];
     if (factory == null) return null;
-    final ServiceClientFactory<T> typedFactory =
+    final typedFactory =
         factory as ServiceClientFactory<T>;
     return typedFactory(proxy);
   }
@@ -73,7 +73,7 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   bool get isConnected => _service != null;
 
   @override
-  Future<void> connect(dynamic target) async {
+  Future<void> connect(target) async {
     if (target is! T) {
       throw InvalidServiceTypeException(
           'Expected service of type $T, got ${target.runtimeType}');
@@ -102,7 +102,7 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     // Name-based invocation on local proxies is disabled to remove reflection paths.
     // Services should obtain local instances via ServiceClientMixin.getService<T>(),
     // which returns the actual instance for LocalServiceProxy.
-    throw ServiceException(
+    throw const ServiceException(
         'LocalServiceProxy does not support name-based calls. Use direct instance returned by getService<T>()');
   }
 }
@@ -124,7 +124,7 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   bool get isConnected => _worker != null && !_worker!.isStopped;
 
   @override
-  Future<void> connect(dynamic target) async {
+  Future<void> connect(target) async {
     if (target is! ServiceWorker) {
       throw InvalidServiceTypeException(
           'Expected ServiceWorker, got ${target.runtimeType}');
@@ -189,9 +189,7 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
       List<String> _stringifyList(List<dynamic> list) =>
           list.map((e) => e?.toString() ?? 'null').toList();
       Map<String, String>? _stringifyMap(Map<String, dynamic>? map) =>
-          map == null
-              ? null
-              : map.map((k, v) => MapEntry(k, v?.toString() ?? 'null'));
+          map?.map((k, v) => MapEntry(k, v?.toString() ?? 'null'));
       _logger.error('Worker method call failed', error: error, metadata: {
         'service': worker.serviceName,
         'method': methodName,
@@ -268,20 +266,16 @@ class ServiceProxyFactory {
   /// Creates a local service proxy.
   LocalServiceProxy<T> createLocalProxy<T extends BaseService>({
     ServiceLogger? logger,
-  }) {
-    return LocalServiceProxy<T>(logger: logger);
-  }
+  }) => LocalServiceProxy<T>(logger: logger);
 
   /// Creates a worker service proxy.
   WorkerServiceProxy<T> createWorkerProxy<T extends BaseService>({
     ServiceLogger? logger,
-  }) {
-    return WorkerServiceProxy<T>(logger: logger);
-  }
+  }) => WorkerServiceProxy<T>(logger: logger);
 
   /// Creates the appropriate proxy based on the target.
   ServiceProxy<T> createProxy<T extends BaseService>(
-    dynamic target, {
+    target, {
     ServiceLogger? logger,
   }) {
     if (target is BaseService) {
@@ -333,7 +327,7 @@ class ServiceProxyRegistry {
 
   /// Creates and registers a proxy for a service.
   ServiceProxy<T> createAndRegisterProxy<T extends BaseService>(
-    dynamic target, {
+    target, {
     ServiceLogger? logger,
   }) {
     final proxy = _factory.createProxy<T>(target, logger: logger);
@@ -351,17 +345,13 @@ class ServiceProxyRegistry {
   }
 
   /// Checks if a proxy is registered for a service type.
-  bool hasProxy<T extends BaseService>() {
-    return _proxies.containsKey(T);
-  }
+  bool hasProxy<T extends BaseService>() => _proxies.containsKey(T);
 
   /// Gets all registered proxy types.
   Set<Type> get registeredTypes => Set.from(_proxies.keys);
 
   /// Gets a proxy by runtime type, or null if not registered.
-  ServiceProxy? tryGetProxyByType(Type type) {
-    return _proxies[type];
-  }
+  ServiceProxy? tryGetProxyByType(Type type) => _proxies[type];
 
   /// Disconnects all proxies.
   Future<void> disconnectAll() async {
@@ -419,7 +409,7 @@ mixin ServiceClientMixin on BaseService {
     final registry = _proxyRegistry;
     if (registry == null) {
       throw ServiceException(
-          'Proxy registry not set for service ${serviceName}');
+          'Proxy registry not set for service $serviceName');
     }
 
     final proxy = registry.getProxy<T>();
@@ -486,7 +476,7 @@ class ServiceCallInterceptor {
     String serviceName,
     String methodName,
     List<dynamic> args,
-    dynamic result,
+    result,
     Duration duration,
   ) async {
     // Override in subclasses for custom behavior
@@ -531,7 +521,7 @@ class LoggingServiceInterceptor extends ServiceCallInterceptor {
     String serviceName,
     String methodName,
     List<dynamic> args,
-    dynamic result,
+    result,
     Duration duration,
   ) async {
     _logger.debug('Service method completed', metadata: {

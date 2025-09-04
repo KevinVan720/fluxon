@@ -4,21 +4,22 @@ library service_locator;
 import 'dart:async';
 import 'dart:isolate';
 
-import 'base_service.dart';
-import 'dependency_resolver.dart';
-import 'exceptions/service_exceptions.dart';
-import 'service_logger.dart';
-import 'service_registry.dart';
-import 'service_proxy.dart';
-import 'service_worker.dart';
 import 'package:squadron/squadron.dart';
-import 'types/service_types.dart';
+
+import 'base_service.dart';
 import 'codegen/dispatcher_registry.dart';
-import 'events/event_dispatcher.dart';
+import 'dependency_resolver.dart';
 import 'events/event_bridge.dart';
+import 'events/event_dispatcher.dart';
 import 'events/event_mixin.dart';
 import 'events/service_event.dart';
+import 'exceptions/service_exceptions.dart';
 import 'flux_service.dart';
+import 'service_logger.dart';
+import 'service_proxy.dart';
+import 'service_registry.dart';
+import 'service_worker.dart';
+import 'types/service_types.dart';
 
 /// Central registry and manager for all services in the application.
 ///
@@ -113,7 +114,7 @@ class ServiceLocator {
     }
 
     if (_isInitialized) {
-      throw ServiceStateException(
+      throw const ServiceStateException(
         'ServiceLocator',
         'initialized',
         'not initialized',
@@ -219,7 +220,7 @@ class ServiceLocator {
     final serviceName = serviceType.toString();
 
     if (!_isInitialized) {
-      throw ServiceLocatorNotInitializedException();
+      throw const ServiceLocatorNotInitializedException();
     }
 
     // Try local services first
@@ -270,14 +271,10 @@ class ServiceLocator {
   }
 
   /// Checks if a service is registered.
-  bool isRegistered<T extends BaseService>() {
-    return _factories.containsKey(T);
-  }
+  bool isRegistered<T extends BaseService>() => _factories.containsKey(T);
 
   /// Checks if a service is initialized.
-  bool isServiceInitialized<T extends BaseService>() {
-    return _instances.containsKey(T);
-  }
+  bool isServiceInitialized<T extends BaseService>() => _instances.containsKey(T);
 
   /// Gets information about a service.
   ServiceInfo getServiceInfo<T extends BaseService>() {
@@ -292,14 +289,10 @@ class ServiceLocator {
   }
 
   /// Gets information about all services.
-  List<ServiceInfo> getAllServiceInfo() {
-    return List.from(_serviceInfos.values);
-  }
+  List<ServiceInfo> getAllServiceInfo() => List.from(_serviceInfos.values);
 
   // Enhanced helpers
-  bool isServiceAvailable<T extends BaseService>() {
-    return isRegistered<T>() || _registry.hasService<T>();
-  }
+  bool isServiceAvailable<T extends BaseService>() => isRegistered<T>() || _registry.hasService<T>();
 
   // Expose registries for advanced scenarios (e.g., direct proxy usage in demos)
   ServiceRegistry get registry => _registry;
@@ -442,7 +435,7 @@ class ServiceLocator {
           error: e, stackTrace: st);
     }
     final bridge = ReceivePort();
-    final worker = ServiceWorkerFactory().createWorker<T>(
+    final worker = const ServiceWorkerFactory().createWorker<T>(
       serviceName: serviceName,
       serviceFactory: serviceFactory,
       args: [...args, bridge.sendPort],
@@ -517,7 +510,7 @@ class ServiceLocator {
           } else if (proxy is LocalServiceProxy) {
             final instance = proxy.peekInstance();
             if (instance == null) {
-              throw ServiceException('Local proxy has no instance');
+              throw const ServiceException('Local proxy has no instance');
             }
             final methodId =
                 ServiceMethodIdRegistry.tryGetIdByType(targetType, method);
@@ -634,7 +627,7 @@ class ServiceLocator {
     }
 
     if (_isInitializing) {
-      throw ServiceStateException(
+      throw const ServiceStateException(
         'ServiceLocator',
         'initializing',
         'not initializing',
@@ -814,9 +807,7 @@ class ServiceLocator {
   }
 
   /// Visualizes the dependency graph.
-  String visualizeDependencyGraph() {
-    return _dependencyResolver.visualizeDependencyGraph();
-  }
+  String visualizeDependencyGraph() => _dependencyResolver.visualizeDependencyGraph();
 
   /// Clears all services and resets the locator.
   ///

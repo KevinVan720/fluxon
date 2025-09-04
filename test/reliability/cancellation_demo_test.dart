@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'cancellation_demo_test.g.dart';
 
@@ -16,7 +16,7 @@ class SlowService extends FluxService {
 Future<void> _runCancellationdemoDemo() async {
   final locator = ServiceLocator();
   try {
-    locator.register<SlowService>(() => SlowServiceWorker());
+    locator.register<SlowService>(SlowServiceWorker.new);
 
     await locator.initializeAll();
 
@@ -29,7 +29,6 @@ Future<void> _runCancellationdemoDemo() async {
         [300],
         options: const ServiceCallOptions(
           timeout: Duration(milliseconds: 50),
-          retryAttempts: 0,
         ),
       );
     } on ServiceTimeoutException catch (e) {

@@ -263,14 +263,12 @@ abstract class BaseService {
   }
 
   /// Adds metadata to the service logger.
-  void addLoggerMetadata(String key, dynamic value) {
+  void addLoggerMetadata(String key, value) {
     _logger.addMetadata(key, value);
   }
 
   /// Creates a child logger with additional metadata.
-  ServiceLogger createChildLogger(Map<String, dynamic> metadata) {
-    return _logger.child(metadata);
-  }
+  ServiceLogger createChildLogger(Map<String, dynamic> metadata) => _logger.child(metadata);
 
   /// Executes an operation with retry logic.
   Future<T> withRetry<T>(
@@ -282,7 +280,7 @@ abstract class BaseService {
     final attempts = maxAttempts ?? _config.retryAttempts;
     final delay = retryDelay ?? _config.retryDelay;
 
-    for (int attempt = 1; attempt <= attempts; attempt++) {
+    for (var attempt = 1; attempt <= attempts; attempt++) {
       try {
         return await operation();
       } catch (error, stackTrace) {
@@ -309,8 +307,7 @@ abstract class BaseService {
   }
 
   /// Gets information about this service.
-  ServiceInfo getServiceInfo() {
-    return ServiceInfo(
+  ServiceInfo getServiceInfo() => ServiceInfo(
       name: serviceName,
       type: runtimeType,
       dependencies: dependencies,
@@ -322,7 +319,6 @@ abstract class BaseService {
       initializedAt: _initializedAt,
       destroyedAt: _destroyedAt,
     );
-  }
 
   void _setState(ServiceState newState) {
     final oldState = _state;
@@ -349,9 +345,7 @@ abstract class BaseService {
   }
 
   @override
-  String toString() {
-    return '$serviceName(state: $_state)';
-  }
+  String toString() => '$serviceName(state: $_state)';
 }
 
 /// Mixin for services that need periodic tasks.

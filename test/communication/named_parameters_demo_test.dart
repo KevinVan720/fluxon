@@ -1,14 +1,12 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'named_parameters_demo_test.g.dart';
 
 @ServiceContract(remote: true)
 class ReportService extends FluxService {
   Future<String> generateReport(String title,
-      {int? year, bool detailed = false}) async {
-    return '[title=$title, year=${year ?? 'n/a'}, detailed=$detailed]';
-  }
+      {int? year, bool detailed = false}) async => '[title=$title, year=${year ?? 'n/a'}, detailed=$detailed]';
 }
 
 class Coordinator extends BaseService with ServiceClientMixin {
@@ -26,8 +24,8 @@ class Coordinator extends BaseService with ServiceClientMixin {
 Future<void> _runNamedparametersdemoDemo() async {
   final locator = ServiceLocator();
 
-  locator.register<Coordinator>(() => Coordinator());
-  locator.register<ReportService>(() => ReportServiceWorker());
+  locator.register<Coordinator>(Coordinator.new);
+  locator.register<ReportService>(ReportServiceWorker.new);
   await locator.initializeAll();
   final c = locator.get<Coordinator>();
   await c.run();

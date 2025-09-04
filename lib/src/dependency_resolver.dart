@@ -35,22 +35,16 @@ class DependencyResolver {
   Set<Type> get registeredServices => Set.from(_dependencies.keys);
 
   /// Gets the dependencies for a service.
-  Set<Type> getDependencies(Type serviceType) {
-    return Set.from(_dependencies[serviceType] ?? {});
-  }
+  Set<Type> getDependencies(Type serviceType) => Set.from(_dependencies[serviceType] ?? {});
 
   /// Gets the optional dependencies for a service.
-  Set<Type> getOptionalDependencies(Type serviceType) {
-    return Set.from(_optionalDependencies[serviceType] ?? {});
-  }
+  Set<Type> getOptionalDependencies(Type serviceType) => Set.from(_optionalDependencies[serviceType] ?? {});
 
   /// Gets all dependencies (required and optional) for a service.
-  Set<Type> getAllDependencies(Type serviceType) {
-    return {
+  Set<Type> getAllDependencies(Type serviceType) => {
       ...getDependencies(serviceType),
       ...getOptionalDependencies(serviceType),
     };
-  }
 
   /// Gets services that depend on the given service.
   Set<Type> getDependents(Type serviceType) {
@@ -109,9 +103,7 @@ class DependencyResolver {
   ///
   /// Returns a list of service types in the order they should be destroyed.
   /// This is the reverse of the initialization order.
-  List<Type> resolveDestructionOrder() {
-    return resolveInitializationOrder().reversed.toList();
-  }
+  List<Type> resolveDestructionOrder() => resolveInitializationOrder().reversed.toList();
 
   /// Gets the dependency graph as a map.
   Map<Type, Set<Type>> getDependencyGraph() {
@@ -122,7 +114,7 @@ class DependencyResolver {
         ..._dependencies[serviceType] ?? {},
         // Only include optional dependencies that are actually registered
         ..._optionalDependencies[serviceType]
-                ?.where((dep) => _dependencies.containsKey(dep)) ??
+                ?.where(_dependencies.containsKey) ??
             {},
       };
     }
@@ -185,11 +177,9 @@ class DependencyResolver {
   }
 
   /// Gets dependency information for all services.
-  List<ServiceDependencyInfo> getAllDependencyInfo() {
-    return _dependencies.keys
-        .map((serviceType) => getDependencyInfo(serviceType))
+  List<ServiceDependencyInfo> getAllDependencyInfo() => _dependencies.keys
+        .map(getDependencyInfo)
         .toList();
-  }
 
   /// Clears all registered services and dependencies.
   void clear() {
@@ -224,7 +214,7 @@ class DependencyResolver {
       ..._dependencies[serviceType] ?? {},
       // Include optional dependencies that are registered
       ..._optionalDependencies[serviceType]
-              ?.where((dep) => _dependencies.containsKey(dep)) ??
+              ?.where(_dependencies.containsKey) ??
           {},
     };
 
@@ -267,7 +257,7 @@ class DependencyResolver {
         ..._dependencies[serviceType] ?? {},
         // Include optional dependencies that are registered
         ..._optionalDependencies[serviceType]
-                ?.where((dep) => _dependencies.containsKey(dep)) ??
+                ?.where(_dependencies.containsKey) ??
             {},
       };
 
@@ -289,9 +279,7 @@ class DependencyResolver {
     return result;
   }
 
-  String _getServiceName(Type serviceType) {
-    return _serviceNames[serviceType] ?? serviceType.toString();
-  }
+  String _getServiceName(Type serviceType) => _serviceNames[serviceType] ?? serviceType.toString();
 }
 
 /// Detailed dependency information for a service.
@@ -347,10 +335,8 @@ class ServiceDependencyInfo {
   bool get isRoot => !hasDependencies;
 
   @override
-  String toString() {
-    return 'ServiceDependencyInfo($serviceName: '
+  String toString() => 'ServiceDependencyInfo($serviceName: '
         '$totalDependencies deps, $totalDependents dependents)';
-  }
 }
 
 /// Utility class for analyzing dependency graphs.
@@ -362,18 +348,14 @@ class DependencyAnalyzer {
   final DependencyResolver resolver;
 
   /// Finds services with no dependencies (root services).
-  List<Type> findRootServices() {
-    return resolver.registeredServices
+  List<Type> findRootServices() => resolver.registeredServices
         .where((service) => resolver.getDependencies(service).isEmpty)
         .toList();
-  }
 
   /// Finds services with no dependents (leaf services).
-  List<Type> findLeafServices() {
-    return resolver.registeredServices
+  List<Type> findLeafServices() => resolver.registeredServices
         .where((service) => resolver.getDependents(service).isEmpty)
         .toList();
-  }
 
   /// Finds the longest dependency chain.
   List<Type> findLongestDependencyChain() {
@@ -451,7 +433,7 @@ class DependencyAnalyzer {
     }
 
     final chains = dependents
-        .map((dependent) => _findLongestChainFrom(dependent))
+        .map(_findLongestChainFrom)
         .toList();
 
     final longestChain = chains.reduce((a, b) => a.length > b.length ? a : b);
@@ -498,8 +480,7 @@ class DependencyStatistics {
   final int longestChainLength;
 
   @override
-  String toString() {
-    return 'DependencyStatistics(\n'
+  String toString() => 'DependencyStatistics(\n'
         '  Total Services: $totalServices\n'
         '  Root Services: $rootServices\n'
         '  Leaf Services: $leafServices\n'
@@ -509,5 +490,4 @@ class DependencyStatistics {
         '  Max Dependents: $maxDependents\n'
         '  Longest Chain: $longestChainLength\n'
         ')';
-  }
 }

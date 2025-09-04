@@ -1,6 +1,7 @@
-import 'package:test/test.dart';
 import 'dart:async';
+
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'retry_timeout_demo_test.g.dart';
 
@@ -25,7 +26,7 @@ class FlakyService extends FluxService {
 Future<void> _runRetrytimeoutdemoDemo() async {
   final locator = ServiceLocator();
   try {
-    locator.register<FlakyService>(() => FlakyServiceWorker());
+    locator.register<FlakyService>(FlakyServiceWorker.new);
 
     await locator.initializeAll();
 
@@ -46,7 +47,6 @@ Future<void> _runRetrytimeoutdemoDemo() async {
         [const Duration(milliseconds: 300)],
         options: const ServiceCallOptions(
           timeout: Duration(milliseconds: 50),
-          retryAttempts: 0,
         ),
       );
     } on ServiceTimeoutException {}

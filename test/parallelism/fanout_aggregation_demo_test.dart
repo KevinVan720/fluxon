@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'fanout_aggregation_demo_test.g.dart';
 
@@ -13,7 +13,7 @@ class PricingService extends FluxService {
   }
 
   Future<double> getPrice(String sku) async {
-    await Future.delayed(Duration(milliseconds: 50));
+    await Future.delayed(const Duration(milliseconds: 50));
     return 99.99; // Mock price
   }
 }
@@ -28,7 +28,7 @@ class InventoryService extends FluxService {
   }
 
   Future<int> getStock(String sku) async {
-    await Future.delayed(Duration(milliseconds: 30));
+    await Future.delayed(const Duration(milliseconds: 30));
     return 42; // Mock stock
   }
 }
@@ -56,11 +56,11 @@ class Aggregator extends FluxService {
 Future<void> _runFanoutaggregationdemoDemo() async {
   final locator = ServiceLocator();
 
-  locator.register<Aggregator>(() => Aggregator());
+  locator.register<Aggregator>(Aggregator.new);
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  locator.register<PricingService>(() => PricingServiceWorker());
-  locator.register<InventoryService>(() => InventoryServiceWorker());
+  locator.register<PricingService>(PricingServiceWorker.new);
+  locator.register<InventoryService>(InventoryServiceWorker.new);
 
   await locator.initializeAll();
 

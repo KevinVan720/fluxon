@@ -5,8 +5,8 @@ import 'dart:async';
 import 'dart:isolate';
 
 import '../service_logger.dart';
-import 'service_event.dart';
 import 'event_dispatcher.dart';
+import 'service_event.dart';
 
 /// Message types for cross-isolate event communication
 enum EventMessageType {
@@ -30,32 +30,7 @@ class EventMessage {
     this.error,
   });
 
-  final EventMessageType type;
-  final String requestId;
-  final Map<String, dynamic>? eventData;
-  final String? eventType;
-  final String? sourceIsolate;
-  final String? targetIsolate;
-  final String? subscriptionId;
-  final bool? success;
-  final String? error;
-
-  Map<String, dynamic> toJson() {
-    return {
-      'type': type.name,
-      'requestId': requestId,
-      'eventData': eventData,
-      'eventType': eventType,
-      'sourceIsolate': sourceIsolate,
-      'targetIsolate': targetIsolate,
-      'subscriptionId': subscriptionId,
-      'success': success,
-      'error': error,
-    };
-  }
-
-  factory EventMessage.fromJson(Map<String, dynamic> json) {
-    return EventMessage(
+  factory EventMessage.fromJson(Map<String, dynamic> json) => EventMessage(
       type: EventMessageType.values.byName(json['type'] as String),
       requestId: json['requestId'] as String,
       eventData: json['eventData'] as Map<String, dynamic>?,
@@ -66,7 +41,28 @@ class EventMessage {
       success: json['success'] as bool?,
       error: json['error'] as String?,
     );
-  }
+
+  final EventMessageType type;
+  final String requestId;
+  final Map<String, dynamic>? eventData;
+  final String? eventType;
+  final String? sourceIsolate;
+  final String? targetIsolate;
+  final String? subscriptionId;
+  final bool? success;
+  final String? error;
+
+  Map<String, dynamic> toJson() => {
+      'type': type.name,
+      'requestId': requestId,
+      'eventData': eventData,
+      'eventType': eventType,
+      'sourceIsolate': sourceIsolate,
+      'targetIsolate': targetIsolate,
+      'subscriptionId': subscriptionId,
+      'success': success,
+      'error': error,
+    };
 }
 
 /// Bridge for sending events across isolate boundaries
@@ -215,9 +211,9 @@ class EventBridge {
 
     // Wait for subscription confirmation
     final success = await completer.future.timeout(
-      Duration(seconds: 5),
+      const Duration(seconds: 5),
       onTimeout: () => throw TimeoutException(
-          'Event subscription timeout', Duration(seconds: 5)),
+          'Event subscription timeout', const Duration(seconds: 5)),
     );
 
     if (!success) {
@@ -254,7 +250,7 @@ class EventBridge {
   }
 
   /// Handle incoming messages from other isolates
-  void _handleMessage(dynamic rawMessage) async {
+  Future<void> _handleMessage(rawMessage) async {
     try {
       final json = rawMessage as Map<String, dynamic>;
       final message = EventMessage.fromJson(json);
@@ -344,9 +340,7 @@ class EventBridge {
   }
 
   /// Generate a unique request ID
-  String _generateRequestId() {
-    return '${_isolateName}_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
-  }
+  String _generateRequestId() => '${_isolateName}_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
 
   /// Clean up the event bridge
   void dispose() {
@@ -375,11 +369,6 @@ class GenericServiceEvent extends ServiceEvent {
     this.data = const {},
   });
 
-  final Map<String, dynamic> data;
-
-  @override
-  Map<String, dynamic> eventDataToJson() => data;
-
   factory GenericServiceEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>? ?? {};
     return GenericServiceEvent(
@@ -391,4 +380,9 @@ class GenericServiceEvent extends ServiceEvent {
       data: data,
     );
   }
+
+  final Map<String, dynamic> data;
+
+  @override
+  Map<String, dynamic> eventDataToJson() => data;
 }

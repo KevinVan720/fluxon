@@ -1,5 +1,5 @@
-import 'package:test/test.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:test/test.dart';
 
 part 'parallel_workers_demo_test.g.dart';
 
@@ -21,14 +21,14 @@ class CruncherServiceImpl extends CruncherService {
 }
 
 Future<void> _runParallelworkersdemoDemo() async {
-  final pool = ServiceWorkerPool(maxWorkers: 2, minWorkers: 1);
+  final pool = ServiceWorkerPool(maxWorkers: 2);
   pool.registerService<CruncherService>(
-      'CruncherService', () => CruncherServiceImpl());
+      'CruncherService', CruncherServiceImpl.new);
 
   final worker1 = await pool.getWorker('CruncherService');
   final worker2 = await pool.getWorker('CruncherService');
 
-  final proxyFactory = ServiceProxyFactory();
+  const proxyFactory = ServiceProxyFactory();
   final proxy1 = proxyFactory.createWorkerProxy<CruncherService>(
       logger: ServiceLogger(serviceName: 'CruncherService'))
     ..connect(worker1);

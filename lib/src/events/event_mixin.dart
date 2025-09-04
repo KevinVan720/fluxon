@@ -2,13 +2,14 @@
 library event_mixin;
 
 import 'dart:async';
+
 import 'package:meta/meta.dart';
 
 import '../base_service.dart';
 import '../exceptions/service_exceptions.dart';
-import 'service_event.dart';
-import 'event_dispatcher.dart';
 import 'event_bridge.dart';
+import 'event_dispatcher.dart';
+import 'service_event.dart';
 
 /// Mixin that provides event capabilities to services
 mixin ServiceEventMixin on BaseService {
@@ -69,26 +70,22 @@ mixin ServiceEventMixin on BaseService {
   Future<EventDistributionResult> sendEventTo(
     ServiceEvent event,
     List<EventTarget> targets,
-  ) async {
-    return await sendEvent(
+  ) async => sendEvent(
       event,
       distribution: EventDistribution.targeted(targets),
     );
-  }
 
   /// Broadcast an event to all services
   Future<EventDistributionResult> broadcastEvent(
     ServiceEvent event, {
     List<Type> excludeServices = const [],
     bool includeSource = false,
-  }) async {
-    return await sendEvent(
+  }) async => sendEvent(
       event,
       distribution: EventDistribution.broadcast(
         excludeServices: [...excludeServices, if (!includeSource) runtimeType],
       ),
     );
-  }
 
   /// Send an event to specific services first, then broadcast to others
   Future<EventDistributionResult> sendEventTargetedThenBroadcast(
@@ -96,15 +93,13 @@ mixin ServiceEventMixin on BaseService {
     List<EventTarget> targets, {
     List<Type> excludeServices = const [],
     bool includeSource = false,
-  }) async {
-    return await sendEvent(
+  }) async => sendEvent(
       event,
       distribution: EventDistribution.targetedThenBroadcast(
         targets,
         excludeServices: [...excludeServices, if (!includeSource) runtimeType],
       ),
     );
-  }
 
   /// Send an event to a specific remote isolate
   Future<void> sendEventToRemote(
@@ -331,19 +326,17 @@ extension ServiceEventExtensions on ServiceEventMixin {
             ))
         .toList();
 
-    return await sendEventTo(event, targets);
+    return sendEventTo(event, targets);
   }
 
   /// Send a notification event (fire-and-forget)
   Future<EventDistributionResult> sendNotification(
     ServiceEvent event, {
     List<Type> excludeServices = const [],
-  }) async {
-    return await broadcastEvent(
+  }) async => broadcastEvent(
       event,
       excludeServices: excludeServices,
     );
-  }
 
   /// Send an event with custom distribution logic
   Future<EventDistributionResult> sendEventWithCustomDistribution(
@@ -353,13 +346,13 @@ extension ServiceEventExtensions on ServiceEventMixin {
     List<Type> excludeFromBroadcast = const [],
   }) async {
     if (broadcastToOthers) {
-      return await sendEventTargetedThenBroadcast(
+      return sendEventTargetedThenBroadcast(
         event,
         priorityTargets,
         excludeServices: excludeFromBroadcast,
       );
     } else {
-      return await sendEventTo(event, priorityTargets);
+      return sendEventTo(event, priorityTargets);
     }
   }
 }
