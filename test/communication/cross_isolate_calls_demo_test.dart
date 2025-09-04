@@ -40,7 +40,7 @@ class Orchestrator extends FluxService {
 }
 
 Future<void> _runCrossisolatecallsdemoDemo() async {
-  final locator = ServiceLocator();
+  final locator = FluxRuntime();
 
   locator.register<Orchestrator>(Orchestrator.new);
 

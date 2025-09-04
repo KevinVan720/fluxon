@@ -54,7 +54,7 @@ class Aggregator extends FluxService {
 // 🚀 SINGLE CLASS: Implementation moved into main classes above
 
 Future<void> _runFanoutaggregationdemoDemo() async {
-  final locator = ServiceLocator();
+  final locator = FluxRuntime();
 
   locator.register<Aggregator>(Aggregator.new);
 

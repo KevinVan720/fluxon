@@ -30,7 +30,7 @@ export 'src/events/service_event.dart';
 // Exception exports
 export 'src/exceptions/service_exceptions.dart';
 export 'src/flux_service.dart'; // 🚀 FLUX: Simplified public API
-export 'src/service_locator.dart';
+export 'src/flux_runtime.dart' show FluxRuntime;
 export 'src/service_logger.dart';
 export 'src/service_proxy.dart';
 export 'src/service_registry.dart';

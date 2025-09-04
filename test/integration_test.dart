@@ -4,14 +4,15 @@ import 'package:test/test.dart';
 // Example services for integration testing
 class DatabaseService extends BaseService {
   bool connected = false;
-  
+
   @override
   List<Type> get dependencies => const [];
 
   @override
   Future<void> initialize() async {
     logger.info('Connecting to database');
-    await Future.delayed(const Duration(milliseconds: 10)); // Simulate connection
+    await Future.delayed(
+        const Duration(milliseconds: 10)); // Simulate connection
     connected = true;
     logger.info('Database connected successfully');
   }
@@ -26,10 +27,10 @@ class DatabaseService extends BaseService {
   Future<Map<String, dynamic>> getUser(String id) async {
     ensureInitialized();
     logger.debug('Fetching user', metadata: {'userId': id});
-    
+
     // Simulate database query
     await Future.delayed(const Duration(milliseconds: 5));
-    
+
     return {
       'id': id,
       'name': 'User $id',
@@ -59,7 +60,7 @@ class DatabaseService extends BaseService {
 
 class CacheService extends BaseService {
   final Map<String, dynamic> _cache = {};
-  
+
   @override
   List<Type> get dependencies => const [];
 
@@ -109,15 +110,16 @@ class UserService extends BaseService with ServiceClientMixin {
 
   Future<Map<String, dynamic>> getUserProfile(String userId) async {
     ensureInitialized();
-    
+
     logger.info('Getting user profile', metadata: {'userId': userId});
-    
+
     // Try cache first if available
     if (hasService<CacheService>()) {
       final cacheService = getService<CacheService>();
       final cached = cacheService.get<Map<String, dynamic>>('user:$userId');
       if (cached != null) {
-        logger.info('User profile found in cache', metadata: {'userId': userId});
+        logger
+            .info('User profile found in cache', metadata: {'userId': userId});
         return cached;
       }
     }
@@ -125,30 +127,31 @@ class UserService extends BaseService with ServiceClientMixin {
     // Get from database
     final dbService = getService<DatabaseService>();
     final user = await dbService.getUser(userId);
-    
+
     // Cache the result if cache service is available
     if (hasService<CacheService>()) {
       final cacheService = getService<CacheService>();
       cacheService.set('user:$userId', user);
     }
-    
+
     logger.info('User profile retrieved', metadata: {'userId': userId});
     return user;
   }
 
-  Future<List<Map<String, dynamic>>> getMultipleUsers(List<String> userIds) async {
+  Future<List<Map<String, dynamic>>> getMultipleUsers(
+      List<String> userIds) async {
     ensureInitialized();
-    
-    logger.info('Getting multiple user profiles', 
+
+    logger.info('Getting multiple user profiles',
         metadata: {'userCount': userIds.length});
-    
+
     final users = <Map<String, dynamic>>[];
-    
+
     for (final userId in userIds) {
       final user = await getUserProfile(userId);
       users.add(user);
     }
-    
+
     return users;
   }
 }
@@ -156,7 +159,7 @@ class UserService extends BaseService with ServiceClientMixin {
 class NotificationService extends BaseService with PeriodicServiceMixin {
   final List<String> _notifications = [];
   int _processedCount = 0;
-  
+
   @override
   List<Type> get dependencies => [UserService];
 
@@ -172,17 +175,18 @@ class NotificationService extends BaseService with PeriodicServiceMixin {
   Future<void> performPeriodicTask() async {
     if (_notifications.isNotEmpty) {
       final notification = _notifications.removeAt(0);
-      logger.debug('Processing notification', metadata: {'notification': notification});
+      logger.debug('Processing notification',
+          metadata: {'notification': notification});
       _processedCount++;
     }
   }
 
   void sendNotification(String userId, String message) {
     ensureInitialized();
-    
+
     final notification = 'User $userId: $message';
     _notifications.add(notification);
-    
+
     logger.info('Notification queued', metadata: {
       'userId': userId,
       'message': message,
@@ -196,13 +200,14 @@ class NotificationService extends BaseService with PeriodicServiceMixin {
 
 void main() {
   group('Service Framework Integration', () {
-    late ServiceLocator locator;
+    late FluxRuntime locator;
     late MemoryLogWriter logWriter;
 
     setUp(() {
       logWriter = MemoryLogWriter();
-      locator = ServiceLocator(
-        logger: ServiceLogger(serviceName: 'IntegrationTest', writer: logWriter),
+      locator = FluxRuntime(
+        logger:
+            ServiceLogger(serviceName: 'IntegrationTest', writer: logWriter),
       );
     });
 
@@ -247,15 +252,13 @@ void main() {
       // Set up service communication
       final userService = locator.get<UserService>();
       final proxyRegistry = ServiceProxyRegistry();
-      
+
       // Create proxies for dependencies
       proxyRegistry.createAndRegisterProxy<DatabaseService>(
-        locator.get<DatabaseService>()
-      );
-      proxyRegistry.createAndRegisterProxy<CacheService>(
-        locator.get<CacheService>()
-      );
-      
+          locator.get<DatabaseService>());
+      proxyRegistry
+          .createAndRegisterProxy<CacheService>(locator.get<CacheService>());
+
       userService.setProxyRegistry(proxyRegistry);
 
       // Test service communication
@@ -280,16 +283,15 @@ void main() {
 
       final userService = locator.get<UserService>();
       final proxyRegistry = ServiceProxyRegistry();
-      
+
       proxyRegistry.createAndRegisterProxy<DatabaseService>(
-        locator.get<DatabaseService>()
-      );
-      
+          locator.get<DatabaseService>());
+
       userService.setProxyRegistry(proxyRegistry);
 
       // Should work without cache service
       final userProfile = await userService.getUserProfile('456');
-      
+
       expect(userProfile['id'], equals('456'));
       expect(userService.hasService<CacheService>(), isFalse);
     });
@@ -304,11 +306,11 @@ void main() {
       final healthChecks = await locator.performHealthChecks();
 
       expect(healthChecks, hasLength(3));
-      expect(healthChecks['DatabaseService']?.status, 
+      expect(healthChecks['DatabaseService']?.status,
           equals(ServiceHealthStatus.healthy));
-      expect(healthChecks['CacheService']?.status, 
+      expect(healthChecks['CacheService']?.status,
           equals(ServiceHealthStatus.healthy));
-      expect(healthChecks['UserService']?.status, 
+      expect(healthChecks['UserService']?.status,
           equals(ServiceHealthStatus.healthy));
     });
 
@@ -346,15 +348,13 @@ void main() {
       // Test complex workflow
       final userService = locator.get<UserService>();
       final notificationService = locator.get<NotificationService>();
-      
+
       final proxyRegistry = ServiceProxyRegistry();
       proxyRegistry.createAndRegisterProxy<DatabaseService>(
-        locator.get<DatabaseService>()
-      );
-      proxyRegistry.createAndRegisterProxy<CacheService>(
-        locator.get<CacheService>()
-      );
-      
+          locator.get<DatabaseService>());
+      proxyRegistry
+          .createAndRegisterProxy<CacheService>(locator.get<CacheService>());
+
       userService.setProxyRegistry(proxyRegistry);
 
       // Get multiple users (tests batch processing)
@@ -364,9 +364,7 @@ void main() {
       // Send notifications for each user
       for (final user in users) {
         notificationService.sendNotification(
-          user['id'], 
-          'Welcome ${user['name']}!'
-        );
+            user['id'], 'Welcome ${user['name']}!');
       }
 
       expect(notificationService.queueSize, equals(3));
@@ -374,7 +372,8 @@ void main() {
       // Wait for processing
       await Future.delayed(const Duration(milliseconds: 200));
 
-      expect(notificationService.processedCount, greaterThanOrEqualTo(0)); // Adjusted for optimized infrastructure
+      expect(notificationService.processedCount,
+          greaterThanOrEqualTo(0)); // Adjusted for optimized infrastructure
     });
 
     test('should provide comprehensive logging', () async {
@@ -386,15 +385,17 @@ void main() {
       final userService = locator.get<UserService>();
       final proxyRegistry = ServiceProxyRegistry();
       proxyRegistry.createAndRegisterProxy<DatabaseService>(
-        locator.get<DatabaseService>()
-      );
+          locator.get<DatabaseService>());
       userService.setProxyRegistry(proxyRegistry);
 
       await userService.getUserProfile('test-user');
 
       // Verify logging occurred (simplified check)
       final logEntries = logWriter.entries;
-      expect(logEntries.length, greaterThanOrEqualTo(0)); // Logs may be empty with optimized infrastructure
+      expect(
+          logEntries.length,
+          greaterThanOrEqualTo(
+              0)); // Logs may be empty with optimized infrastructure
 
       // Complex dependency scenario completed successfully
       print('Complex dependency test completed');
@@ -404,14 +405,14 @@ void main() {
       // Create a service that will fail
       locator.register<DatabaseService>(DatabaseService.new);
       locator.register<UserService>(UserService.new);
-      
+
       await locator.initializeAll();
 
       final dbService = locator.get<DatabaseService>();
-      
+
       // Simulate service failure
       dbService.connected = false;
-      
+
       final healthCheck = await dbService.healthCheck();
       expect(healthCheck.status, equals(ServiceHealthStatus.unhealthy));
     });
@@ -423,11 +424,11 @@ void main() {
       locator.register<NotificationService>(NotificationService.new);
 
       final stats = locator.getDependencyStatistics();
-      
+
       expect(stats.totalServices, equals(4));
       expect(stats.rootServices, equals(2)); // DatabaseService and CacheService
       expect(stats.leafServices, equals(1)); // NotificationService
-      
+
       final visualization = locator.visualizeDependencyGraph();
       expect(visualization, contains('DatabaseService'));
       expect(visualization, contains('UserService'));

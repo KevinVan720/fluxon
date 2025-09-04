@@ -5,7 +5,6 @@ part 'isolate_transparency_test.g.dart';
 
 // Demo event
 class TaskEvent extends ServiceEvent {
-
   const TaskEvent({
     required this.taskId,
     required this.action,
@@ -179,9 +178,9 @@ class TaskLogger extends FluxService {
 
 // 🎯 OPTIMIZED: Enhanced ServiceLocator usage
 Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
-  // 🚀 OPTIMIZATION: ServiceLocator automatically sets up ALL event infrastructure!
+  // 🚀 OPTIMIZATION: FluxRuntime automatically sets up ALL event infrastructure!
   final locator =
-      ServiceLocator(); // EventDispatcher and EventBridge created automatically!
+      FluxRuntime(); // EventDispatcher and EventBridge created automatically!
 
   // Register services - event infrastructure is set up automatically
   registerTaskOrchestratorGenerated();
@@ -229,7 +228,7 @@ void main() {
       expect(result['logCount'], greaterThan(0));
 
       print('🎉 OPTIMIZED TRANSPARENCY WORKING!');
-      print('✅ ServiceLocator automatically set up event infrastructure');
+      print('✅ FluxRuntime automatically set up event infrastructure');
       print('✅ Local and remote services use identical APIs');
       print('✅ Method calls are completely transparent');
       print('✅ Event infrastructure is set up automatically');
@@ -244,9 +243,8 @@ void main() {
       print('  • No @ServiceContract(remote: true/false) differences in API');
     });
 
-    test('ServiceLocator automatically configures event infrastructure',
-        () async {
-      final locator = ServiceLocator();
+    test('FluxRuntime automatically configures event infrastructure', () async {
+      final locator = FluxRuntime();
 
       // Verify event infrastructure exists
       expect(locator.proxyRegistry, isNotNull);

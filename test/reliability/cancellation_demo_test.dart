@@ -14,7 +14,7 @@ class SlowService extends FluxService {
 }
 
 Future<void> _runCancellationdemoDemo() async {
-  final locator = ServiceLocator();
+  final locator = FluxRuntime();
   try {
     locator.register<SlowService>(SlowServiceWorker.new);
 

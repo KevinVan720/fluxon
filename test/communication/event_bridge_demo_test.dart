@@ -85,7 +85,7 @@ class Orchestrator extends FluxService {
 }
 
 Future<void> _runEventbridgedemoDemo() async {
-  final locator = ServiceLocator();
+  final locator = FluxRuntime();
 
   // 🚀 WORKER-TO-MAIN: LocalHub stays local, workers call it via bridge
   registerLocalHubGenerated();

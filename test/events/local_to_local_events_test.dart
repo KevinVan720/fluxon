@@ -12,7 +12,10 @@ class UserCreatedEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    required this.userId, required this.userName, required this.email, super.correlationId,
+    required this.userId,
+    required this.userName,
+    required this.email,
+    super.correlationId,
     super.metadata = const {},
   });
 
@@ -36,10 +39,10 @@ class UserCreatedEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => {
-      'userId': userId,
-      'userName': userName,
-      'email': email,
-    };
+        'userId': userId,
+        'userName': userName,
+        'email': email,
+      };
 }
 
 class OrderPlacedEvent extends ServiceEvent {
@@ -47,7 +50,11 @@ class OrderPlacedEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    required this.orderId, required this.userId, required this.amount, required this.items, super.correlationId,
+    required this.orderId,
+    required this.userId,
+    required this.amount,
+    required this.items,
+    super.correlationId,
     super.metadata = const {},
   });
 
@@ -73,11 +80,11 @@ class OrderPlacedEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => {
-      'orderId': orderId,
-      'userId': userId,
-      'amount': amount,
-      'items': items,
-    };
+        'orderId': orderId,
+        'userId': userId,
+        'amount': amount,
+        'items': items,
+      };
 }
 
 class SystemAlertEvent extends ServiceEvent {
@@ -85,7 +92,10 @@ class SystemAlertEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    required this.level, required this.message, required this.component, super.correlationId,
+    required this.level,
+    required this.message,
+    required this.component,
+    super.correlationId,
     super.metadata = const {},
   });
 
@@ -109,10 +119,10 @@ class SystemAlertEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => {
-      'level': level,
-      'message': message,
-      'component': component,
-    };
+        'level': level,
+        'message': message,
+        'component': component,
+      };
 }
 
 // Local test services with event communication
@@ -404,7 +414,7 @@ class AnalyticsService extends BaseService with ServiceEventMixin {
 void main() {
   group('Local-to-Local Event Communication Tests', () {
     late EventDispatcher dispatcher;
-    late ServiceLocator locator;
+    late FluxRuntime locator;
     late UserService userService;
     late OrderService orderService;
     late NotificationService notificationService;
@@ -412,7 +422,7 @@ void main() {
 
     setUp(() async {
       dispatcher = EventDispatcher();
-      locator = ServiceLocator();
+      locator = FluxRuntime();
 
       // Create services
       userService = UserService();
@@ -508,16 +518,13 @@ void main() {
           contains('Order $orderId validated for user $userId'));
 
       // Verify notification service sent order confirmation
-      expect(
-          notificationService.receivedEvents
-              .whereType<OrderPlacedEvent>(),
+      expect(notificationService.receivedEvents.whereType<OrderPlacedEvent>(),
           hasLength(1));
       expect(notificationService.notifications,
           contains('Order $orderId confirmed! Total: \$99.99'));
 
       // Verify analytics tracked the order
-      expect(
-          analyticsService.receivedEvents.whereType<OrderPlacedEvent>(),
+      expect(analyticsService.receivedEvents.whereType<OrderPlacedEvent>(),
           hasLength(1));
       expect(analyticsService.eventCounts['orderPlaced'], equals(1));
     });
@@ -546,9 +553,7 @@ void main() {
               'ERROR: Order $orderId placed for non-existent user nonexistent_user'));
 
       // Verify notification service received the system alert
-      expect(
-          notificationService.receivedEvents
-              .whereType<SystemAlertEvent>(),
+      expect(notificationService.receivedEvents.whereType<SystemAlertEvent>(),
           hasLength(1));
       final alertEvent = notificationService.receivedEvents
           .whereType<SystemAlertEvent>()

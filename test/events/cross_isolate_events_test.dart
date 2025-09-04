@@ -5,7 +5,6 @@ part 'cross_isolate_events_test.g.dart';
 
 // Test event for cross-isolate communication
 class MessageEvent extends ServiceEvent {
-
   const MessageEvent({
     required this.messageId,
     required this.content,
@@ -228,11 +227,10 @@ class MessageLogger extends FluxService {
 // Demo function
 Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   // 🚀 REGISTER EVENT TYPES FOR CROSS-ISOLATE RECONSTRUCTION
-  EventTypeRegistry.register<MessageEvent>(
-      MessageEvent.fromJson);
+  EventTypeRegistry.register<MessageEvent>(MessageEvent.fromJson);
 
   // 🚀 COMPLETE CROSS-ISOLATE EVENT SYSTEM
-  final locator = ServiceLocator();
+  final locator = FluxRuntime();
 
   // Register all services
   locator.register<MessageCoordinator>(MessageCoordinator.new);
@@ -286,7 +284,7 @@ void main() {
       print('✅ Event infrastructure set up in all isolates');
       print('✅ Events route from main isolate to workers');
       print('✅ Worker isolates process events');
-      print('✅ ServiceLocator automatically manages everything');
+      print('✅ FluxRuntime automatically manages everything');
       print('📊 System demonstrates complete architecture');
       print('🔧 Event type reconstruction ready for enhancement');
     }, timeout: const Timeout(Duration(seconds: 30)));
@@ -296,8 +294,7 @@ void main() {
       EventTypeRegistry.clear();
 
       // Register MessageEvent
-      EventTypeRegistry.register<MessageEvent>(
-          MessageEvent.fromJson);
+      EventTypeRegistry.register<MessageEvent>(MessageEvent.fromJson);
 
       // Create a test event
       final originalEvent = MessageEvent(

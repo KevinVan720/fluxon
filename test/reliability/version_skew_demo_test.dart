@@ -9,7 +9,7 @@ class ApiV1 extends FluxService {
 }
 
 Future<void> _runVersionskewdemoDemo() async {
-  final locator = ServiceLocator();
+  final locator = FluxRuntime();
   try {
     // Register worker with ApiV1
     locator.register<ApiV1>(ApiV1Worker.new);
