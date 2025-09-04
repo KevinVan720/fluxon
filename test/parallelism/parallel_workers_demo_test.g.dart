@@ -58,3 +58,10 @@ void registerCruncherServiceGenerated() {
   _registerCruncherServiceClientFactory();
   _registerCruncherServiceMethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin CruncherServiceRegistration {
+  void registerService() {
+    _registerCruncherServiceDispatcher();
+  }
+}

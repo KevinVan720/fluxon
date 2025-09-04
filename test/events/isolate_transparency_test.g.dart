@@ -60,6 +60,13 @@ void registerTaskOrchestratorGenerated() {
   _registerTaskOrchestratorMethodIds();
 }
 
+// 🚀 FLUX: Single registration call mixin
+mixin TaskOrchestratorRegistration {
+  void registerService() {
+    _registerTaskOrchestratorDispatcher();
+  }
+}
+
 // Service client for TaskProcessor
 class TaskProcessorClient extends TaskProcessor {
   TaskProcessorClient(this._proxy);
@@ -113,6 +120,22 @@ void _registerTaskProcessorMethodIds() {
 void registerTaskProcessorGenerated() {
   _registerTaskProcessorClientFactory();
   _registerTaskProcessorMethodIds();
+}
+
+// Worker implementation that auto-registers the dispatcher
+class TaskProcessorWorker extends TaskProcessor {
+  @override
+  Future<void> initialize() async {
+    _registerTaskProcessorDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin TaskProcessorRegistration {
+  void registerService() {
+    _registerTaskProcessorDispatcher();
+  }
 }
 
 // Service client for TaskLogger
@@ -178,4 +201,20 @@ void _registerTaskLoggerMethodIds() {
 void registerTaskLoggerGenerated() {
   _registerTaskLoggerClientFactory();
   _registerTaskLoggerMethodIds();
+}
+
+// Worker implementation that auto-registers the dispatcher
+class TaskLoggerWorker extends TaskLogger {
+  @override
+  Future<void> initialize() async {
+    _registerTaskLoggerDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin TaskLoggerRegistration {
+  void registerService() {
+    _registerTaskLoggerDispatcher();
+  }
 }

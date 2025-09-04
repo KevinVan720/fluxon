@@ -59,6 +59,22 @@ void registerPricingServiceGenerated() {
   _registerPricingServiceMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class PricingServiceWorker extends PricingService {
+  @override
+  Future<void> initialize() async {
+    _registerPricingServiceDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin PricingServiceRegistration {
+  void registerService() {
+    _registerPricingServiceDispatcher();
+  }
+}
+
 // Service client for InventoryService
 class InventoryServiceClient extends InventoryService {
   InventoryServiceClient(this._proxy);
@@ -110,4 +126,20 @@ void _registerInventoryServiceMethodIds() {
 void registerInventoryServiceGenerated() {
   _registerInventoryServiceClientFactory();
   _registerInventoryServiceMethodIds();
+}
+
+// Worker implementation that auto-registers the dispatcher
+class InventoryServiceWorker extends InventoryService {
+  @override
+  Future<void> initialize() async {
+    _registerInventoryServiceDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin InventoryServiceRegistration {
+  void registerService() {
+    _registerInventoryServiceDispatcher();
+  }
 }

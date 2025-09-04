@@ -26,6 +26,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
 
     final classEl = element as ClassElement;
     final className = classEl.name;
+    final isRemote = annotation.peek('remote')?.boolValue ?? false;
 
     final buf = StringBuffer();
     // NOTE: This content is emitted into a shared part (.g.dart) by
@@ -191,7 +192,56 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln('  _register${className}ClientFactory();');
     buf.writeln('  _register${className}MethodIds();');
     buf.writeln('}');
+    buf.writeln('');
+
+    // Generate a worker-side concrete class that auto-registers the dispatcher.
+    // Consumers should use <ClassName>Worker as the serviceFactory for remote services.
+    if (isRemote && !classEl.isAbstract) {
+      buf.writeln(
+          '// Worker implementation that auto-registers the dispatcher');
+      buf.writeln('class ${className}Worker extends $className {');
+      buf.writeln('  @override');
+      buf.writeln('  Future<void> initialize() async {');
+      buf.writeln('    _register${className}Dispatcher();');
+      buf.writeln('    await super.initialize();');
+      buf.writeln('  }');
+      buf.writeln('}');
+      buf.writeln('');
+    }
+
+    // 🚀 SINGLE CALL: Generate mixin with one method to rule them all!
+    buf.writeln('// 🚀 FLUX: Single registration call mixin');
+    buf.writeln('mixin ${className}Registration {');
+    buf.writeln('  void registerService() {');
+    buf.writeln('    _register${className}Dispatcher();');
+    // Note: client factory registrations remain manual for now.
+    buf.writeln('  }');
+    buf.writeln('}');
     return buf.toString();
+  }
+
+  /// Extract dependency types from optionalDependencies/dependencies getters
+  List<String> _extractDependencyTypes(ClassElement classEl) {
+    final dependencies = <String>[];
+
+    for (final method in classEl.methods) {
+      if (method.name == 'optionalDependencies' ||
+          method.name == 'dependencies') {
+        // Try to extract the return type which should be List<Type>
+        final returnType = method.returnType;
+        if (returnType.isDartCoreList) {
+          // For now, we'll use a simplified approach
+          // In a full implementation, we'd parse the method body or type annotations
+          // This is a placeholder that can be enhanced
+
+          // Look for Type literals in the method body (if available)
+          // For MVP, we'll return empty list and require manual specification
+          break;
+        }
+      }
+    }
+
+    return dependencies; // Empty for now - can be enhanced to parse actual dependencies
   }
 }
 

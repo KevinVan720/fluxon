@@ -67,3 +67,10 @@ void registerFlakyServiceGenerated() {
   _registerFlakyServiceClientFactory();
   _registerFlakyServiceMethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin FlakyServiceRegistration {
+  void registerService() {
+    _registerFlakyServiceDispatcher();
+  }
+}

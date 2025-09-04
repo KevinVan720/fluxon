@@ -59,6 +59,22 @@ void registerRemoteEmitterGenerated() {
   _registerRemoteEmitterMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class RemoteEmitterWorker extends RemoteEmitter {
+  @override
+  Future<void> initialize() async {
+    _registerRemoteEmitterDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin RemoteEmitterRegistration {
+  void registerService() {
+    _registerRemoteEmitterDispatcher();
+  }
+}
+
 // Service client for RemoteListener
 class RemoteListenerClient extends RemoteListener {
   RemoteListenerClient(this._proxy);
@@ -121,6 +137,22 @@ void registerRemoteListenerGenerated() {
   _registerRemoteListenerMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class RemoteListenerWorker extends RemoteListener {
+  @override
+  Future<void> initialize() async {
+    _registerRemoteListenerDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin RemoteListenerRegistration {
+  void registerService() {
+    _registerRemoteListenerDispatcher();
+  }
+}
+
 // Service client for LocalHub
 class LocalHubClient extends LocalHub {
   LocalHubClient(this._proxy);
@@ -181,4 +213,11 @@ void _registerLocalHubMethodIds() {
 void registerLocalHubGenerated() {
   _registerLocalHubClientFactory();
   _registerLocalHubMethodIds();
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin LocalHubRegistration {
+  void registerService() {
+    _registerLocalHubDispatcher();
+  }
 }

@@ -8,8 +8,7 @@ part 'fanout_aggregation_demo_test.g.dart';
 class PricingService extends FluxService {
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote service
-    _registerPricingServiceDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     await super.initialize();
   }
 
@@ -24,8 +23,7 @@ class PricingService extends FluxService {
 class InventoryService extends FluxService {
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote service
-    _registerInventoryServiceDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     await super.initialize();
   }
 
@@ -63,12 +61,12 @@ Future<void> _runFanoutaggregationdemoDemo() async {
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<PricingService>(
     serviceName: 'PricingService',
-    serviceFactory: () => PricingService(),
+    serviceFactory: () => PricingServiceWorker(),
     registerGenerated: registerPricingServiceGenerated,
   );
   await locator.registerWorkerServiceProxy<InventoryService>(
     serviceName: 'InventoryService',
-    serviceFactory: () => InventoryService(),
+    serviceFactory: () => InventoryServiceWorker(),
     registerGenerated: registerInventoryServiceGenerated,
   );
 

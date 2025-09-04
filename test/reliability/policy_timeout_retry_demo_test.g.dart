@@ -73,3 +73,10 @@ void registerPolicyServiceGenerated() {
   _registerPolicyServiceClientFactory();
   _registerPolicyServiceMethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin PolicyServiceRegistration {
+  void registerService() {
+    _registerPolicyServiceDispatcher();
+  }
+}

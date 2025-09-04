@@ -61,3 +61,10 @@ void registerReportServiceGenerated() {
   _registerReportServiceClientFactory();
   _registerReportServiceMethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin ReportServiceRegistration {
+  void registerService() {
+    _registerReportServiceDispatcher();
+  }
+}

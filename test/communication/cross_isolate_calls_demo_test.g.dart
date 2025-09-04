@@ -59,6 +59,22 @@ void registerServiceAGenerated() {
   _registerServiceAMethodIds();
 }
 
+// Worker implementation that auto-registers the dispatcher
+class ServiceAWorker extends ServiceA {
+  @override
+  Future<void> initialize() async {
+    _registerServiceADispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin ServiceARegistration {
+  void registerService() {
+    _registerServiceADispatcher();
+  }
+}
+
 // Service client for ServiceB
 class ServiceBClient extends ServiceB {
   ServiceBClient(this._proxy);
@@ -110,4 +126,20 @@ void _registerServiceBMethodIds() {
 void registerServiceBGenerated() {
   _registerServiceBClientFactory();
   _registerServiceBMethodIds();
+}
+
+// Worker implementation that auto-registers the dispatcher
+class ServiceBWorker extends ServiceB {
+  @override
+  Future<void> initialize() async {
+    _registerServiceBDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin ServiceBRegistration {
+  void registerService() {
+    _registerServiceBDispatcher();
+  }
 }

@@ -119,8 +119,7 @@ class MessageProcessor extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote services
-    _registerMessageProcessorDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     _registerMessageLoggerClientFactory();
     await super.initialize();
 
@@ -186,8 +185,7 @@ class MessageLogger extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote services
-    _registerMessageLoggerDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     await super.initialize();
 
     // 🚀 CROSS-ISOLATE EVENT LISTENING: Listen for events from other workers
@@ -244,13 +242,13 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<MessageProcessor>(
     serviceName: 'MessageProcessor',
-    serviceFactory: () => MessageProcessor(),
+    serviceFactory: () => MessageProcessorWorker(),
     registerGenerated: registerMessageProcessorGenerated,
   );
 
   await locator.registerWorkerServiceProxy<MessageLogger>(
     serviceName: 'MessageLogger',
-    serviceFactory: () => MessageLogger(),
+    serviceFactory: () => MessageLoggerWorker(),
     registerGenerated: registerMessageLoggerGenerated,
   );
 

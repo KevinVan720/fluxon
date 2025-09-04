@@ -109,8 +109,7 @@ class TaskProcessor extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote services
-    _registerTaskProcessorDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     _registerTaskLoggerClientFactory();
     await super.initialize();
   }
@@ -148,8 +147,7 @@ class TaskLogger extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote services
-    _registerTaskLoggerDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     await super.initialize();
   }
 
@@ -193,13 +191,13 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<TaskProcessor>(
     serviceName: 'TaskProcessor',
-    serviceFactory: () => TaskProcessor(),
+    serviceFactory: () => TaskProcessorWorker(),
     registerGenerated: registerTaskProcessorGenerated,
   );
 
   await locator.registerWorkerServiceProxy<TaskLogger>(
     serviceName: 'TaskLogger',
-    serviceFactory: () => TaskLogger(),
+    serviceFactory: () => TaskLoggerWorker(),
     registerGenerated: registerTaskLoggerGenerated,
   );
 

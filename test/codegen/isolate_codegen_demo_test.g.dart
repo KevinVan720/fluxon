@@ -58,3 +58,10 @@ void registerMathServiceGenerated() {
   _registerMathServiceClientFactory();
   _registerMathServiceMethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin MathServiceRegistration {
+  void registerService() {
+    _registerMathServiceDispatcher();
+  }
+}

@@ -11,8 +11,7 @@ class ServiceA extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate
-    _registerServiceADispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     _registerServiceBClientFactory();
     await super.initialize();
   }
@@ -33,8 +32,7 @@ class ServiceB extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate
-    _registerServiceBDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     _registerServiceAClientFactory();
     await super.initialize();
   }
@@ -63,12 +61,12 @@ Future<void> _runCrossisolatecallsdemoDemo() async {
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<ServiceA>(
     serviceName: 'ServiceA',
-    serviceFactory: () => ServiceA(),
+    serviceFactory: () => ServiceAWorker(),
     registerGenerated: registerServiceAGenerated,
   );
   await locator.registerWorkerServiceProxy<ServiceB>(
     serviceName: 'ServiceB',
-    serviceFactory: () => ServiceB(),
+    serviceFactory: () => ServiceBWorker(),
     registerGenerated: registerServiceBGenerated,
   );
 

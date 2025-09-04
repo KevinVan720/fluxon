@@ -11,8 +11,7 @@ class RemoteEmitter extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote service
-    _registerRemoteEmitterDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     _registerLocalHubClientFactory();
     _registerRemoteListenerClientFactory();
     await super.initialize();
@@ -36,8 +35,7 @@ class RemoteListener extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for remote service
-    _registerRemoteListenerDispatcher();
+    // 🚀 FLUX: Worker class will register dispatcher automatically
     await super.initialize();
   }
 
@@ -95,12 +93,12 @@ Future<void> _runEventbridgedemoDemo() async {
   locator.register<Orchestrator>(() => Orchestrator());
   await locator.registerWorkerServiceProxy<RemoteListener>(
     serviceName: 'RemoteListener',
-    serviceFactory: () => RemoteListener(),
+    serviceFactory: () => RemoteListenerWorker(),
     registerGenerated: registerRemoteListenerGenerated,
   );
   await locator.registerWorkerServiceProxy<RemoteEmitter>(
     serviceName: 'RemoteEmitter',
-    serviceFactory: () => RemoteEmitter(),
+    serviceFactory: () => RemoteEmitterWorker(),
     registerGenerated: registerRemoteEmitterGenerated,
   );
 

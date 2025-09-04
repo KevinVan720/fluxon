@@ -67,3 +67,10 @@ void registerSlowServiceGenerated() {
   _registerSlowServiceClientFactory();
   _registerSlowServiceMethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin SlowServiceRegistration {
+  void registerService() {
+    _registerSlowServiceDispatcher();
+  }
+}

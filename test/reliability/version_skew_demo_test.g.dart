@@ -58,3 +58,10 @@ void registerApiV1Generated() {
   _registerApiV1ClientFactory();
   _registerApiV1MethodIds();
 }
+
+// 🚀 FLUX: Single registration call mixin
+mixin ApiV1Registration {
+  void registerService() {
+    _registerApiV1Dispatcher();
+  }
+}

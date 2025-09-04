@@ -62,6 +62,13 @@ void registerMessageCoordinatorGenerated() {
   _registerMessageCoordinatorMethodIds();
 }
 
+// 🚀 FLUX: Single registration call mixin
+mixin MessageCoordinatorRegistration {
+  void registerService() {
+    _registerMessageCoordinatorDispatcher();
+  }
+}
+
 // Service client for MessageProcessor
 class MessageProcessorClient extends MessageProcessor {
   MessageProcessorClient(this._proxy);
@@ -114,6 +121,22 @@ void _registerMessageProcessorMethodIds() {
 void registerMessageProcessorGenerated() {
   _registerMessageProcessorClientFactory();
   _registerMessageProcessorMethodIds();
+}
+
+// Worker implementation that auto-registers the dispatcher
+class MessageProcessorWorker extends MessageProcessor {
+  @override
+  Future<void> initialize() async {
+    _registerMessageProcessorDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin MessageProcessorRegistration {
+  void registerService() {
+    _registerMessageProcessorDispatcher();
+  }
 }
 
 // Service client for MessageLogger
@@ -179,4 +202,20 @@ void _registerMessageLoggerMethodIds() {
 void registerMessageLoggerGenerated() {
   _registerMessageLoggerClientFactory();
   _registerMessageLoggerMethodIds();
+}
+
+// Worker implementation that auto-registers the dispatcher
+class MessageLoggerWorker extends MessageLogger {
+  @override
+  Future<void> initialize() async {
+    _registerMessageLoggerDispatcher();
+    await super.initialize();
+  }
+}
+
+// 🚀 FLUX: Single registration call mixin
+mixin MessageLoggerRegistration {
+  void registerService() {
+    _registerMessageLoggerDispatcher();
+  }
 }
