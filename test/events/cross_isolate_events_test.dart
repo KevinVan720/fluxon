@@ -56,8 +56,7 @@ class MessageCoordinator extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for local service
-    _registerMessageCoordinatorDispatcher();
+    // 🚀 FLUX: Minimal boilerplate for local service (auto-registered)
     await super.initialize();
 
     // Listen for message events from remote services
@@ -236,7 +235,6 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   final locator = ServiceLocator();
 
   // Register all services
-  registerMessageCoordinatorGenerated();
   locator.register<MessageCoordinator>(() => MessageCoordinator());
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!

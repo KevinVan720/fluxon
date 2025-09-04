@@ -241,13 +241,18 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln('');
     }
 
-    // 🚀 SINGLE CALL: Generate mixin with one method to rule them all!
-    buf.writeln('// 🚀 FLUX: Single registration call mixin');
-    buf.writeln('mixin ${className}Registration {');
-    buf.writeln('  void registerService() {');
-    buf.writeln('    _register${className}Dispatcher();');
-    // Note: client factory registrations remain manual for now.
-    buf.writeln('  }');
+    // 🚀 LOCAL AUTO-REGISTRATION: emit a hidden registrar invoked by ServiceLocator
+    buf.writeln('void _register${className}LocalSide() {');
+    buf.writeln('  _register${className}Dispatcher();');
+    buf.writeln('  _register${className}ClientFactory();');
+    buf.writeln('  _register${className}MethodIds();');
+    // Also register dependencies to enable local->remote client creation symmetry
+    for (final dep in depTypeNames) {
+      if (dep != className) {
+        buf.writeln('  try { _register${dep}ClientFactory(); } catch (_) {}');
+        buf.writeln('  try { _register${dep}MethodIds(); } catch (_) {}');
+      }
+    }
     buf.writeln('}');
     return buf.toString();
   }
