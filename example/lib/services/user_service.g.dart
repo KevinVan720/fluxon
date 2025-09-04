@@ -138,9 +138,9 @@ void registerUserServiceGenerated() {
   $registerUserServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class UserServiceLocalWorker extends UserService {
-  UserServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class UserServiceImpl extends UserService {
+  UserServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerUserServiceLocalSide();
   }

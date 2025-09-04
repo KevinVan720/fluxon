@@ -83,8 +83,8 @@ void registerBackgroundProcessorGenerated() {
   $registerBackgroundProcessorMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class BackgroundProcessorWorker extends BackgroundProcessor {
+// Remote service implementation that auto-registers the dispatcher
+class BackgroundProcessorImpl extends BackgroundProcessor {
   @override
   Type get clientBaseType => BackgroundProcessor;
   @override

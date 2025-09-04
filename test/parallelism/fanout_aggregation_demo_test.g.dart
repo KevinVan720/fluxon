@@ -59,8 +59,8 @@ void registerPricingServiceGenerated() {
   $registerPricingServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class PricingServiceWorker extends PricingService {
+// Remote service implementation that auto-registers the dispatcher
+class PricingServiceImpl extends PricingService {
   @override
   Type get clientBaseType => PricingService;
   @override
@@ -144,8 +144,8 @@ void registerInventoryServiceGenerated() {
   $registerInventoryServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class InventoryServiceWorker extends InventoryService {
+// Remote service implementation that auto-registers the dispatcher
+class InventoryServiceImpl extends InventoryService {
   @override
   Type get clientBaseType => InventoryService;
   @override

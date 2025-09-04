@@ -234,8 +234,8 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   locator.register<MessageCoordinator>(MessageCoordinator.new);
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  locator.register<MessageProcessor>(MessageProcessorWorker.new);
-  locator.register<MessageLogger>(MessageLoggerWorker.new);
+  locator.register<MessageProcessor>(MessageProcessorImpl.new);
+  locator.register<MessageLogger>(MessageLoggerImpl.new);
 
   await locator.initializeAll();
 

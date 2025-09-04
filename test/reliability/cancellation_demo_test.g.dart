@@ -68,8 +68,8 @@ void registerSlowServiceGenerated() {
   $registerSlowServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class SlowServiceWorker extends SlowService {
+// Remote service implementation that auto-registers the dispatcher
+class SlowServiceImpl extends SlowService {
   @override
   Type get clientBaseType => SlowService;
   @override

@@ -59,8 +59,8 @@ Future<void> _runFanoutaggregationdemoDemo() async {
   locator.register<Aggregator>(Aggregator.new);
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  locator.register<PricingService>(PricingServiceWorker.new);
-  locator.register<InventoryService>(InventoryServiceWorker.new);
+  locator.register<PricingService>(PricingServiceImpl.new);
+  locator.register<InventoryService>(InventoryServiceImpl.new);
 
   await locator.initializeAll();
 

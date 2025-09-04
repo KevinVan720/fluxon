@@ -124,9 +124,8 @@ class FluxRuntime {
     // If this is a generated Worker class, route to remote registration
     if (tempInstance is FluxService) {
       final typeName = tempInstance.runtimeType.toString();
-      final isRemoteWorker =
-          (typeName.endsWith('Worker') && !typeName.endsWith('LocalWorker')) ||
-              tempInstance.clientBaseType != tempInstance.runtimeType;
+      final isRemoteWorker = typeName.endsWith('Worker') ||
+          tempInstance.clientBaseType != tempInstance.runtimeType;
       if (isRemoteWorker) {
         final baseTypeName = tempInstance.clientBaseType.toString();
         // Schedule remote proxy registration and await it in initializeAll

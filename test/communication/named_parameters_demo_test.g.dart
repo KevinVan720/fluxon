@@ -62,8 +62,8 @@ void registerReportServiceGenerated() {
   $registerReportServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class ReportServiceWorker extends ReportService {
+// Remote service implementation that auto-registers the dispatcher
+class ReportServiceImpl extends ReportService {
   @override
   Type get clientBaseType => ReportService;
   @override
@@ -147,9 +147,9 @@ void registerCoordinatorGenerated() {
   $registerCoordinatorMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class CoordinatorLocalWorker extends Coordinator {
-  CoordinatorLocalWorker() {
+// Local service implementation that auto-registers local side
+class CoordinatorImpl extends Coordinator {
+  CoordinatorImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerCoordinatorLocalSide();
   }

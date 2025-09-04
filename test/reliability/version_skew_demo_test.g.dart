@@ -59,8 +59,8 @@ void registerApiV1Generated() {
   $registerApiV1MethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class ApiV1Worker extends ApiV1 {
+// Remote service implementation that auto-registers the dispatcher
+class ApiV1Impl extends ApiV1 {
   @override
   Type get clientBaseType => ApiV1;
   @override

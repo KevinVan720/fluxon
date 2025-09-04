@@ -87,8 +87,8 @@ void registerConcurrentServiceGenerated() {
   $registerConcurrentServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class ConcurrentServiceWorker extends ConcurrentService {
+// Remote service implementation that auto-registers the dispatcher
+class ConcurrentServiceImpl extends ConcurrentService {
   @override
   Type get clientBaseType => ConcurrentService;
   @override
@@ -185,9 +185,9 @@ void registerRaceConditionServiceGenerated() {
   $registerRaceConditionServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class RaceConditionServiceLocalWorker extends RaceConditionService {
-  RaceConditionServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class RaceConditionServiceImpl extends RaceConditionService {
+  RaceConditionServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerRaceConditionServiceLocalSide();
   }

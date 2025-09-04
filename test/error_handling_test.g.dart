@@ -48,9 +48,9 @@ void registerFailingInitServiceGenerated() {
   $registerFailingInitServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class FailingInitServiceLocalWorker extends FailingInitService {
-  FailingInitServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class FailingInitServiceImpl extends FailingInitService {
+  FailingInitServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerFailingInitServiceLocalSide();
   }
@@ -134,8 +134,8 @@ void registerFailingMethodServiceGenerated() {
   $registerFailingMethodServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class FailingMethodServiceWorker extends FailingMethodService {
+// Remote service implementation that auto-registers the dispatcher
+class FailingMethodServiceImpl extends FailingMethodService {
   @override
   Type get clientBaseType => FailingMethodService;
   @override
@@ -220,9 +220,9 @@ void registerInvalidDependencyServiceGenerated() {
   $registerInvalidDependencyServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class InvalidDependencyServiceLocalWorker extends InvalidDependencyService {
-  InvalidDependencyServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class InvalidDependencyServiceImpl extends InvalidDependencyService {
+  InvalidDependencyServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerInvalidDependencyServiceLocalSide();
   }
@@ -303,9 +303,9 @@ void registerCorruptingServiceGenerated() {
   $registerCorruptingServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class CorruptingServiceLocalWorker extends CorruptingService {
-  CorruptingServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class CorruptingServiceImpl extends CorruptingService {
+  CorruptingServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerCorruptingServiceLocalSide();
   }
@@ -389,8 +389,8 @@ void registerSlowServiceGenerated() {
   $registerSlowServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class SlowServiceWorker extends SlowService {
+// Remote service implementation that auto-registers the dispatcher
+class SlowServiceImpl extends SlowService {
   @override
   Type get clientBaseType => SlowService;
   @override
@@ -474,9 +474,9 @@ void registerMemoryLeakServiceGenerated() {
   $registerMemoryLeakServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class MemoryLeakServiceLocalWorker extends MemoryLeakService {
-  MemoryLeakServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class MemoryLeakServiceImpl extends MemoryLeakService {
+  MemoryLeakServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerMemoryLeakServiceLocalSide();
   }

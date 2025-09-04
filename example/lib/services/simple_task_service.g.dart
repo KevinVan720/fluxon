@@ -136,9 +136,9 @@ void registerSimpleTaskServiceGenerated() {
   $registerSimpleTaskServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class SimpleTaskServiceLocalWorker extends SimpleTaskService {
-  SimpleTaskServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class SimpleTaskServiceImpl extends SimpleTaskService {
+  SimpleTaskServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerSimpleTaskServiceLocalSide();
   }

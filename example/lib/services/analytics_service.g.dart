@@ -97,8 +97,8 @@ void registerAnalyticsServiceGenerated() {
   $registerAnalyticsServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class AnalyticsServiceWorker extends AnalyticsService {
+// Remote service implementation that auto-registers the dispatcher
+class AnalyticsServiceImpl extends AnalyticsService {
   @override
   Type get clientBaseType => AnalyticsService;
   @override

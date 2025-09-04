@@ -71,8 +71,8 @@ void registerPerformanceServiceGenerated() {
   $registerPerformanceServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class PerformanceServiceWorker extends PerformanceService {
+// Remote service implementation that auto-registers the dispatcher
+class PerformanceServiceImpl extends PerformanceService {
   @override
   Type get clientBaseType => PerformanceService;
   @override
@@ -157,9 +157,9 @@ void registerEventReceiverServiceGenerated() {
   $registerEventReceiverServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class EventReceiverServiceLocalWorker extends EventReceiverService {
-  EventReceiverServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class EventReceiverServiceImpl extends EventReceiverService {
+  EventReceiverServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerEventReceiverServiceLocalSide();
   }
@@ -243,9 +243,9 @@ void registerLoadTestServiceGenerated() {
   $registerLoadTestServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class LoadTestServiceLocalWorker extends LoadTestService {
-  LoadTestServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class LoadTestServiceImpl extends LoadTestService {
+  LoadTestServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerLoadTestServiceLocalSide();
   }

@@ -103,8 +103,8 @@ void registerNotificationServiceGenerated() {
   $registerNotificationServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class NotificationServiceWorker extends NotificationService {
+// Remote service implementation that auto-registers the dispatcher
+class NotificationServiceImpl extends NotificationService {
   @override
   Type get clientBaseType => NotificationService;
   @override

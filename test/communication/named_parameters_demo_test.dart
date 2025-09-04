@@ -27,7 +27,7 @@ Future<void> _runNamedparametersdemoDemo() async {
   final locator = FluxRuntime();
 
   locator.register<Coordinator>(Coordinator.new);
-  locator.register<ReportService>(ReportServiceWorker.new);
+  locator.register<ReportService>(ReportServiceImpl.new);
   await locator.initializeAll();
   final c = locator.get<Coordinator>();
   await c.run();

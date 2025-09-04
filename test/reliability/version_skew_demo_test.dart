@@ -12,7 +12,7 @@ Future<void> _runVersionskewdemoDemo() async {
   final locator = FluxRuntime();
   try {
     // Register worker with ApiV1
-    locator.register<ApiV1>(ApiV1Worker.new);
+    locator.register<ApiV1>(ApiV1Impl.new);
 
     await locator.initializeAll();
 

@@ -95,9 +95,9 @@ void registerStorageServiceGenerated() {
   $registerStorageServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class StorageServiceLocalWorker extends StorageService {
-  StorageServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class StorageServiceImpl extends StorageService {
+  StorageServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerStorageServiceLocalSide();
   }

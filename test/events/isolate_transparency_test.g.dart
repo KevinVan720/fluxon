@@ -60,9 +60,9 @@ void registerTaskOrchestratorGenerated() {
   $registerTaskOrchestratorMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class TaskOrchestratorLocalWorker extends TaskOrchestrator {
-  TaskOrchestratorLocalWorker() {
+// Local service implementation that auto-registers local side
+class TaskOrchestratorImpl extends TaskOrchestrator {
+  TaskOrchestratorImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerTaskOrchestratorLocalSide();
   }
@@ -151,8 +151,8 @@ void registerTaskProcessorGenerated() {
   $registerTaskProcessorMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class TaskProcessorWorker extends TaskProcessor {
+// Remote service implementation that auto-registers the dispatcher
+class TaskProcessorImpl extends TaskProcessor {
   @override
   Type get clientBaseType => TaskProcessor;
   @override
@@ -268,8 +268,8 @@ void registerTaskLoggerGenerated() {
   $registerTaskLoggerMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class TaskLoggerWorker extends TaskLogger {
+// Remote service implementation that auto-registers the dispatcher
+class TaskLoggerImpl extends TaskLogger {
   @override
   Type get clientBaseType => TaskLogger;
   @override

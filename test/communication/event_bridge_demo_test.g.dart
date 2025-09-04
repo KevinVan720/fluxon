@@ -59,8 +59,8 @@ void registerRemoteEmitterGenerated() {
   $registerRemoteEmitterMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class RemoteEmitterWorker extends RemoteEmitter {
+// Remote service implementation that auto-registers the dispatcher
+class RemoteEmitterImpl extends RemoteEmitter {
   @override
   Type get clientBaseType => RemoteEmitter;
   @override
@@ -193,8 +193,8 @@ void registerRemoteListenerGenerated() {
   $registerRemoteListenerMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class RemoteListenerWorker extends RemoteListener {
+// Remote service implementation that auto-registers the dispatcher
+class RemoteListenerImpl extends RemoteListener {
   @override
   Type get clientBaseType => RemoteListener;
   @override
@@ -287,9 +287,9 @@ void registerLocalHubGenerated() {
   $registerLocalHubMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class LocalHubLocalWorker extends LocalHub {
-  LocalHubLocalWorker() {
+// Local service implementation that auto-registers local side
+class LocalHubImpl extends LocalHub {
+  LocalHubImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerLocalHubLocalSide();
   }

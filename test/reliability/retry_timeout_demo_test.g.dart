@@ -68,8 +68,8 @@ void registerFlakyServiceGenerated() {
   $registerFlakyServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class FlakyServiceWorker extends FlakyService {
+// Remote service implementation that auto-registers the dispatcher
+class FlakyServiceImpl extends FlakyService {
   @override
   Type get clientBaseType => FlakyService;
   @override

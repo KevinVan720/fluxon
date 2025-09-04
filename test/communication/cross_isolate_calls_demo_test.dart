@@ -45,8 +45,8 @@ Future<void> _runCrossisolatecallsdemoDemo() async {
   locator.register<Orchestrator>(Orchestrator.new);
 
   // 🚀 SIMPLE API: same register() for local and remote (worker auto-detected)
-  locator.register<ServiceA>(ServiceAWorker.new);
-  locator.register<ServiceB>(ServiceBWorker.new);
+  locator.register<ServiceA>(ServiceAImpl.new);
+  locator.register<ServiceB>(ServiceBImpl.new);
 
   await locator.initializeAll();
 

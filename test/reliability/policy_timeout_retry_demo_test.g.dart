@@ -74,8 +74,8 @@ void registerPolicyServiceGenerated() {
   $registerPolicyServiceMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class PolicyServiceWorker extends PolicyService {
+// Remote service implementation that auto-registers the dispatcher
+class PolicyServiceImpl extends PolicyService {
   @override
   Type get clientBaseType => PolicyService;
   @override

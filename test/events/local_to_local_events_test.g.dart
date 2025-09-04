@@ -59,9 +59,9 @@ void registerUserServiceGenerated() {
   $registerUserServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class UserServiceLocalWorker extends UserService {
-  UserServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class UserServiceImpl extends UserService {
+  UserServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerUserServiceLocalSide();
   }
@@ -138,9 +138,9 @@ void registerOrderServiceGenerated() {
   $registerOrderServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class OrderServiceLocalWorker extends OrderService {
-  OrderServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class OrderServiceImpl extends OrderService {
+  OrderServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerOrderServiceLocalSide();
   }
@@ -203,9 +203,9 @@ void registerNotificationServiceGenerated() {
   $registerNotificationServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class NotificationServiceLocalWorker extends NotificationService {
-  NotificationServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class NotificationServiceImpl extends NotificationService {
+  NotificationServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerNotificationServiceLocalSide();
   }
@@ -280,9 +280,9 @@ void registerAnalyticsServiceGenerated() {
   $registerAnalyticsServiceMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class AnalyticsServiceLocalWorker extends AnalyticsService {
-  AnalyticsServiceLocalWorker() {
+// Local service implementation that auto-registers local side
+class AnalyticsServiceImpl extends AnalyticsService {
+  AnalyticsServiceImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerAnalyticsServiceLocalSide();
   }

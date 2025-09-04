@@ -202,11 +202,11 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln();
 
     // Generate a worker-side concrete class that auto-registers the dispatcher.
-    // Consumers should use <ClassName>Worker as the serviceFactory for remote services.
+    // Consumers should use <ClassName>Impl as the serviceFactory for remote services.
     if (isRemote && !classEl.isAbstract) {
       buf.writeln(
-          '// Worker implementation that auto-registers the dispatcher');
-      buf.writeln('class ${className}Worker extends $className {');
+          '// Remote service implementation that auto-registers the dispatcher');
+      buf.writeln('class ${className}Impl extends $className {');
       buf.writeln('  @override');
       buf.writeln('  Type get clientBaseType => $className;');
       buf.writeln('  @override');
@@ -241,12 +241,12 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln();
     }
 
-    // 🚀 LOCAL WORKER: Generate a local worker class for local services (similar to remote workers)
+    // 🚀 LOCAL IMPL: Generate a local implementation class for local services
     if (!isRemote && !classEl.isAbstract) {
       buf.writeln(
-          '// Local worker implementation that auto-registers local side');
-      buf.writeln('class ${className}LocalWorker extends $className {');
-      buf.writeln('  ${className}LocalWorker() {');
+          '// Local service implementation that auto-registers local side');
+      buf.writeln('class ${className}Impl extends $className {');
+      buf.writeln('  ${className}Impl() {');
       buf.writeln(
           '    // 🚀 AUTO-REGISTRATION: Register local side when instance is created');
       buf.writeln('    \$register${className}LocalSide();');

@@ -59,8 +59,8 @@ void registerServiceAGenerated() {
   $registerServiceAMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class ServiceAWorker extends ServiceA {
+// Remote service implementation that auto-registers the dispatcher
+class ServiceAImpl extends ServiceA {
   @override
   Type get clientBaseType => ServiceA;
   @override
@@ -164,8 +164,8 @@ void registerServiceBGenerated() {
   $registerServiceBMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class ServiceBWorker extends ServiceB {
+// Remote service implementation that auto-registers the dispatcher
+class ServiceBImpl extends ServiceB {
   @override
   Type get clientBaseType => ServiceB;
   @override

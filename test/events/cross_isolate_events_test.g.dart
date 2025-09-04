@@ -62,9 +62,9 @@ void registerMessageCoordinatorGenerated() {
   $registerMessageCoordinatorMethodIds();
 }
 
-// Local worker implementation that auto-registers local side
-class MessageCoordinatorLocalWorker extends MessageCoordinator {
-  MessageCoordinatorLocalWorker() {
+// Local service implementation that auto-registers local side
+class MessageCoordinatorImpl extends MessageCoordinator {
+  MessageCoordinatorImpl() {
     // 🚀 AUTO-REGISTRATION: Register local side when instance is created
     $registerMessageCoordinatorLocalSide();
   }
@@ -152,8 +152,8 @@ void registerMessageProcessorGenerated() {
   $registerMessageProcessorMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class MessageProcessorWorker extends MessageProcessor {
+// Remote service implementation that auto-registers the dispatcher
+class MessageProcessorImpl extends MessageProcessor {
   @override
   Type get clientBaseType => MessageProcessor;
   @override
@@ -270,8 +270,8 @@ void registerMessageLoggerGenerated() {
   $registerMessageLoggerMethodIds();
 }
 
-// Worker implementation that auto-registers the dispatcher
-class MessageLoggerWorker extends MessageLogger {
+// Remote service implementation that auto-registers the dispatcher
+class MessageLoggerImpl extends MessageLogger {
   @override
   Type get clientBaseType => MessageLogger;
   @override
