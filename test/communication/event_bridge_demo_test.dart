@@ -9,14 +9,6 @@ class RemoteEmitter extends FluxService {
   @override
   List<Type> get optionalDependencies => [LocalHub, RemoteListener];
 
-  @override
-  Future<void> initialize() async {
-    // 🚀 FLUX: Worker class will register dispatcher automatically
-    _registerLocalHubClientFactory();
-    _registerRemoteListenerClientFactory();
-    await super.initialize();
-  }
-
   Future<void> emitTick(String id) async {
     // Call host-local hub
     final hub = getService<LocalHub>();
@@ -54,8 +46,6 @@ class LocalHub extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for local service
-    _registerLocalHubDispatcher();
     await super.initialize();
   }
 

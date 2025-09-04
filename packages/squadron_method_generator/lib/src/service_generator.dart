@@ -134,7 +134,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
 
     buf.writeln('}');
     buf.writeln();
-    buf.writeln('void _register${className}ClientFactory() {');
+    buf.writeln('void \$register${className}ClientFactory() {');
     buf.writeln('  GeneratedClientRegistry.register<$className>(');
     buf.writeln('    (proxy) => $clientName(proxy),');
     buf.writeln('  );');
@@ -179,14 +179,14 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln('  }');
     buf.writeln('}');
     buf.writeln();
-    buf.writeln('void _register${className}Dispatcher() {');
+    buf.writeln('void \$register${className}Dispatcher() {');
     buf.writeln('  GeneratedDispatcherRegistry.register<$className>(');
     buf.writeln('    _${className}Dispatcher,');
     buf.writeln('  );');
     buf.writeln('}');
     buf.writeln();
     // Register method IDs for client-side lookup
-    buf.writeln('void _register${className}MethodIds() {');
+    buf.writeln('void \$register${className}MethodIds() {');
     buf.writeln('  ServiceMethodIdRegistry.register<$className>({');
     for (final entry in methodIds.entries) {
       buf.writeln("    '${entry.key}': _${className}Methods.${entry.key}Id,");
@@ -196,8 +196,8 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln();
     // Public registrar for host-side (client + method IDs)
     buf.writeln('void register${className}Generated() {');
-    buf.writeln('  _register${className}ClientFactory();');
-    buf.writeln('  _register${className}MethodIds();');
+    buf.writeln('  \$register${className}ClientFactory();');
+    buf.writeln('  \$register${className}MethodIds();');
     buf.writeln('}');
     buf.writeln();
 
@@ -211,8 +211,8 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln('  Type get clientBaseType => $className;');
       buf.writeln('  @override');
       buf.writeln('  Future<void> registerHostSide() async {');
-      buf.writeln('    _register${className}ClientFactory();');
-      buf.writeln('    _register${className}MethodIds();');
+      buf.writeln('    \$register${className}ClientFactory();');
+      buf.writeln('    \$register${className}MethodIds();');
       for (final dep in depTypeNames) {
         if (dep != className) {
           buf.writeln(
@@ -225,7 +225,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln('  }');
       buf.writeln('  @override');
       buf.writeln('  Future<void> initialize() async {');
-      buf.writeln('    _register${className}Dispatcher();');
+      buf.writeln('    \$register${className}Dispatcher();');
       for (final dep in depTypeNames) {
         if (dep != className) {
           buf.writeln(
@@ -242,25 +242,19 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     }
 
     // 🚀 LOCAL AUTO-REGISTRATION: emit a hidden registrar invoked by ServiceLocator
-    buf.writeln('void _register${className}LocalSide() {');
-    buf.writeln('  _register${className}Dispatcher();');
-    buf.writeln('  _register${className}ClientFactory();');
-    buf.writeln('  _register${className}MethodIds();');
+    buf.writeln('void \$register${className}LocalSide() {');
+    buf.writeln('  \$register${className}Dispatcher();');
+    buf.writeln('  \$register${className}ClientFactory();');
+    buf.writeln('  \$register${className}MethodIds();');
     // Also register dependencies to enable local->remote client creation symmetry
     for (final dep in depTypeNames) {
       if (dep != className) {
-        buf.writeln('  try { _register${dep}ClientFactory(); } catch (_) {}');
-        buf.writeln('  try { _register${dep}MethodIds(); } catch (_) {}');
+        buf.writeln('  try { \$register${dep}ClientFactory(); } catch (_) {}');
+        buf.writeln('  try { \$register${dep}MethodIds(); } catch (_) {}');
       }
     }
     buf.writeln('}');
     return buf.toString();
-  }
-
-  /// Extract dependency types from optionalDependencies/dependencies getters
-  List<String> _extractDependencyTypes(ClassElement classEl) {
-    // Fallback retained (unused with source scan) in case future use needed.
-    return <String>[];
   }
 
   /// Scan the source code to extract Type identifiers from
@@ -305,5 +299,3 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
 
 Builder serviceBuilder(BuilderOptions options) =>
     SharedPartBuilder([ServiceGenerator()], 'service_generator');
-
-class _PlaceholderGenerator extends Generator {}

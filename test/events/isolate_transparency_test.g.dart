@@ -18,7 +18,7 @@ class TaskOrchestratorClient extends TaskOrchestrator {
   }
 }
 
-void _registerTaskOrchestratorClientFactory() {
+void $registerTaskOrchestratorClientFactory() {
   GeneratedClientRegistry.register<TaskOrchestrator>(
     (proxy) => TaskOrchestratorClient(proxy),
   );
@@ -43,38 +43,38 @@ Future<dynamic> _TaskOrchestratorDispatcher(
   }
 }
 
-void _registerTaskOrchestratorDispatcher() {
+void $registerTaskOrchestratorDispatcher() {
   GeneratedDispatcherRegistry.register<TaskOrchestrator>(
     _TaskOrchestratorDispatcher,
   );
 }
 
-void _registerTaskOrchestratorMethodIds() {
+void $registerTaskOrchestratorMethodIds() {
   ServiceMethodIdRegistry.register<TaskOrchestrator>({
     'executeTask': _TaskOrchestratorMethods.executeTaskId,
   });
 }
 
 void registerTaskOrchestratorGenerated() {
-  _registerTaskOrchestratorClientFactory();
-  _registerTaskOrchestratorMethodIds();
+  $registerTaskOrchestratorClientFactory();
+  $registerTaskOrchestratorMethodIds();
 }
 
-void _registerTaskOrchestratorLocalSide() {
-  _registerTaskOrchestratorDispatcher();
-  _registerTaskOrchestratorClientFactory();
-  _registerTaskOrchestratorMethodIds();
+void $registerTaskOrchestratorLocalSide() {
+  $registerTaskOrchestratorDispatcher();
+  $registerTaskOrchestratorClientFactory();
+  $registerTaskOrchestratorMethodIds();
   try {
-    _registerTaskProcessorClientFactory();
+    $registerTaskProcessorClientFactory();
   } catch (_) {}
   try {
-    _registerTaskProcessorMethodIds();
+    $registerTaskProcessorMethodIds();
   } catch (_) {}
   try {
-    _registerTaskLoggerClientFactory();
+    $registerTaskLoggerClientFactory();
   } catch (_) {}
   try {
-    _registerTaskLoggerMethodIds();
+    $registerTaskLoggerMethodIds();
   } catch (_) {}
 }
 
@@ -91,7 +91,7 @@ class TaskProcessorClient extends TaskProcessor {
   }
 }
 
-void _registerTaskProcessorClientFactory() {
+void $registerTaskProcessorClientFactory() {
   GeneratedClientRegistry.register<TaskProcessor>(
     (proxy) => TaskProcessorClient(proxy),
   );
@@ -116,21 +116,21 @@ Future<dynamic> _TaskProcessorDispatcher(
   }
 }
 
-void _registerTaskProcessorDispatcher() {
+void $registerTaskProcessorDispatcher() {
   GeneratedDispatcherRegistry.register<TaskProcessor>(
     _TaskProcessorDispatcher,
   );
 }
 
-void _registerTaskProcessorMethodIds() {
+void $registerTaskProcessorMethodIds() {
   ServiceMethodIdRegistry.register<TaskProcessor>({
     'processTask': _TaskProcessorMethods.processTaskId,
   });
 }
 
 void registerTaskProcessorGenerated() {
-  _registerTaskProcessorClientFactory();
-  _registerTaskProcessorMethodIds();
+  $registerTaskProcessorClientFactory();
+  $registerTaskProcessorMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -139,8 +139,8 @@ class TaskProcessorWorker extends TaskProcessor {
   Type get clientBaseType => TaskProcessor;
   @override
   Future<void> registerHostSide() async {
-    _registerTaskProcessorClientFactory();
-    _registerTaskProcessorMethodIds();
+    $registerTaskProcessorClientFactory();
+    $registerTaskProcessorMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
       _registerTaskLoggerClientFactory();
@@ -152,7 +152,7 @@ class TaskProcessorWorker extends TaskProcessor {
 
   @override
   Future<void> initialize() async {
-    _registerTaskProcessorDispatcher();
+    $registerTaskProcessorDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
       _registerTaskLoggerClientFactory();
@@ -164,15 +164,15 @@ class TaskProcessorWorker extends TaskProcessor {
   }
 }
 
-void _registerTaskProcessorLocalSide() {
-  _registerTaskProcessorDispatcher();
-  _registerTaskProcessorClientFactory();
-  _registerTaskProcessorMethodIds();
+void $registerTaskProcessorLocalSide() {
+  $registerTaskProcessorDispatcher();
+  $registerTaskProcessorClientFactory();
+  $registerTaskProcessorMethodIds();
   try {
-    _registerTaskLoggerClientFactory();
+    $registerTaskLoggerClientFactory();
   } catch (_) {}
   try {
-    _registerTaskLoggerMethodIds();
+    $registerTaskLoggerMethodIds();
   } catch (_) {}
 }
 
@@ -194,7 +194,7 @@ class TaskLoggerClient extends TaskLogger {
   }
 }
 
-void _registerTaskLoggerClientFactory() {
+void $registerTaskLoggerClientFactory() {
   GeneratedClientRegistry.register<TaskLogger>(
     (proxy) => TaskLoggerClient(proxy),
   );
@@ -223,13 +223,13 @@ Future<dynamic> _TaskLoggerDispatcher(
   }
 }
 
-void _registerTaskLoggerDispatcher() {
+void $registerTaskLoggerDispatcher() {
   GeneratedDispatcherRegistry.register<TaskLogger>(
     _TaskLoggerDispatcher,
   );
 }
 
-void _registerTaskLoggerMethodIds() {
+void $registerTaskLoggerMethodIds() {
   ServiceMethodIdRegistry.register<TaskLogger>({
     'logTaskProgress': _TaskLoggerMethods.logTaskProgressId,
     'getTaskLogs': _TaskLoggerMethods.getTaskLogsId,
@@ -237,8 +237,8 @@ void _registerTaskLoggerMethodIds() {
 }
 
 void registerTaskLoggerGenerated() {
-  _registerTaskLoggerClientFactory();
-  _registerTaskLoggerMethodIds();
+  $registerTaskLoggerClientFactory();
+  $registerTaskLoggerMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -247,19 +247,19 @@ class TaskLoggerWorker extends TaskLogger {
   Type get clientBaseType => TaskLogger;
   @override
   Future<void> registerHostSide() async {
-    _registerTaskLoggerClientFactory();
-    _registerTaskLoggerMethodIds();
+    $registerTaskLoggerClientFactory();
+    $registerTaskLoggerMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerTaskLoggerDispatcher();
+    $registerTaskLoggerDispatcher();
     await super.initialize();
   }
 }
 
-void _registerTaskLoggerLocalSide() {
-  _registerTaskLoggerDispatcher();
-  _registerTaskLoggerClientFactory();
-  _registerTaskLoggerMethodIds();
+void $registerTaskLoggerLocalSide() {
+  $registerTaskLoggerDispatcher();
+  $registerTaskLoggerClientFactory();
+  $registerTaskLoggerMethodIds();
 }

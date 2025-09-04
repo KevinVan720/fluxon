@@ -22,7 +22,7 @@ class FlakyServiceClient extends FlakyService {
   }
 }
 
-void _registerFlakyServiceClientFactory() {
+void $registerFlakyServiceClientFactory() {
   GeneratedClientRegistry.register<FlakyService>(
     (proxy) => FlakyServiceClient(proxy),
   );
@@ -50,13 +50,13 @@ Future<dynamic> _FlakyServiceDispatcher(
   }
 }
 
-void _registerFlakyServiceDispatcher() {
+void $registerFlakyServiceDispatcher() {
   GeneratedDispatcherRegistry.register<FlakyService>(
     _FlakyServiceDispatcher,
   );
 }
 
-void _registerFlakyServiceMethodIds() {
+void $registerFlakyServiceMethodIds() {
   ServiceMethodIdRegistry.register<FlakyService>({
     'succeedAfter': _FlakyServiceMethods.succeedAfterId,
     'slowOperation': _FlakyServiceMethods.slowOperationId,
@@ -64,8 +64,8 @@ void _registerFlakyServiceMethodIds() {
 }
 
 void registerFlakyServiceGenerated() {
-  _registerFlakyServiceClientFactory();
-  _registerFlakyServiceMethodIds();
+  $registerFlakyServiceClientFactory();
+  $registerFlakyServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -74,19 +74,19 @@ class FlakyServiceWorker extends FlakyService {
   Type get clientBaseType => FlakyService;
   @override
   Future<void> registerHostSide() async {
-    _registerFlakyServiceClientFactory();
-    _registerFlakyServiceMethodIds();
+    $registerFlakyServiceClientFactory();
+    $registerFlakyServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerFlakyServiceDispatcher();
+    $registerFlakyServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerFlakyServiceLocalSide() {
-  _registerFlakyServiceDispatcher();
-  _registerFlakyServiceClientFactory();
-  _registerFlakyServiceMethodIds();
+void $registerFlakyServiceLocalSide() {
+  $registerFlakyServiceDispatcher();
+  $registerFlakyServiceClientFactory();
+  $registerFlakyServiceMethodIds();
 }

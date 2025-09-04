@@ -22,7 +22,7 @@ class SlowServiceClient extends SlowService {
   }
 }
 
-void _registerSlowServiceClientFactory() {
+void $registerSlowServiceClientFactory() {
   GeneratedClientRegistry.register<SlowService>(
     (proxy) => SlowServiceClient(proxy),
   );
@@ -50,13 +50,13 @@ Future<dynamic> _SlowServiceDispatcher(
   }
 }
 
-void _registerSlowServiceDispatcher() {
+void $registerSlowServiceDispatcher() {
   GeneratedDispatcherRegistry.register<SlowService>(
     _SlowServiceDispatcher,
   );
 }
 
-void _registerSlowServiceMethodIds() {
+void $registerSlowServiceMethodIds() {
   ServiceMethodIdRegistry.register<SlowService>({
     'sleepMs': _SlowServiceMethods.sleepMsId,
     'quick': _SlowServiceMethods.quickId,
@@ -64,8 +64,8 @@ void _registerSlowServiceMethodIds() {
 }
 
 void registerSlowServiceGenerated() {
-  _registerSlowServiceClientFactory();
-  _registerSlowServiceMethodIds();
+  $registerSlowServiceClientFactory();
+  $registerSlowServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -74,19 +74,19 @@ class SlowServiceWorker extends SlowService {
   Type get clientBaseType => SlowService;
   @override
   Future<void> registerHostSide() async {
-    _registerSlowServiceClientFactory();
-    _registerSlowServiceMethodIds();
+    $registerSlowServiceClientFactory();
+    $registerSlowServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerSlowServiceDispatcher();
+    $registerSlowServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerSlowServiceLocalSide() {
-  _registerSlowServiceDispatcher();
-  _registerSlowServiceClientFactory();
-  _registerSlowServiceMethodIds();
+void $registerSlowServiceLocalSide() {
+  $registerSlowServiceDispatcher();
+  $registerSlowServiceClientFactory();
+  $registerSlowServiceMethodIds();
 }

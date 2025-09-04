@@ -17,7 +17,7 @@ class RemoteEmitterClient extends RemoteEmitter {
   }
 }
 
-void _registerRemoteEmitterClientFactory() {
+void $registerRemoteEmitterClientFactory() {
   GeneratedClientRegistry.register<RemoteEmitter>(
     (proxy) => RemoteEmitterClient(proxy),
   );
@@ -42,21 +42,21 @@ Future<dynamic> _RemoteEmitterDispatcher(
   }
 }
 
-void _registerRemoteEmitterDispatcher() {
+void $registerRemoteEmitterDispatcher() {
   GeneratedDispatcherRegistry.register<RemoteEmitter>(
     _RemoteEmitterDispatcher,
   );
 }
 
-void _registerRemoteEmitterMethodIds() {
+void $registerRemoteEmitterMethodIds() {
   ServiceMethodIdRegistry.register<RemoteEmitter>({
     'emitTick': _RemoteEmitterMethods.emitTickId,
   });
 }
 
 void registerRemoteEmitterGenerated() {
-  _registerRemoteEmitterClientFactory();
-  _registerRemoteEmitterMethodIds();
+  $registerRemoteEmitterClientFactory();
+  $registerRemoteEmitterMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -65,8 +65,8 @@ class RemoteEmitterWorker extends RemoteEmitter {
   Type get clientBaseType => RemoteEmitter;
   @override
   Future<void> registerHostSide() async {
-    _registerRemoteEmitterClientFactory();
-    _registerRemoteEmitterMethodIds();
+    $registerRemoteEmitterClientFactory();
+    $registerRemoteEmitterMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
       _registerLocalHubClientFactory();
@@ -85,7 +85,7 @@ class RemoteEmitterWorker extends RemoteEmitter {
 
   @override
   Future<void> initialize() async {
-    _registerRemoteEmitterDispatcher();
+    $registerRemoteEmitterDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
       _registerLocalHubClientFactory();
@@ -104,21 +104,21 @@ class RemoteEmitterWorker extends RemoteEmitter {
   }
 }
 
-void _registerRemoteEmitterLocalSide() {
-  _registerRemoteEmitterDispatcher();
-  _registerRemoteEmitterClientFactory();
-  _registerRemoteEmitterMethodIds();
+void $registerRemoteEmitterLocalSide() {
+  $registerRemoteEmitterDispatcher();
+  $registerRemoteEmitterClientFactory();
+  $registerRemoteEmitterMethodIds();
   try {
-    _registerLocalHubClientFactory();
+    $registerLocalHubClientFactory();
   } catch (_) {}
   try {
-    _registerLocalHubMethodIds();
+    $registerLocalHubMethodIds();
   } catch (_) {}
   try {
-    _registerRemoteListenerClientFactory();
+    $registerRemoteListenerClientFactory();
   } catch (_) {}
   try {
-    _registerRemoteListenerMethodIds();
+    $registerRemoteListenerMethodIds();
   } catch (_) {}
 }
 
@@ -138,7 +138,7 @@ class RemoteListenerClient extends RemoteListener {
   }
 }
 
-void _registerRemoteListenerClientFactory() {
+void $registerRemoteListenerClientFactory() {
   GeneratedClientRegistry.register<RemoteListener>(
     (proxy) => RemoteListenerClient(proxy),
   );
@@ -166,13 +166,13 @@ Future<dynamic> _RemoteListenerDispatcher(
   }
 }
 
-void _registerRemoteListenerDispatcher() {
+void $registerRemoteListenerDispatcher() {
   GeneratedDispatcherRegistry.register<RemoteListener>(
     _RemoteListenerDispatcher,
   );
 }
 
-void _registerRemoteListenerMethodIds() {
+void $registerRemoteListenerMethodIds() {
   ServiceMethodIdRegistry.register<RemoteListener>({
     'onTick': _RemoteListenerMethods.onTickId,
     'count': _RemoteListenerMethods.countId,
@@ -180,8 +180,8 @@ void _registerRemoteListenerMethodIds() {
 }
 
 void registerRemoteListenerGenerated() {
-  _registerRemoteListenerClientFactory();
-  _registerRemoteListenerMethodIds();
+  $registerRemoteListenerClientFactory();
+  $registerRemoteListenerMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -190,21 +190,21 @@ class RemoteListenerWorker extends RemoteListener {
   Type get clientBaseType => RemoteListener;
   @override
   Future<void> registerHostSide() async {
-    _registerRemoteListenerClientFactory();
-    _registerRemoteListenerMethodIds();
+    $registerRemoteListenerClientFactory();
+    $registerRemoteListenerMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerRemoteListenerDispatcher();
+    $registerRemoteListenerDispatcher();
     await super.initialize();
   }
 }
 
-void _registerRemoteListenerLocalSide() {
-  _registerRemoteListenerDispatcher();
-  _registerRemoteListenerClientFactory();
-  _registerRemoteListenerMethodIds();
+void $registerRemoteListenerLocalSide() {
+  $registerRemoteListenerDispatcher();
+  $registerRemoteListenerClientFactory();
+  $registerRemoteListenerMethodIds();
 }
 
 // Service client for LocalHub
@@ -223,7 +223,7 @@ class LocalHubClient extends LocalHub {
   }
 }
 
-void _registerLocalHubClientFactory() {
+void $registerLocalHubClientFactory() {
   GeneratedClientRegistry.register<LocalHub>(
     (proxy) => LocalHubClient(proxy),
   );
@@ -251,13 +251,13 @@ Future<dynamic> _LocalHubDispatcher(
   }
 }
 
-void _registerLocalHubDispatcher() {
+void $registerLocalHubDispatcher() {
   GeneratedDispatcherRegistry.register<LocalHub>(
     _LocalHubDispatcher,
   );
 }
 
-void _registerLocalHubMethodIds() {
+void $registerLocalHubMethodIds() {
   ServiceMethodIdRegistry.register<LocalHub>({
     'onTick': _LocalHubMethods.onTickId,
     'getTicks': _LocalHubMethods.getTicksId,
@@ -265,12 +265,12 @@ void _registerLocalHubMethodIds() {
 }
 
 void registerLocalHubGenerated() {
-  _registerLocalHubClientFactory();
-  _registerLocalHubMethodIds();
+  $registerLocalHubClientFactory();
+  $registerLocalHubMethodIds();
 }
 
-void _registerLocalHubLocalSide() {
-  _registerLocalHubDispatcher();
-  _registerLocalHubClientFactory();
-  _registerLocalHubMethodIds();
+void $registerLocalHubLocalSide() {
+  $registerLocalHubDispatcher();
+  $registerLocalHubClientFactory();
+  $registerLocalHubMethodIds();
 }

@@ -117,8 +117,6 @@ class MessageProcessor extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Worker class will register dispatcher automatically
-    _registerMessageLoggerClientFactory();
     await super.initialize();
 
     // 🚀 CROSS-ISOLATE EVENT LISTENING: Listen for events from main isolate

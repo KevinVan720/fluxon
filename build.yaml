@@ -1,0 +1,27 @@
+targets:
+  $default:
+    sources:
+      include:
+        - lib/**
+        - test/**
+        - example/lib/**
+        - example/test/**
+      exclude:
+        - example/**/.dart_tool/**
+        - example/**/flutter/ephemeral/**
+        - example/**/.plugin_symlinks/**
+        - example/**/build/**
+    builders:
+      squadron_method_generator:service_generator:
+        enabled: true
+
+builders:
+  service_generator:
+    import: 'package:squadron_method_generator/squadron_method_generator.dart'
+    builder_factories: ['serviceBuilder']
+    build_extensions: {'.dart': ['.g.dart']}
+    auto_apply: dependents
+    build_to: cache
+    applies_builders: ['source_gen|combining_builder']
+
+

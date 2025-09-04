@@ -17,7 +17,7 @@ class PricingServiceClient extends PricingService {
   }
 }
 
-void _registerPricingServiceClientFactory() {
+void $registerPricingServiceClientFactory() {
   GeneratedClientRegistry.register<PricingService>(
     (proxy) => PricingServiceClient(proxy),
   );
@@ -42,21 +42,21 @@ Future<dynamic> _PricingServiceDispatcher(
   }
 }
 
-void _registerPricingServiceDispatcher() {
+void $registerPricingServiceDispatcher() {
   GeneratedDispatcherRegistry.register<PricingService>(
     _PricingServiceDispatcher,
   );
 }
 
-void _registerPricingServiceMethodIds() {
+void $registerPricingServiceMethodIds() {
   ServiceMethodIdRegistry.register<PricingService>({
     'getPrice': _PricingServiceMethods.getPriceId,
   });
 }
 
 void registerPricingServiceGenerated() {
-  _registerPricingServiceClientFactory();
-  _registerPricingServiceMethodIds();
+  $registerPricingServiceClientFactory();
+  $registerPricingServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -65,21 +65,21 @@ class PricingServiceWorker extends PricingService {
   Type get clientBaseType => PricingService;
   @override
   Future<void> registerHostSide() async {
-    _registerPricingServiceClientFactory();
-    _registerPricingServiceMethodIds();
+    $registerPricingServiceClientFactory();
+    $registerPricingServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerPricingServiceDispatcher();
+    $registerPricingServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerPricingServiceLocalSide() {
-  _registerPricingServiceDispatcher();
-  _registerPricingServiceClientFactory();
-  _registerPricingServiceMethodIds();
+void $registerPricingServiceLocalSide() {
+  $registerPricingServiceDispatcher();
+  $registerPricingServiceClientFactory();
+  $registerPricingServiceMethodIds();
 }
 
 // Service client for InventoryService
@@ -93,7 +93,7 @@ class InventoryServiceClient extends InventoryService {
   }
 }
 
-void _registerInventoryServiceClientFactory() {
+void $registerInventoryServiceClientFactory() {
   GeneratedClientRegistry.register<InventoryService>(
     (proxy) => InventoryServiceClient(proxy),
   );
@@ -118,21 +118,21 @@ Future<dynamic> _InventoryServiceDispatcher(
   }
 }
 
-void _registerInventoryServiceDispatcher() {
+void $registerInventoryServiceDispatcher() {
   GeneratedDispatcherRegistry.register<InventoryService>(
     _InventoryServiceDispatcher,
   );
 }
 
-void _registerInventoryServiceMethodIds() {
+void $registerInventoryServiceMethodIds() {
   ServiceMethodIdRegistry.register<InventoryService>({
     'getStock': _InventoryServiceMethods.getStockId,
   });
 }
 
 void registerInventoryServiceGenerated() {
-  _registerInventoryServiceClientFactory();
-  _registerInventoryServiceMethodIds();
+  $registerInventoryServiceClientFactory();
+  $registerInventoryServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -141,19 +141,19 @@ class InventoryServiceWorker extends InventoryService {
   Type get clientBaseType => InventoryService;
   @override
   Future<void> registerHostSide() async {
-    _registerInventoryServiceClientFactory();
-    _registerInventoryServiceMethodIds();
+    $registerInventoryServiceClientFactory();
+    $registerInventoryServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerInventoryServiceDispatcher();
+    $registerInventoryServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerInventoryServiceLocalSide() {
-  _registerInventoryServiceDispatcher();
-  _registerInventoryServiceClientFactory();
-  _registerInventoryServiceMethodIds();
+void $registerInventoryServiceLocalSide() {
+  $registerInventoryServiceDispatcher();
+  $registerInventoryServiceClientFactory();
+  $registerInventoryServiceMethodIds();
 }

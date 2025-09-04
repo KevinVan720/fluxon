@@ -28,7 +28,7 @@ class PolicyServiceClient extends PolicyService {
   }
 }
 
-void _registerPolicyServiceClientFactory() {
+void $registerPolicyServiceClientFactory() {
   GeneratedClientRegistry.register<PolicyService>(
     (proxy) => PolicyServiceClient(proxy),
   );
@@ -56,13 +56,13 @@ Future<dynamic> _PolicyServiceDispatcher(
   }
 }
 
-void _registerPolicyServiceDispatcher() {
+void $registerPolicyServiceDispatcher() {
   GeneratedDispatcherRegistry.register<PolicyService>(
     _PolicyServiceDispatcher,
   );
 }
 
-void _registerPolicyServiceMethodIds() {
+void $registerPolicyServiceMethodIds() {
   ServiceMethodIdRegistry.register<PolicyService>({
     'flaky': _PolicyServiceMethods.flakyId,
     'slow': _PolicyServiceMethods.slowId,
@@ -70,8 +70,8 @@ void _registerPolicyServiceMethodIds() {
 }
 
 void registerPolicyServiceGenerated() {
-  _registerPolicyServiceClientFactory();
-  _registerPolicyServiceMethodIds();
+  $registerPolicyServiceClientFactory();
+  $registerPolicyServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -80,19 +80,19 @@ class PolicyServiceWorker extends PolicyService {
   Type get clientBaseType => PolicyService;
   @override
   Future<void> registerHostSide() async {
-    _registerPolicyServiceClientFactory();
-    _registerPolicyServiceMethodIds();
+    $registerPolicyServiceClientFactory();
+    $registerPolicyServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerPolicyServiceDispatcher();
+    $registerPolicyServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerPolicyServiceLocalSide() {
-  _registerPolicyServiceDispatcher();
-  _registerPolicyServiceClientFactory();
-  _registerPolicyServiceMethodIds();
+void $registerPolicyServiceLocalSide() {
+  $registerPolicyServiceDispatcher();
+  $registerPolicyServiceClientFactory();
+  $registerPolicyServiceMethodIds();
 }

@@ -55,16 +55,8 @@ class PerformanceService extends FluxService {
     final results = <String, int>{};
 
     for (int i = 0; i < eventCount; i++) {
-      final event = PerformanceEvent(
-        sequenceNumber: i,
-        payload: {'data': 'test_$i'},
-        eventId: 'perf_$i',
-        sourceService: 'PerformanceService',
-        timestamp: DateTime.now(),
-      );
-
       // Simulate processing
-      await Future.delayed(Duration(microseconds: 100));
+      await Future.delayed(const Duration(microseconds: 100));
       results['processed_$i'] = i;
     }
 
@@ -87,7 +79,7 @@ class EventReceiverService extends FluxService {
       eventCounter++;
 
       // Simulate processing
-      await Future.delayed(Duration(microseconds: 50));
+      await Future.delayed(const Duration(microseconds: 50));
 
       final end = DateTime.now();
       processingTimes.add(end.difference(start).inMicroseconds);
@@ -126,7 +118,7 @@ class LoadTestService extends FluxService {
       eventCounter++;
 
       // Simulate processing
-      await Future.delayed(Duration(microseconds: 50));
+      await Future.delayed(const Duration(microseconds: 50));
 
       final end = DateTime.now();
       processingTimes.add(end.difference(start).inMicroseconds);
@@ -153,7 +145,7 @@ class LoadTestService extends FluxService {
       );
 
       // Small delay to allow processing
-      await Future.delayed(Duration(microseconds: 100));
+      await Future.delayed(const Duration(microseconds: 100));
     }
   }
 
@@ -215,7 +207,7 @@ void main() {
         await service.sendBurstEvents(50); // Service listens to its own events
 
         // Wait for processing
-        await Future.delayed(Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 300));
         stopwatch.stop();
 
         final stats = await service.getStats();

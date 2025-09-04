@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 import 'events/task_events.dart';
-import 'services/storage_service.dart';
-import 'services/task_service.dart';
-import 'services/user_service.dart';
+import 'services/simple_task_service.dart';
+import 'services/simple_user_service.dart';
 import 'services/notification_service.dart';
 import 'services/analytics_service.dart';
-import 'services/background_processor.dart';
-import 'screens/home_screen.dart';
+import 'screens/home_screen_simple.dart';
 
-part 'main.g.dart'; // Generated code
+// part 'main_simple.g.dart'; // Generated code - not needed for main files
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,30 +26,18 @@ void main() async {
     (json) => AnalyticsEvent.fromJson(json),
   );
 
-  // 🚀 Create FluxRuntime and register all services
+  // 🚀 Create FluxRuntime and register services
   final runtime = FluxRuntime();
 
-  // 🔗 DEPENDENCY SYSTEM: Services automatically resolve dependencies
-  // StorageService (no dependencies)
-  runtime.register<StorageService>(() => StorageService());
+  // 🔗 DEPENDENCY SYSTEM: Local services (no complex dependencies)
+  runtime.register<SimpleUserService>(() => SimpleUserService());
+  runtime.register<SimpleTaskService>(() => SimpleTaskService());
 
-  // UserService depends on StorageService
-  runtime.register<UserService>(() => UserService());
-
-  // TaskService depends on StorageService
-  runtime.register<TaskService>(() => TaskService());
-
-  // 🔄 SERVICE PROXY SYSTEM: Remote services auto-detected by Worker suffix
-  // NotificationService runs in worker isolate (optional dependency on UserService)
+  // 🔄 SERVICE PROXY SYSTEM: Remote services (worker isolates)
   runtime.register<NotificationService>(() => NotificationServiceWorker());
-
-  // AnalyticsService runs in worker isolate (no dependencies)
   runtime.register<AnalyticsService>(() => AnalyticsServiceWorker());
 
-  // BackgroundProcessor runs in worker isolate (optional dependency on TaskService)
-  runtime.register<BackgroundProcessor>(() => BackgroundProcessorWorker());
-
-  // 🚀 Initialize all services (dependencies resolved automatically)
+  // 🚀 Initialize all services (automatic dependency resolution)
   await runtime.initializeAll();
 
   runApp(FluxTasksApp(runtime: runtime));
@@ -74,15 +60,7 @@ class FluxTasksApp extends StatelessWidget {
         useMaterial3: true,
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
       ),
-      darkTheme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.indigo,
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
-      ),
-      home: HomeScreen(runtime: runtime),
+      home: HomeScreenSimple(runtime: runtime),
       debugShowCheckedModeBanner: false,
     );
   }

@@ -51,8 +51,6 @@ class TaskOrchestrator extends FluxService {
 
   @override
   Future<void> initialize() async {
-    // 🚀 FLUX: Minimal boilerplate for local service
-    _registerTaskOrchestratorDispatcher();
     await super.initialize();
 
     // Listen for task completion events
@@ -105,13 +103,6 @@ class TaskOrchestrator extends FluxService {
 class TaskProcessor extends FluxService {
   @override
   List<Type> get optionalDependencies => [TaskLogger];
-
-  @override
-  Future<void> initialize() async {
-    // 🚀 FLUX: Worker class will register dispatcher automatically
-    _registerTaskLoggerClientFactory();
-    await super.initialize();
-  }
 
   Future<Map<String, dynamic>> processTask(
       String taskId, Map<String, dynamic> data) async {

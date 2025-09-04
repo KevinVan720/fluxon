@@ -33,7 +33,7 @@ class ConcurrentServiceClient extends ConcurrentService {
   }
 }
 
-void _registerConcurrentServiceClientFactory() {
+void $registerConcurrentServiceClientFactory() {
   GeneratedClientRegistry.register<ConcurrentService>(
     (proxy) => ConcurrentServiceClient(proxy),
   );
@@ -67,13 +67,13 @@ Future<dynamic> _ConcurrentServiceDispatcher(
   }
 }
 
-void _registerConcurrentServiceDispatcher() {
+void $registerConcurrentServiceDispatcher() {
   GeneratedDispatcherRegistry.register<ConcurrentService>(
     _ConcurrentServiceDispatcher,
   );
 }
 
-void _registerConcurrentServiceMethodIds() {
+void $registerConcurrentServiceMethodIds() {
   ServiceMethodIdRegistry.register<ConcurrentService>({
     'incrementCounter': _ConcurrentServiceMethods.incrementCounterId,
     'performOperation': _ConcurrentServiceMethods.performOperationId,
@@ -83,8 +83,8 @@ void _registerConcurrentServiceMethodIds() {
 }
 
 void registerConcurrentServiceGenerated() {
-  _registerConcurrentServiceClientFactory();
-  _registerConcurrentServiceMethodIds();
+  $registerConcurrentServiceClientFactory();
+  $registerConcurrentServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -93,21 +93,21 @@ class ConcurrentServiceWorker extends ConcurrentService {
   Type get clientBaseType => ConcurrentService;
   @override
   Future<void> registerHostSide() async {
-    _registerConcurrentServiceClientFactory();
-    _registerConcurrentServiceMethodIds();
+    $registerConcurrentServiceClientFactory();
+    $registerConcurrentServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerConcurrentServiceDispatcher();
+    $registerConcurrentServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerConcurrentServiceLocalSide() {
-  _registerConcurrentServiceDispatcher();
-  _registerConcurrentServiceClientFactory();
-  _registerConcurrentServiceMethodIds();
+void $registerConcurrentServiceLocalSide() {
+  $registerConcurrentServiceDispatcher();
+  $registerConcurrentServiceClientFactory();
+  $registerConcurrentServiceMethodIds();
 }
 
 // Service client for RaceConditionService
@@ -129,7 +129,7 @@ class RaceConditionServiceClient extends RaceConditionService {
   }
 }
 
-void _registerRaceConditionServiceClientFactory() {
+void $registerRaceConditionServiceClientFactory() {
   GeneratedClientRegistry.register<RaceConditionService>(
     (proxy) => RaceConditionServiceClient(proxy),
   );
@@ -157,13 +157,13 @@ Future<dynamic> _RaceConditionServiceDispatcher(
   }
 }
 
-void _registerRaceConditionServiceDispatcher() {
+void $registerRaceConditionServiceDispatcher() {
   GeneratedDispatcherRegistry.register<RaceConditionService>(
     _RaceConditionServiceDispatcher,
   );
 }
 
-void _registerRaceConditionServiceMethodIds() {
+void $registerRaceConditionServiceMethodIds() {
   ServiceMethodIdRegistry.register<RaceConditionService>({
     'triggerRaceCondition': _RaceConditionServiceMethods.triggerRaceConditionId,
     'getRaceResults': _RaceConditionServiceMethods.getRaceResultsId,
@@ -171,12 +171,12 @@ void _registerRaceConditionServiceMethodIds() {
 }
 
 void registerRaceConditionServiceGenerated() {
-  _registerRaceConditionServiceClientFactory();
-  _registerRaceConditionServiceMethodIds();
+  $registerRaceConditionServiceClientFactory();
+  $registerRaceConditionServiceMethodIds();
 }
 
-void _registerRaceConditionServiceLocalSide() {
-  _registerRaceConditionServiceDispatcher();
-  _registerRaceConditionServiceClientFactory();
-  _registerRaceConditionServiceMethodIds();
+void $registerRaceConditionServiceLocalSide() {
+  $registerRaceConditionServiceDispatcher();
+  $registerRaceConditionServiceClientFactory();
+  $registerRaceConditionServiceMethodIds();
 }

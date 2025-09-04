@@ -17,7 +17,7 @@ class UserServiceClient extends UserService {
   }
 }
 
-void _registerUserServiceClientFactory() {
+void $registerUserServiceClientFactory() {
   GeneratedClientRegistry.register<UserService>(
     (proxy) => UserServiceClient(proxy),
   );
@@ -42,27 +42,27 @@ Future<dynamic> _UserServiceDispatcher(
   }
 }
 
-void _registerUserServiceDispatcher() {
+void $registerUserServiceDispatcher() {
   GeneratedDispatcherRegistry.register<UserService>(
     _UserServiceDispatcher,
   );
 }
 
-void _registerUserServiceMethodIds() {
+void $registerUserServiceMethodIds() {
   ServiceMethodIdRegistry.register<UserService>({
     'createUser': _UserServiceMethods.createUserId,
   });
 }
 
 void registerUserServiceGenerated() {
-  _registerUserServiceClientFactory();
-  _registerUserServiceMethodIds();
+  $registerUserServiceClientFactory();
+  $registerUserServiceMethodIds();
 }
 
-void _registerUserServiceLocalSide() {
-  _registerUserServiceDispatcher();
-  _registerUserServiceClientFactory();
-  _registerUserServiceMethodIds();
+void $registerUserServiceLocalSide() {
+  $registerUserServiceDispatcher();
+  $registerUserServiceClientFactory();
+  $registerUserServiceMethodIds();
 }
 
 // Service client for OrderService
@@ -78,7 +78,7 @@ class OrderServiceClient extends OrderService {
   }
 }
 
-void _registerOrderServiceClientFactory() {
+void $registerOrderServiceClientFactory() {
   GeneratedClientRegistry.register<OrderService>(
     (proxy) => OrderServiceClient(proxy),
   );
@@ -104,27 +104,27 @@ Future<dynamic> _OrderServiceDispatcher(
   }
 }
 
-void _registerOrderServiceDispatcher() {
+void $registerOrderServiceDispatcher() {
   GeneratedDispatcherRegistry.register<OrderService>(
     _OrderServiceDispatcher,
   );
 }
 
-void _registerOrderServiceMethodIds() {
+void $registerOrderServiceMethodIds() {
   ServiceMethodIdRegistry.register<OrderService>({
     'placeOrder': _OrderServiceMethods.placeOrderId,
   });
 }
 
 void registerOrderServiceGenerated() {
-  _registerOrderServiceClientFactory();
-  _registerOrderServiceMethodIds();
+  $registerOrderServiceClientFactory();
+  $registerOrderServiceMethodIds();
 }
 
-void _registerOrderServiceLocalSide() {
-  _registerOrderServiceDispatcher();
-  _registerOrderServiceClientFactory();
-  _registerOrderServiceMethodIds();
+void $registerOrderServiceLocalSide() {
+  $registerOrderServiceDispatcher();
+  $registerOrderServiceClientFactory();
+  $registerOrderServiceMethodIds();
 }
 
 // Service client for NotificationService
@@ -133,7 +133,7 @@ class NotificationServiceClient extends NotificationService {
   final ServiceProxy<NotificationService> _proxy;
 }
 
-void _registerNotificationServiceClientFactory() {
+void $registerNotificationServiceClientFactory() {
   GeneratedClientRegistry.register<NotificationService>(
     (proxy) => NotificationServiceClient(proxy),
   );
@@ -154,25 +154,25 @@ Future<dynamic> _NotificationServiceDispatcher(
   }
 }
 
-void _registerNotificationServiceDispatcher() {
+void $registerNotificationServiceDispatcher() {
   GeneratedDispatcherRegistry.register<NotificationService>(
     _NotificationServiceDispatcher,
   );
 }
 
-void _registerNotificationServiceMethodIds() {
+void $registerNotificationServiceMethodIds() {
   ServiceMethodIdRegistry.register<NotificationService>({});
 }
 
 void registerNotificationServiceGenerated() {
-  _registerNotificationServiceClientFactory();
-  _registerNotificationServiceMethodIds();
+  $registerNotificationServiceClientFactory();
+  $registerNotificationServiceMethodIds();
 }
 
-void _registerNotificationServiceLocalSide() {
-  _registerNotificationServiceDispatcher();
-  _registerNotificationServiceClientFactory();
-  _registerNotificationServiceMethodIds();
+void $registerNotificationServiceLocalSide() {
+  $registerNotificationServiceDispatcher();
+  $registerNotificationServiceClientFactory();
+  $registerNotificationServiceMethodIds();
 }
 
 // Service client for AnalyticsService
@@ -186,7 +186,7 @@ class AnalyticsServiceClient extends AnalyticsService {
   }
 }
 
-void _registerAnalyticsServiceClientFactory() {
+void $registerAnalyticsServiceClientFactory() {
   GeneratedClientRegistry.register<AnalyticsService>(
     (proxy) => AnalyticsServiceClient(proxy),
   );
@@ -211,25 +211,25 @@ Future<dynamic> _AnalyticsServiceDispatcher(
   }
 }
 
-void _registerAnalyticsServiceDispatcher() {
+void $registerAnalyticsServiceDispatcher() {
   GeneratedDispatcherRegistry.register<AnalyticsService>(
     _AnalyticsServiceDispatcher,
   );
 }
 
-void _registerAnalyticsServiceMethodIds() {
+void $registerAnalyticsServiceMethodIds() {
   ServiceMethodIdRegistry.register<AnalyticsService>({
     'getAnalytics': _AnalyticsServiceMethods.getAnalyticsId,
   });
 }
 
 void registerAnalyticsServiceGenerated() {
-  _registerAnalyticsServiceClientFactory();
-  _registerAnalyticsServiceMethodIds();
+  $registerAnalyticsServiceClientFactory();
+  $registerAnalyticsServiceMethodIds();
 }
 
-void _registerAnalyticsServiceLocalSide() {
-  _registerAnalyticsServiceDispatcher();
-  _registerAnalyticsServiceClientFactory();
-  _registerAnalyticsServiceMethodIds();
+void $registerAnalyticsServiceLocalSide() {
+  $registerAnalyticsServiceDispatcher();
+  $registerAnalyticsServiceClientFactory();
+  $registerAnalyticsServiceMethodIds();
 }

@@ -136,6 +136,7 @@ class UserService extends FluxService {
 
   @override
   Future<void> initialize() async {
+    await super.initialize();
     // Listen for order events to validate user exists
     onEvent<OrderPlacedEvent>((event) async {
       receivedEvents.add(event);
@@ -236,6 +237,7 @@ class OrderService extends FluxService {
 
   @override
   Future<void> initialize() async {
+    await super.initialize();
     // Listen for user created events to track available users
     onEvent<UserCreatedEvent>((event) async {
       receivedEvents.add(event);
@@ -315,6 +317,7 @@ class NotificationService extends FluxService {
 
   @override
   Future<void> initialize() async {
+    await super.initialize();
     // Listen for user created events
     onEvent<UserCreatedEvent>((event) async {
       receivedEvents.add(event);
@@ -373,6 +376,7 @@ class AnalyticsService extends FluxService {
 
   @override
   Future<void> initialize() async {
+    await super.initialize();
     // Track all events for analytics
     onEvent<UserCreatedEvent>((event) async {
       receivedEvents.add(event);

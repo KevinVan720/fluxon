@@ -17,7 +17,7 @@ class ApiV1Client extends ApiV1 {
   }
 }
 
-void _registerApiV1ClientFactory() {
+void $registerApiV1ClientFactory() {
   GeneratedClientRegistry.register<ApiV1>(
     (proxy) => ApiV1Client(proxy),
   );
@@ -42,21 +42,21 @@ Future<dynamic> _ApiV1Dispatcher(
   }
 }
 
-void _registerApiV1Dispatcher() {
+void $registerApiV1Dispatcher() {
   GeneratedDispatcherRegistry.register<ApiV1>(
     _ApiV1Dispatcher,
   );
 }
 
-void _registerApiV1MethodIds() {
+void $registerApiV1MethodIds() {
   ServiceMethodIdRegistry.register<ApiV1>({
     'greet': _ApiV1Methods.greetId,
   });
 }
 
 void registerApiV1Generated() {
-  _registerApiV1ClientFactory();
-  _registerApiV1MethodIds();
+  $registerApiV1ClientFactory();
+  $registerApiV1MethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -65,19 +65,19 @@ class ApiV1Worker extends ApiV1 {
   Type get clientBaseType => ApiV1;
   @override
   Future<void> registerHostSide() async {
-    _registerApiV1ClientFactory();
-    _registerApiV1MethodIds();
+    $registerApiV1ClientFactory();
+    $registerApiV1MethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerApiV1Dispatcher();
+    $registerApiV1Dispatcher();
     await super.initialize();
   }
 }
 
-void _registerApiV1LocalSide() {
-  _registerApiV1Dispatcher();
-  _registerApiV1ClientFactory();
-  _registerApiV1MethodIds();
+void $registerApiV1LocalSide() {
+  $registerApiV1Dispatcher();
+  $registerApiV1ClientFactory();
+  $registerApiV1MethodIds();
 }

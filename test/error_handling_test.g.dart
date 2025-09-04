@@ -12,7 +12,7 @@ class FailingInitServiceClient extends FailingInitService {
   final ServiceProxy<FailingInitService> _proxy;
 }
 
-void _registerFailingInitServiceClientFactory() {
+void $registerFailingInitServiceClientFactory() {
   GeneratedClientRegistry.register<FailingInitService>(
     (proxy) => FailingInitServiceClient(proxy),
   );
@@ -33,25 +33,25 @@ Future<dynamic> _FailingInitServiceDispatcher(
   }
 }
 
-void _registerFailingInitServiceDispatcher() {
+void $registerFailingInitServiceDispatcher() {
   GeneratedDispatcherRegistry.register<FailingInitService>(
     _FailingInitServiceDispatcher,
   );
 }
 
-void _registerFailingInitServiceMethodIds() {
+void $registerFailingInitServiceMethodIds() {
   ServiceMethodIdRegistry.register<FailingInitService>({});
 }
 
 void registerFailingInitServiceGenerated() {
-  _registerFailingInitServiceClientFactory();
-  _registerFailingInitServiceMethodIds();
+  $registerFailingInitServiceClientFactory();
+  $registerFailingInitServiceMethodIds();
 }
 
-void _registerFailingInitServiceLocalSide() {
-  _registerFailingInitServiceDispatcher();
-  _registerFailingInitServiceClientFactory();
-  _registerFailingInitServiceMethodIds();
+void $registerFailingInitServiceLocalSide() {
+  $registerFailingInitServiceDispatcher();
+  $registerFailingInitServiceClientFactory();
+  $registerFailingInitServiceMethodIds();
 }
 
 // Service client for FailingMethodService
@@ -70,7 +70,7 @@ class FailingMethodServiceClient extends FailingMethodService {
   }
 }
 
-void _registerFailingMethodServiceClientFactory() {
+void $registerFailingMethodServiceClientFactory() {
   GeneratedClientRegistry.register<FailingMethodService>(
     (proxy) => FailingMethodServiceClient(proxy),
   );
@@ -98,13 +98,13 @@ Future<dynamic> _FailingMethodServiceDispatcher(
   }
 }
 
-void _registerFailingMethodServiceDispatcher() {
+void $registerFailingMethodServiceDispatcher() {
   GeneratedDispatcherRegistry.register<FailingMethodService>(
     _FailingMethodServiceDispatcher,
   );
 }
 
-void _registerFailingMethodServiceMethodIds() {
+void $registerFailingMethodServiceMethodIds() {
   ServiceMethodIdRegistry.register<FailingMethodService>({
     'alwaysFails': _FailingMethodServiceMethods.alwaysFailsId,
     'failsRandomly': _FailingMethodServiceMethods.failsRandomlyId,
@@ -112,8 +112,8 @@ void _registerFailingMethodServiceMethodIds() {
 }
 
 void registerFailingMethodServiceGenerated() {
-  _registerFailingMethodServiceClientFactory();
-  _registerFailingMethodServiceMethodIds();
+  $registerFailingMethodServiceClientFactory();
+  $registerFailingMethodServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -122,21 +122,21 @@ class FailingMethodServiceWorker extends FailingMethodService {
   Type get clientBaseType => FailingMethodService;
   @override
   Future<void> registerHostSide() async {
-    _registerFailingMethodServiceClientFactory();
-    _registerFailingMethodServiceMethodIds();
+    $registerFailingMethodServiceClientFactory();
+    $registerFailingMethodServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerFailingMethodServiceDispatcher();
+    $registerFailingMethodServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerFailingMethodServiceLocalSide() {
-  _registerFailingMethodServiceDispatcher();
-  _registerFailingMethodServiceClientFactory();
-  _registerFailingMethodServiceMethodIds();
+void $registerFailingMethodServiceLocalSide() {
+  $registerFailingMethodServiceDispatcher();
+  $registerFailingMethodServiceClientFactory();
+  $registerFailingMethodServiceMethodIds();
 }
 
 // Service client for InvalidDependencyService
@@ -150,7 +150,7 @@ class InvalidDependencyServiceClient extends InvalidDependencyService {
   }
 }
 
-void _registerInvalidDependencyServiceClientFactory() {
+void $registerInvalidDependencyServiceClientFactory() {
   GeneratedClientRegistry.register<InvalidDependencyService>(
     (proxy) => InvalidDependencyServiceClient(proxy),
   );
@@ -175,32 +175,32 @@ Future<dynamic> _InvalidDependencyServiceDispatcher(
   }
 }
 
-void _registerInvalidDependencyServiceDispatcher() {
+void $registerInvalidDependencyServiceDispatcher() {
   GeneratedDispatcherRegistry.register<InvalidDependencyService>(
     _InvalidDependencyServiceDispatcher,
   );
 }
 
-void _registerInvalidDependencyServiceMethodIds() {
+void $registerInvalidDependencyServiceMethodIds() {
   ServiceMethodIdRegistry.register<InvalidDependencyService>({
     'doSomething': _InvalidDependencyServiceMethods.doSomethingId,
   });
 }
 
 void registerInvalidDependencyServiceGenerated() {
-  _registerInvalidDependencyServiceClientFactory();
-  _registerInvalidDependencyServiceMethodIds();
+  $registerInvalidDependencyServiceClientFactory();
+  $registerInvalidDependencyServiceMethodIds();
 }
 
-void _registerInvalidDependencyServiceLocalSide() {
-  _registerInvalidDependencyServiceDispatcher();
-  _registerInvalidDependencyServiceClientFactory();
-  _registerInvalidDependencyServiceMethodIds();
+void $registerInvalidDependencyServiceLocalSide() {
+  $registerInvalidDependencyServiceDispatcher();
+  $registerInvalidDependencyServiceClientFactory();
+  $registerInvalidDependencyServiceMethodIds();
   try {
-    _registerFailingInitServiceClientFactory();
+    $registerFailingInitServiceClientFactory();
   } catch (_) {}
   try {
-    _registerFailingInitServiceMethodIds();
+    $registerFailingInitServiceMethodIds();
   } catch (_) {}
 }
 
@@ -215,7 +215,7 @@ class CorruptingServiceClient extends CorruptingService {
   }
 }
 
-void _registerCorruptingServiceClientFactory() {
+void $registerCorruptingServiceClientFactory() {
   GeneratedClientRegistry.register<CorruptingService>(
     (proxy) => CorruptingServiceClient(proxy),
   );
@@ -240,27 +240,27 @@ Future<dynamic> _CorruptingServiceDispatcher(
   }
 }
 
-void _registerCorruptingServiceDispatcher() {
+void $registerCorruptingServiceDispatcher() {
   GeneratedDispatcherRegistry.register<CorruptingService>(
     _CorruptingServiceDispatcher,
   );
 }
 
-void _registerCorruptingServiceMethodIds() {
+void $registerCorruptingServiceMethodIds() {
   ServiceMethodIdRegistry.register<CorruptingService>({
     'sendCorruptedEvent': _CorruptingServiceMethods.sendCorruptedEventId,
   });
 }
 
 void registerCorruptingServiceGenerated() {
-  _registerCorruptingServiceClientFactory();
-  _registerCorruptingServiceMethodIds();
+  $registerCorruptingServiceClientFactory();
+  $registerCorruptingServiceMethodIds();
 }
 
-void _registerCorruptingServiceLocalSide() {
-  _registerCorruptingServiceDispatcher();
-  _registerCorruptingServiceClientFactory();
-  _registerCorruptingServiceMethodIds();
+void $registerCorruptingServiceLocalSide() {
+  $registerCorruptingServiceDispatcher();
+  $registerCorruptingServiceClientFactory();
+  $registerCorruptingServiceMethodIds();
 }
 
 // Service client for SlowService
@@ -279,7 +279,7 @@ class SlowServiceClient extends SlowService {
   }
 }
 
-void _registerSlowServiceClientFactory() {
+void $registerSlowServiceClientFactory() {
   GeneratedClientRegistry.register<SlowService>(
     (proxy) => SlowServiceClient(proxy),
   );
@@ -307,13 +307,13 @@ Future<dynamic> _SlowServiceDispatcher(
   }
 }
 
-void _registerSlowServiceDispatcher() {
+void $registerSlowServiceDispatcher() {
   GeneratedDispatcherRegistry.register<SlowService>(
     _SlowServiceDispatcher,
   );
 }
 
-void _registerSlowServiceMethodIds() {
+void $registerSlowServiceMethodIds() {
   ServiceMethodIdRegistry.register<SlowService>({
     'verySlowMethod': _SlowServiceMethods.verySlowMethodId,
     'fastMethod': _SlowServiceMethods.fastMethodId,
@@ -321,8 +321,8 @@ void _registerSlowServiceMethodIds() {
 }
 
 void registerSlowServiceGenerated() {
-  _registerSlowServiceClientFactory();
-  _registerSlowServiceMethodIds();
+  $registerSlowServiceClientFactory();
+  $registerSlowServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -331,21 +331,21 @@ class SlowServiceWorker extends SlowService {
   Type get clientBaseType => SlowService;
   @override
   Future<void> registerHostSide() async {
-    _registerSlowServiceClientFactory();
-    _registerSlowServiceMethodIds();
+    $registerSlowServiceClientFactory();
+    $registerSlowServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerSlowServiceDispatcher();
+    $registerSlowServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerSlowServiceLocalSide() {
-  _registerSlowServiceDispatcher();
-  _registerSlowServiceClientFactory();
-  _registerSlowServiceMethodIds();
+void $registerSlowServiceLocalSide() {
+  $registerSlowServiceDispatcher();
+  $registerSlowServiceClientFactory();
+  $registerSlowServiceMethodIds();
 }
 
 // Service client for MemoryLeakService
@@ -359,7 +359,7 @@ class MemoryLeakServiceClient extends MemoryLeakService {
   }
 }
 
-void _registerMemoryLeakServiceClientFactory() {
+void $registerMemoryLeakServiceClientFactory() {
   GeneratedClientRegistry.register<MemoryLeakService>(
     (proxy) => MemoryLeakServiceClient(proxy),
   );
@@ -384,25 +384,25 @@ Future<dynamic> _MemoryLeakServiceDispatcher(
   }
 }
 
-void _registerMemoryLeakServiceDispatcher() {
+void $registerMemoryLeakServiceDispatcher() {
   GeneratedDispatcherRegistry.register<MemoryLeakService>(
     _MemoryLeakServiceDispatcher,
   );
 }
 
-void _registerMemoryLeakServiceMethodIds() {
+void $registerMemoryLeakServiceMethodIds() {
   ServiceMethodIdRegistry.register<MemoryLeakService>({
     'consumeMemory': _MemoryLeakServiceMethods.consumeMemoryId,
   });
 }
 
 void registerMemoryLeakServiceGenerated() {
-  _registerMemoryLeakServiceClientFactory();
-  _registerMemoryLeakServiceMethodIds();
+  $registerMemoryLeakServiceClientFactory();
+  $registerMemoryLeakServiceMethodIds();
 }
 
-void _registerMemoryLeakServiceLocalSide() {
-  _registerMemoryLeakServiceDispatcher();
-  _registerMemoryLeakServiceClientFactory();
-  _registerMemoryLeakServiceMethodIds();
+void $registerMemoryLeakServiceLocalSide() {
+  $registerMemoryLeakServiceDispatcher();
+  $registerMemoryLeakServiceClientFactory();
+  $registerMemoryLeakServiceMethodIds();
 }

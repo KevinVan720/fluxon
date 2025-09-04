@@ -19,7 +19,7 @@ class ReportServiceClient extends ReportService {
   }
 }
 
-void _registerReportServiceClientFactory() {
+void $registerReportServiceClientFactory() {
   GeneratedClientRegistry.register<ReportService>(
     (proxy) => ReportServiceClient(proxy),
   );
@@ -45,21 +45,21 @@ Future<dynamic> _ReportServiceDispatcher(
   }
 }
 
-void _registerReportServiceDispatcher() {
+void $registerReportServiceDispatcher() {
   GeneratedDispatcherRegistry.register<ReportService>(
     _ReportServiceDispatcher,
   );
 }
 
-void _registerReportServiceMethodIds() {
+void $registerReportServiceMethodIds() {
   ServiceMethodIdRegistry.register<ReportService>({
     'generateReport': _ReportServiceMethods.generateReportId,
   });
 }
 
 void registerReportServiceGenerated() {
-  _registerReportServiceClientFactory();
-  _registerReportServiceMethodIds();
+  $registerReportServiceClientFactory();
+  $registerReportServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -68,21 +68,21 @@ class ReportServiceWorker extends ReportService {
   Type get clientBaseType => ReportService;
   @override
   Future<void> registerHostSide() async {
-    _registerReportServiceClientFactory();
-    _registerReportServiceMethodIds();
+    $registerReportServiceClientFactory();
+    $registerReportServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerReportServiceDispatcher();
+    $registerReportServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerReportServiceLocalSide() {
-  _registerReportServiceDispatcher();
-  _registerReportServiceClientFactory();
-  _registerReportServiceMethodIds();
+void $registerReportServiceLocalSide() {
+  $registerReportServiceDispatcher();
+  $registerReportServiceClientFactory();
+  $registerReportServiceMethodIds();
 }
 
 // Service client for Coordinator
@@ -96,7 +96,7 @@ class CoordinatorClient extends Coordinator {
   }
 }
 
-void _registerCoordinatorClientFactory() {
+void $registerCoordinatorClientFactory() {
   GeneratedClientRegistry.register<Coordinator>(
     (proxy) => CoordinatorClient(proxy),
   );
@@ -121,31 +121,31 @@ Future<dynamic> _CoordinatorDispatcher(
   }
 }
 
-void _registerCoordinatorDispatcher() {
+void $registerCoordinatorDispatcher() {
   GeneratedDispatcherRegistry.register<Coordinator>(
     _CoordinatorDispatcher,
   );
 }
 
-void _registerCoordinatorMethodIds() {
+void $registerCoordinatorMethodIds() {
   ServiceMethodIdRegistry.register<Coordinator>({
     'run': _CoordinatorMethods.runId,
   });
 }
 
 void registerCoordinatorGenerated() {
-  _registerCoordinatorClientFactory();
-  _registerCoordinatorMethodIds();
+  $registerCoordinatorClientFactory();
+  $registerCoordinatorMethodIds();
 }
 
-void _registerCoordinatorLocalSide() {
-  _registerCoordinatorDispatcher();
-  _registerCoordinatorClientFactory();
-  _registerCoordinatorMethodIds();
+void $registerCoordinatorLocalSide() {
+  $registerCoordinatorDispatcher();
+  $registerCoordinatorClientFactory();
+  $registerCoordinatorMethodIds();
   try {
-    _registerReportServiceClientFactory();
+    $registerReportServiceClientFactory();
   } catch (_) {}
   try {
-    _registerReportServiceMethodIds();
+    $registerReportServiceMethodIds();
   } catch (_) {}
 }

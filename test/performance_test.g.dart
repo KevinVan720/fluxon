@@ -25,7 +25,7 @@ class PerformanceServiceClient extends PerformanceService {
   }
 }
 
-void _registerPerformanceServiceClientFactory() {
+void $registerPerformanceServiceClientFactory() {
   GeneratedClientRegistry.register<PerformanceService>(
     (proxy) => PerformanceServiceClient(proxy),
   );
@@ -53,13 +53,13 @@ Future<dynamic> _PerformanceServiceDispatcher(
   }
 }
 
-void _registerPerformanceServiceDispatcher() {
+void $registerPerformanceServiceDispatcher() {
   GeneratedDispatcherRegistry.register<PerformanceService>(
     _PerformanceServiceDispatcher,
   );
 }
 
-void _registerPerformanceServiceMethodIds() {
+void $registerPerformanceServiceMethodIds() {
   ServiceMethodIdRegistry.register<PerformanceService>({
     'generateLargeDataset': _PerformanceServiceMethods.generateLargeDatasetId,
     'processEvents': _PerformanceServiceMethods.processEventsId,
@@ -67,8 +67,8 @@ void _registerPerformanceServiceMethodIds() {
 }
 
 void registerPerformanceServiceGenerated() {
-  _registerPerformanceServiceClientFactory();
-  _registerPerformanceServiceMethodIds();
+  $registerPerformanceServiceClientFactory();
+  $registerPerformanceServiceMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -77,21 +77,21 @@ class PerformanceServiceWorker extends PerformanceService {
   Type get clientBaseType => PerformanceService;
   @override
   Future<void> registerHostSide() async {
-    _registerPerformanceServiceClientFactory();
-    _registerPerformanceServiceMethodIds();
+    $registerPerformanceServiceClientFactory();
+    $registerPerformanceServiceMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerPerformanceServiceDispatcher();
+    $registerPerformanceServiceDispatcher();
     await super.initialize();
   }
 }
 
-void _registerPerformanceServiceLocalSide() {
-  _registerPerformanceServiceDispatcher();
-  _registerPerformanceServiceClientFactory();
-  _registerPerformanceServiceMethodIds();
+void $registerPerformanceServiceLocalSide() {
+  $registerPerformanceServiceDispatcher();
+  $registerPerformanceServiceClientFactory();
+  $registerPerformanceServiceMethodIds();
 }
 
 // Service client for EventReceiverService
@@ -105,7 +105,7 @@ class EventReceiverServiceClient extends EventReceiverService {
   }
 }
 
-void _registerEventReceiverServiceClientFactory() {
+void $registerEventReceiverServiceClientFactory() {
   GeneratedClientRegistry.register<EventReceiverService>(
     (proxy) => EventReceiverServiceClient(proxy),
   );
@@ -130,27 +130,27 @@ Future<dynamic> _EventReceiverServiceDispatcher(
   }
 }
 
-void _registerEventReceiverServiceDispatcher() {
+void $registerEventReceiverServiceDispatcher() {
   GeneratedDispatcherRegistry.register<EventReceiverService>(
     _EventReceiverServiceDispatcher,
   );
 }
 
-void _registerEventReceiverServiceMethodIds() {
+void $registerEventReceiverServiceMethodIds() {
   ServiceMethodIdRegistry.register<EventReceiverService>({
     'getStats': _EventReceiverServiceMethods.getStatsId,
   });
 }
 
 void registerEventReceiverServiceGenerated() {
-  _registerEventReceiverServiceClientFactory();
-  _registerEventReceiverServiceMethodIds();
+  $registerEventReceiverServiceClientFactory();
+  $registerEventReceiverServiceMethodIds();
 }
 
-void _registerEventReceiverServiceLocalSide() {
-  _registerEventReceiverServiceDispatcher();
-  _registerEventReceiverServiceClientFactory();
-  _registerEventReceiverServiceMethodIds();
+void $registerEventReceiverServiceLocalSide() {
+  $registerEventReceiverServiceDispatcher();
+  $registerEventReceiverServiceClientFactory();
+  $registerEventReceiverServiceMethodIds();
 }
 
 // Service client for LoadTestService
@@ -169,7 +169,7 @@ class LoadTestServiceClient extends LoadTestService {
   }
 }
 
-void _registerLoadTestServiceClientFactory() {
+void $registerLoadTestServiceClientFactory() {
   GeneratedClientRegistry.register<LoadTestService>(
     (proxy) => LoadTestServiceClient(proxy),
   );
@@ -197,13 +197,13 @@ Future<dynamic> _LoadTestServiceDispatcher(
   }
 }
 
-void _registerLoadTestServiceDispatcher() {
+void $registerLoadTestServiceDispatcher() {
   GeneratedDispatcherRegistry.register<LoadTestService>(
     _LoadTestServiceDispatcher,
   );
 }
 
-void _registerLoadTestServiceMethodIds() {
+void $registerLoadTestServiceMethodIds() {
   ServiceMethodIdRegistry.register<LoadTestService>({
     'sendBurstEvents': _LoadTestServiceMethods.sendBurstEventsId,
     'getStats': _LoadTestServiceMethods.getStatsId,
@@ -211,12 +211,12 @@ void _registerLoadTestServiceMethodIds() {
 }
 
 void registerLoadTestServiceGenerated() {
-  _registerLoadTestServiceClientFactory();
-  _registerLoadTestServiceMethodIds();
+  $registerLoadTestServiceClientFactory();
+  $registerLoadTestServiceMethodIds();
 }
 
-void _registerLoadTestServiceLocalSide() {
-  _registerLoadTestServiceDispatcher();
-  _registerLoadTestServiceClientFactory();
-  _registerLoadTestServiceMethodIds();
+void $registerLoadTestServiceLocalSide() {
+  $registerLoadTestServiceDispatcher();
+  $registerLoadTestServiceClientFactory();
+  $registerLoadTestServiceMethodIds();
 }

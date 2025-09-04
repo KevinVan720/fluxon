@@ -19,7 +19,7 @@ class MessageCoordinatorClient extends MessageCoordinator {
   }
 }
 
-void _registerMessageCoordinatorClientFactory() {
+void $registerMessageCoordinatorClientFactory() {
   GeneratedClientRegistry.register<MessageCoordinator>(
     (proxy) => MessageCoordinatorClient(proxy),
   );
@@ -45,38 +45,38 @@ Future<dynamic> _MessageCoordinatorDispatcher(
   }
 }
 
-void _registerMessageCoordinatorDispatcher() {
+void $registerMessageCoordinatorDispatcher() {
   GeneratedDispatcherRegistry.register<MessageCoordinator>(
     _MessageCoordinatorDispatcher,
   );
 }
 
-void _registerMessageCoordinatorMethodIds() {
+void $registerMessageCoordinatorMethodIds() {
   ServiceMethodIdRegistry.register<MessageCoordinator>({
     'sendMessage': _MessageCoordinatorMethods.sendMessageId,
   });
 }
 
 void registerMessageCoordinatorGenerated() {
-  _registerMessageCoordinatorClientFactory();
-  _registerMessageCoordinatorMethodIds();
+  $registerMessageCoordinatorClientFactory();
+  $registerMessageCoordinatorMethodIds();
 }
 
-void _registerMessageCoordinatorLocalSide() {
-  _registerMessageCoordinatorDispatcher();
-  _registerMessageCoordinatorClientFactory();
-  _registerMessageCoordinatorMethodIds();
+void $registerMessageCoordinatorLocalSide() {
+  $registerMessageCoordinatorDispatcher();
+  $registerMessageCoordinatorClientFactory();
+  $registerMessageCoordinatorMethodIds();
   try {
-    _registerMessageProcessorClientFactory();
+    $registerMessageProcessorClientFactory();
   } catch (_) {}
   try {
-    _registerMessageProcessorMethodIds();
+    $registerMessageProcessorMethodIds();
   } catch (_) {}
   try {
-    _registerMessageLoggerClientFactory();
+    $registerMessageLoggerClientFactory();
   } catch (_) {}
   try {
-    _registerMessageLoggerMethodIds();
+    $registerMessageLoggerMethodIds();
   } catch (_) {}
 }
 
@@ -92,7 +92,7 @@ class MessageProcessorClient extends MessageProcessor {
   }
 }
 
-void _registerMessageProcessorClientFactory() {
+void $registerMessageProcessorClientFactory() {
   GeneratedClientRegistry.register<MessageProcessor>(
     (proxy) => MessageProcessorClient(proxy),
   );
@@ -117,21 +117,21 @@ Future<dynamic> _MessageProcessorDispatcher(
   }
 }
 
-void _registerMessageProcessorDispatcher() {
+void $registerMessageProcessorDispatcher() {
   GeneratedDispatcherRegistry.register<MessageProcessor>(
     _MessageProcessorDispatcher,
   );
 }
 
-void _registerMessageProcessorMethodIds() {
+void $registerMessageProcessorMethodIds() {
   ServiceMethodIdRegistry.register<MessageProcessor>({
     'processMessage': _MessageProcessorMethods.processMessageId,
   });
 }
 
 void registerMessageProcessorGenerated() {
-  _registerMessageProcessorClientFactory();
-  _registerMessageProcessorMethodIds();
+  $registerMessageProcessorClientFactory();
+  $registerMessageProcessorMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -140,8 +140,8 @@ class MessageProcessorWorker extends MessageProcessor {
   Type get clientBaseType => MessageProcessor;
   @override
   Future<void> registerHostSide() async {
-    _registerMessageProcessorClientFactory();
-    _registerMessageProcessorMethodIds();
+    $registerMessageProcessorClientFactory();
+    $registerMessageProcessorMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
       _registerMessageLoggerClientFactory();
@@ -153,7 +153,7 @@ class MessageProcessorWorker extends MessageProcessor {
 
   @override
   Future<void> initialize() async {
-    _registerMessageProcessorDispatcher();
+    $registerMessageProcessorDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
       _registerMessageLoggerClientFactory();
@@ -165,15 +165,15 @@ class MessageProcessorWorker extends MessageProcessor {
   }
 }
 
-void _registerMessageProcessorLocalSide() {
-  _registerMessageProcessorDispatcher();
-  _registerMessageProcessorClientFactory();
-  _registerMessageProcessorMethodIds();
+void $registerMessageProcessorLocalSide() {
+  $registerMessageProcessorDispatcher();
+  $registerMessageProcessorClientFactory();
+  $registerMessageProcessorMethodIds();
   try {
-    _registerMessageLoggerClientFactory();
+    $registerMessageLoggerClientFactory();
   } catch (_) {}
   try {
-    _registerMessageLoggerMethodIds();
+    $registerMessageLoggerMethodIds();
   } catch (_) {}
 }
 
@@ -195,7 +195,7 @@ class MessageLoggerClient extends MessageLogger {
   }
 }
 
-void _registerMessageLoggerClientFactory() {
+void $registerMessageLoggerClientFactory() {
   GeneratedClientRegistry.register<MessageLogger>(
     (proxy) => MessageLoggerClient(proxy),
   );
@@ -224,13 +224,13 @@ Future<dynamic> _MessageLoggerDispatcher(
   }
 }
 
-void _registerMessageLoggerDispatcher() {
+void $registerMessageLoggerDispatcher() {
   GeneratedDispatcherRegistry.register<MessageLogger>(
     _MessageLoggerDispatcher,
   );
 }
 
-void _registerMessageLoggerMethodIds() {
+void $registerMessageLoggerMethodIds() {
   ServiceMethodIdRegistry.register<MessageLogger>({
     'logMessage': _MessageLoggerMethods.logMessageId,
     'getMessageLogs': _MessageLoggerMethods.getMessageLogsId,
@@ -238,8 +238,8 @@ void _registerMessageLoggerMethodIds() {
 }
 
 void registerMessageLoggerGenerated() {
-  _registerMessageLoggerClientFactory();
-  _registerMessageLoggerMethodIds();
+  $registerMessageLoggerClientFactory();
+  $registerMessageLoggerMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -248,19 +248,19 @@ class MessageLoggerWorker extends MessageLogger {
   Type get clientBaseType => MessageLogger;
   @override
   Future<void> registerHostSide() async {
-    _registerMessageLoggerClientFactory();
-    _registerMessageLoggerMethodIds();
+    $registerMessageLoggerClientFactory();
+    $registerMessageLoggerMethodIds();
   }
 
   @override
   Future<void> initialize() async {
-    _registerMessageLoggerDispatcher();
+    $registerMessageLoggerDispatcher();
     await super.initialize();
   }
 }
 
-void _registerMessageLoggerLocalSide() {
-  _registerMessageLoggerDispatcher();
-  _registerMessageLoggerClientFactory();
-  _registerMessageLoggerMethodIds();
+void $registerMessageLoggerLocalSide() {
+  $registerMessageLoggerDispatcher();
+  $registerMessageLoggerClientFactory();
+  $registerMessageLoggerMethodIds();
 }

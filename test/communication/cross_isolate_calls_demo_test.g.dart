@@ -17,7 +17,7 @@ class ServiceAClient extends ServiceA {
   }
 }
 
-void _registerServiceAClientFactory() {
+void $registerServiceAClientFactory() {
   GeneratedClientRegistry.register<ServiceA>(
     (proxy) => ServiceAClient(proxy),
   );
@@ -42,21 +42,21 @@ Future<dynamic> _ServiceADispatcher(
   }
 }
 
-void _registerServiceADispatcher() {
+void $registerServiceADispatcher() {
   GeneratedDispatcherRegistry.register<ServiceA>(
     _ServiceADispatcher,
   );
 }
 
-void _registerServiceAMethodIds() {
+void $registerServiceAMethodIds() {
   ServiceMethodIdRegistry.register<ServiceA>({
     'increment': _ServiceAMethods.incrementId,
   });
 }
 
 void registerServiceAGenerated() {
-  _registerServiceAClientFactory();
-  _registerServiceAMethodIds();
+  $registerServiceAClientFactory();
+  $registerServiceAMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -65,8 +65,8 @@ class ServiceAWorker extends ServiceA {
   Type get clientBaseType => ServiceA;
   @override
   Future<void> registerHostSide() async {
-    _registerServiceAClientFactory();
-    _registerServiceAMethodIds();
+    $registerServiceAClientFactory();
+    $registerServiceAMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
       _registerServiceBClientFactory();
@@ -78,7 +78,7 @@ class ServiceAWorker extends ServiceA {
 
   @override
   Future<void> initialize() async {
-    _registerServiceADispatcher();
+    $registerServiceADispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
       _registerServiceBClientFactory();
@@ -90,15 +90,15 @@ class ServiceAWorker extends ServiceA {
   }
 }
 
-void _registerServiceALocalSide() {
-  _registerServiceADispatcher();
-  _registerServiceAClientFactory();
-  _registerServiceAMethodIds();
+void $registerServiceALocalSide() {
+  $registerServiceADispatcher();
+  $registerServiceAClientFactory();
+  $registerServiceAMethodIds();
   try {
-    _registerServiceBClientFactory();
+    $registerServiceBClientFactory();
   } catch (_) {}
   try {
-    _registerServiceBMethodIds();
+    $registerServiceBMethodIds();
   } catch (_) {}
 }
 
@@ -113,7 +113,7 @@ class ServiceBClient extends ServiceB {
   }
 }
 
-void _registerServiceBClientFactory() {
+void $registerServiceBClientFactory() {
   GeneratedClientRegistry.register<ServiceB>(
     (proxy) => ServiceBClient(proxy),
   );
@@ -138,21 +138,21 @@ Future<dynamic> _ServiceBDispatcher(
   }
 }
 
-void _registerServiceBDispatcher() {
+void $registerServiceBDispatcher() {
   GeneratedDispatcherRegistry.register<ServiceB>(
     _ServiceBDispatcher,
   );
 }
 
-void _registerServiceBMethodIds() {
+void $registerServiceBMethodIds() {
   ServiceMethodIdRegistry.register<ServiceB>({
     'doubleIt': _ServiceBMethods.doubleItId,
   });
 }
 
 void registerServiceBGenerated() {
-  _registerServiceBClientFactory();
-  _registerServiceBMethodIds();
+  $registerServiceBClientFactory();
+  $registerServiceBMethodIds();
 }
 
 // Worker implementation that auto-registers the dispatcher
@@ -161,8 +161,8 @@ class ServiceBWorker extends ServiceB {
   Type get clientBaseType => ServiceB;
   @override
   Future<void> registerHostSide() async {
-    _registerServiceBClientFactory();
-    _registerServiceBMethodIds();
+    $registerServiceBClientFactory();
+    $registerServiceBMethodIds();
     // Auto-registered from dependencies/optionalDependencies
     try {
       _registerServiceAClientFactory();
@@ -174,7 +174,7 @@ class ServiceBWorker extends ServiceB {
 
   @override
   Future<void> initialize() async {
-    _registerServiceBDispatcher();
+    $registerServiceBDispatcher();
     // Ensure worker isolate can create clients for dependencies
     try {
       _registerServiceAClientFactory();
@@ -186,14 +186,14 @@ class ServiceBWorker extends ServiceB {
   }
 }
 
-void _registerServiceBLocalSide() {
-  _registerServiceBDispatcher();
-  _registerServiceBClientFactory();
-  _registerServiceBMethodIds();
+void $registerServiceBLocalSide() {
+  $registerServiceBDispatcher();
+  $registerServiceBClientFactory();
+  $registerServiceBMethodIds();
   try {
-    _registerServiceAClientFactory();
+    $registerServiceAClientFactory();
   } catch (_) {}
   try {
-    _registerServiceAMethodIds();
+    $registerServiceAMethodIds();
   } catch (_) {}
 }
