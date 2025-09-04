@@ -177,7 +177,7 @@ void main() {
 
     group('High Throughput', () {
       test('should handle large dataset processing', () async {
-        runtime.register<PerformanceService>(() => PerformanceServiceWorker());
+        runtime.register<PerformanceService>(() => PerformanceServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<PerformanceService>();
@@ -221,7 +221,7 @@ void main() {
 
     group('Memory Management', () {
       test('should handle memory-intensive operations', () async {
-        runtime.register<PerformanceService>(() => PerformanceServiceWorker());
+        runtime.register<PerformanceService>(() => PerformanceServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<PerformanceService>();
@@ -240,7 +240,7 @@ void main() {
 
     group('Concurrent Operations', () {
       test('should handle concurrent service calls', () async {
-        runtime.register<PerformanceService>(() => PerformanceServiceWorker());
+        runtime.register<PerformanceService>(() => PerformanceServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<PerformanceService>();

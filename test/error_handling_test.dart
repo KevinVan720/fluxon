@@ -192,7 +192,7 @@ void main() {
     group('Method Call Failures', () {
       test('should handle remote service method failures', () async {
         runtime
-            .register<FailingMethodService>(() => FailingMethodServiceWorker());
+            .register<FailingMethodService>(() => FailingMethodServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<FailingMethodService>();
@@ -204,7 +204,7 @@ void main() {
       });
 
       test('should handle timeout scenarios', () async {
-        runtime.register<SlowService>(() => SlowServiceWorker());
+        runtime.register<SlowService>(() => SlowServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<SlowService>();
@@ -299,7 +299,7 @@ void main() {
       });
 
       test('should handle destruction during initialization', () async {
-        runtime.register<SlowService>(() => SlowServiceWorker());
+        runtime.register<SlowService>(() => SlowServiceImpl());
 
         // Start initialization but don't await
         final initFuture = runtime.initializeAll();
@@ -322,7 +322,7 @@ void main() {
     group('Cross-Isolate Error Propagation', () {
       test('should propagate worker isolate failures to main', () async {
         runtime
-            .register<FailingMethodService>(() => FailingMethodServiceWorker());
+            .register<FailingMethodService>(() => FailingMethodServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<FailingMethodService>();

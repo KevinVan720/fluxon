@@ -145,7 +145,7 @@ void main() {
 
     group('Concurrent Service Access', () {
       test('should handle concurrent method calls safely', () async {
-        runtime.register<ConcurrentService>(() => ConcurrentServiceWorker());
+        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<ConcurrentService>();
@@ -166,7 +166,7 @@ void main() {
 
       test('should handle concurrent operations without data corruption',
           () async {
-        runtime.register<ConcurrentService>(() => ConcurrentServiceWorker());
+        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<ConcurrentService>();
@@ -233,7 +233,7 @@ void main() {
     group('Service Registration Concurrency', () {
       test('should handle service registration and initialization', () async {
         // Register the service
-        runtime.register<ConcurrentService>(() => ConcurrentServiceWorker());
+        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
 
         await runtime.initializeAll();
 
@@ -251,7 +251,7 @@ void main() {
 
     group('Destruction During Operations', () {
       test('should handle service destruction during active calls', () async {
-        runtime.register<ConcurrentService>(() => ConcurrentServiceWorker());
+        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
         await runtime.initializeAll();
 
         final service = runtime.get<ConcurrentService>();
