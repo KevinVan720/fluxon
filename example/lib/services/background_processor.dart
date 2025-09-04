@@ -51,8 +51,8 @@ class BackgroundProcessor extends FluxService {
     };
 
     for (var i = 0; i < data.length; i++) {
-      // Simulate processing time
-      await Future.delayed(const Duration(milliseconds: 10));
+      // Simulate processing time (reduced for testing)
+      await Future.delayed(const Duration(milliseconds: 1));
 
       final item = data[i];
       final processed = {

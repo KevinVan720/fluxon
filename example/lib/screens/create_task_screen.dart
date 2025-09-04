@@ -101,10 +101,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.person),
               ),
+              hint: const Text('Select a user'),
               items: widget.users.map((user) {
                 return DropdownMenuItem(
                   value: user.id,
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       CircleAvatar(
                         radius: 12,
@@ -118,7 +120,11 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(user.name)),
+                      Flexible(
+                        child: Text(
+                      user.name,
+                      overflow: TextOverflow.ellipsis,
+                    )),
                     ],
                   ),
                 );
@@ -185,7 +191,7 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
               title: Text(
                 _selectedDueDate == null
                     ? 'Set Due Date (Optional)'
-                    : 'Due: ${_formatDate(_selectedDueDate!)}',
+                    : 'Due: ${_formatDate(_selectedDueDate ?? DateTime.now())}',
               ),
               trailing: _selectedDueDate == null
                   ? const Icon(Icons.add)
@@ -268,7 +274,17 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
   }
 
   Future<void> _createTask() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState?.validate() != true) return;
+
+    if (_selectedUserId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please select a user to assign the task to'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isCreating = true;
@@ -279,10 +295,12 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
       final taskService = widget.runtime.get<TaskService>();
 
       // Create task - this will trigger events automatically
+      final selectedUserId =
+          _selectedUserId!; // Safe because we checked for null above
       final task = await taskService.createTask(
         title: _titleController.text.trim(),
         description: _descriptionController.text.trim(),
-        assignedTo: _selectedUserId!,
+        assignedTo: selectedUserId,
         priority: _selectedPriority,
         dueDate: _selectedDueDate,
         tags: _tags,

@@ -21,13 +21,13 @@ class StorageService extends FluxService {
   /// Save tasks to local storage
   Future<void> saveTasks(List<Task> tasks) async {
     final tasksJson = tasks.map((t) => t.toJson()).toList();
-    await _prefs!.setString('tasks', jsonEncode(tasksJson));
+    await _prefs?.setString('tasks', jsonEncode(tasksJson));
     logger.info('Saved ${tasks.length} tasks to storage');
   }
 
   /// Load tasks from local storage
   Future<List<Task>> loadTasks() async {
-    final tasksString = _prefs!.getString('tasks');
+    final tasksString = _prefs?.getString('tasks');
     if (tasksString == null) return [];
 
     final tasksList = jsonDecode(tasksString) as List;
@@ -39,13 +39,13 @@ class StorageService extends FluxService {
   /// Save users to local storage
   Future<void> saveUsers(List<User> users) async {
     final usersJson = users.map((u) => u.toJson()).toList();
-    await _prefs!.setString('users', jsonEncode(usersJson));
+    await _prefs?.setString('users', jsonEncode(usersJson));
     logger.info('Saved ${users.length} users to storage');
   }
 
   /// Load users from local storage
   Future<List<User>> loadUsers() async {
-    final usersString = _prefs!.getString('users');
+    final usersString = _prefs?.getString('users');
     if (usersString == null) {
       // Create default users
       const defaultUsers = [
@@ -80,7 +80,7 @@ class StorageService extends FluxService {
 
   /// Clear all data (for testing)
   Future<void> clearAll() async {
-    await _prefs!.clear();
+    await _prefs?.clear();
     logger.info('Cleared all storage data');
   }
 }

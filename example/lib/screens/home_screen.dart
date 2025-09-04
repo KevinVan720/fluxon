@@ -1,11 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 import '../models/task.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';
 import '../services/notification_service.dart';
+import '../services/background_processor.dart';
 // import '../services/analytics_service.dart'; // Unused
-// import '../services/background_processor.dart'; // Unused
 import 'task_details_screen.dart';
 import 'analytics_screen.dart';
 import 'create_task_screen.dart';
@@ -107,10 +108,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 _buildAnalyticsTab(),
               ],
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _createTask,
-        child: const Icon(Icons.add),
-        tooltip: 'Create New Task',
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          FloatingActionButton(
+            onPressed: _testHeavyOperation,
+            child: const Icon(Icons.speed),
+            tooltip: 'Test Heavy Operation',
+            heroTag: "heavy_operation",
+          ),
+          const SizedBox(height: 8),
+          FloatingActionButton(
+            onPressed: _createTask,
+            child: const Icon(Icons.add),
+            tooltip: 'Create New Task',
+            heroTag: "create_task",
+          ),
+        ],
       ),
     );
   }
@@ -603,5 +617,108 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   bool _isDue(DateTime dueDate) {
     return dueDate.isBefore(DateTime.now());
+  }
+
+  /// Test heavy operation to verify it runs in worker isolate without blocking UI
+  Future<void> _testHeavyOperation() async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 16),
+              Text('Running heavy operation in worker isolate...'),
+            ],
+          ),
+        ),
+      );
+
+      // Get the background processor service (runs in worker isolate)
+      final backgroundProcessor = widget.runtime.get<BackgroundProcessor>();
+
+      // Generate test data for processing
+      final testData = List.generate(
+        1000,
+        (index) => {
+          'id': 'item_$index',
+          'value': index * 2.5,
+          'category': ['A', 'B', 'C'][index % 3],
+          'timestamp': DateTime.now()
+              .subtract(Duration(minutes: index))
+              .toIso8601String(),
+          'metadata': {
+            'weight': index * 0.1,
+            'priority': index % 5,
+            'tags': ['tag${index % 3}', 'important'],
+          },
+        },
+      );
+
+      // Start the heavy operation with extended timeout for large datasets
+      final startTime = DateTime.now();
+      final result = await backgroundProcessor
+          .processLargeDataset(testData)
+          .timeout(
+            const Duration(seconds: 30), // Extended timeout for large datasets
+            onTimeout: () => throw TimeoutException(
+              'Heavy operation timed out',
+              const Duration(seconds: 30),
+            ),
+          );
+      final endTime = DateTime.now();
+      final duration = endTime.difference(startTime);
+
+      // Close loading dialog
+      if (mounted) Navigator.of(context).pop();
+
+      // Show results
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Heavy Operation Complete! 🚀'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('✅ Processed ${result['inputSize']} items'),
+                Text('⏱️ Duration: ${duration.inMilliseconds}ms'),
+                Text(
+                  '📊 Results: ${(result['results'] as List).length} processed items',
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'This operation ran in a worker isolate and did NOT block the main UI thread!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      // Close loading dialog if still open
+      if (mounted) Navigator.of(context).pop();
+
+      // Show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 }

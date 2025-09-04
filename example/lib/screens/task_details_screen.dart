@@ -318,7 +318,7 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
   }
 
   Widget _buildRecommendations() {
-    final recommendations = _recommendations!['recommendations'] as List;
+    final recommendations = _recommendations?['recommendations'] as List? ?? [];
 
     return Column(
       children: recommendations.map<Widget>((rec) {
