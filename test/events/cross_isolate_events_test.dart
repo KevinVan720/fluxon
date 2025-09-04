@@ -46,10 +46,9 @@ class MessageEvent extends ServiceEvent {
   }
 }
 
-// Local message coordinator
+// 🚀 SINGLE CLASS: Local message coordinator
 @ServiceContract(remote: false)
-class MessageCoordinator extends BaseService
-    with ServiceEventMixin, ServiceClientMixin {
+class MessageCoordinator extends FluxService {
   final List<MessageEvent> receivedEvents = [];
 
   @override
@@ -57,6 +56,7 @@ class MessageCoordinator extends BaseService
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for local service
     _registerMessageCoordinatorDispatcher();
     await super.initialize();
 
@@ -109,14 +109,9 @@ class MessageCoordinator extends BaseService
   }
 }
 
-// Remote message processor
+// 🚀 SINGLE CLASS: Remote message processor
 @ServiceContract(remote: true)
-abstract class MessageProcessor extends BaseService {
-  Future<void> processMessage(String messageId, String content);
-}
-
-class MessageProcessorImpl extends MessageProcessor
-    with ServiceEventMixin, ServiceClientMixin {
+class MessageProcessor extends FluxService {
   final List<MessageEvent> processedMessages = [];
 
   @override
@@ -124,6 +119,7 @@ class MessageProcessorImpl extends MessageProcessor
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote services
     _registerMessageProcessorDispatcher();
     _registerMessageLoggerClientFactory();
     await super.initialize();
@@ -168,7 +164,6 @@ class MessageProcessorImpl extends MessageProcessor
     });
   }
 
-  @override
   Future<void> processMessage(String messageId, String content) async {
     logger.info('Processing message', metadata: {
       'messageId': messageId,
@@ -184,18 +179,14 @@ class MessageProcessorImpl extends MessageProcessor
   }
 }
 
-// Remote message logger
+// 🚀 SINGLE CLASS: Remote message logger
 @ServiceContract(remote: true)
-abstract class MessageLogger extends BaseService {
-  Future<void> logMessage(String messageId, String status, String content);
-  Future<List<Map<String, dynamic>>> getMessageLogs();
-}
-
-class MessageLoggerImpl extends MessageLogger with ServiceEventMixin {
+class MessageLogger extends FluxService {
   final List<Map<String, dynamic>> logs = [];
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote services
     _registerMessageLoggerDispatcher();
     await super.initialize();
 
@@ -216,7 +207,6 @@ class MessageLoggerImpl extends MessageLogger with ServiceEventMixin {
     });
   }
 
-  @override
   Future<void> logMessage(
       String messageId, String status, String content) async {
     final logEntry = {
@@ -235,7 +225,6 @@ class MessageLoggerImpl extends MessageLogger with ServiceEventMixin {
     });
   }
 
-  @override
   Future<List<Map<String, dynamic>>> getMessageLogs() async => logs;
 }
 
@@ -252,15 +241,16 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   registerMessageCoordinatorGenerated();
   locator.register<MessageCoordinator>(() => MessageCoordinator());
 
+  // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<MessageProcessor>(
     serviceName: 'MessageProcessor',
-    serviceFactory: () => MessageProcessorImpl(),
+    serviceFactory: () => MessageProcessor(),
     registerGenerated: registerMessageProcessorGenerated,
   );
 
   await locator.registerWorkerServiceProxy<MessageLogger>(
     serviceName: 'MessageLogger',
-    serviceFactory: () => MessageLoggerImpl(),
+    serviceFactory: () => MessageLogger(),
     registerGenerated: registerMessageLoggerGenerated,
   );
 

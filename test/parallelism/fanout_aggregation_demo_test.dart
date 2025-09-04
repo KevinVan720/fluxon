@@ -3,17 +3,40 @@ import 'package:dart_service_framework/dart_service_framework.dart';
 
 part 'fanout_aggregation_demo_test.g.dart';
 
+// 🚀 SINGLE CLASS: Pricing service
 @ServiceContract(remote: true)
-abstract class PricingService extends BaseService {
-  Future<double> getPrice(String sku);
+class PricingService extends FluxService {
+  @override
+  Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote service
+    _registerPricingServiceDispatcher();
+    await super.initialize();
+  }
+
+  Future<double> getPrice(String sku) async {
+    await Future.delayed(Duration(milliseconds: 50));
+    return 99.99; // Mock price
+  }
 }
 
+// 🚀 SINGLE CLASS: Inventory service
 @ServiceContract(remote: true)
-abstract class InventoryService extends BaseService {
-  Future<int> getStock(String sku);
+class InventoryService extends FluxService {
+  @override
+  Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote service
+    _registerInventoryServiceDispatcher();
+    await super.initialize();
+  }
+
+  Future<int> getStock(String sku) async {
+    await Future.delayed(Duration(milliseconds: 30));
+    return 42; // Mock stock
+  }
 }
 
-class Aggregator extends BaseService with ServiceClientMixin {
+// 🚀 SINGLE CLASS: Local aggregator
+class Aggregator extends FluxService {
   @override
   List<Type> get optionalDependencies => [PricingService, InventoryService];
 
@@ -30,48 +53,31 @@ class Aggregator extends BaseService with ServiceClientMixin {
   }
 }
 
-class PricingServiceImpl extends PricingService {
-  @override
-  Future<void> initialize() async {
-    _registerPricingServiceDispatcher();
-  }
-
-  @override
-  Future<double> getPrice(String sku) async => 19.99;
-}
-
-class InventoryServiceImpl extends InventoryService {
-  @override
-  Future<void> initialize() async {
-    _registerInventoryServiceDispatcher();
-  }
-
-  @override
-  Future<int> getStock(String sku) async => 42;
-}
+// 🚀 SINGLE CLASS: Implementation moved into main classes above
 
 Future<void> _runFanoutaggregationdemoDemo() async {
   final locator = ServiceLocator();
-  
-    locator.register<Aggregator>(() => Aggregator());
 
-    await locator.registerWorkerServiceProxy<PricingService>(
-      serviceName: 'PricingService',
-      serviceFactory: () => PricingServiceImpl(),
-      registerGenerated: registerPricingServiceGenerated,
-    );
-    await locator.registerWorkerServiceProxy<InventoryService>(
-      serviceName: 'InventoryService',
-      serviceFactory: () => InventoryServiceImpl(),
-      registerGenerated: registerInventoryServiceGenerated,
-    );
+  locator.register<Aggregator>(() => Aggregator());
 
-    await locator.initializeAll();
+  // 🚀 SINGLE CLASS: Same class for interface and implementation!
+  await locator.registerWorkerServiceProxy<PricingService>(
+    serviceName: 'PricingService',
+    serviceFactory: () => PricingService(),
+    registerGenerated: registerPricingServiceGenerated,
+  );
+  await locator.registerWorkerServiceProxy<InventoryService>(
+    serviceName: 'InventoryService',
+    serviceFactory: () => InventoryService(),
+    registerGenerated: registerInventoryServiceGenerated,
+  );
 
-    final agg = locator.get<Aggregator>();
-    final offer = await agg.getOffer('SKU-123');
+  await locator.initializeAll();
 
-    await locator.destroyAll();
+  final agg = locator.get<Aggregator>();
+  final offer = await agg.getOffer('SKU-123');
+
+  await locator.destroyAll();
 }
 
 void main() {

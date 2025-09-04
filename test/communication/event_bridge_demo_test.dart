@@ -3,46 +3,21 @@ import 'package:dart_service_framework/dart_service_framework.dart';
 
 part 'event_bridge_demo_test.g.dart';
 
+// 🚀 SINGLE CLASS: Remote emitter service
 @ServiceContract(remote: true)
-abstract class RemoteEmitter extends BaseService {
-  Future<void> emitTick(String id);
-}
-
-@ServiceContract(remote: true)
-abstract class RemoteListener extends BaseService {
-  Future<void> onTick(String id);
-  Future<int> count();
-}
-
-@ServiceContract(remote: false)
-class LocalHub extends BaseService {
-  int _ticks = 0;
-
-  @override
-  Future<void> initialize() async {
-    _registerLocalHubDispatcher();
-  }
-
-  Future<void> onTick(String id) async {
-    _ticks++;
-    logger.info('Hub received tick', metadata: {'id': id, 'ticks': _ticks});
-  }
-}
-
-class RemoteEmitterImpl extends RemoteEmitter with ServiceClientMixin {
+class RemoteEmitter extends FluxService {
   @override
   List<Type> get optionalDependencies => [LocalHub, RemoteListener];
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote service
     _registerRemoteEmitterDispatcher();
-    // Worker needs LocalHub client factory to call host hub via bridge
     _registerLocalHubClientFactory();
-    // Worker also needs RemoteListener client to call another worker via host bridge
     _registerRemoteListenerClientFactory();
+    await super.initialize();
   }
 
-  @override
   Future<void> emitTick(String id) async {
     // Call host-local hub
     final hub = getService<LocalHub>();
@@ -54,25 +29,48 @@ class RemoteEmitterImpl extends RemoteEmitter with ServiceClientMixin {
   }
 }
 
-class RemoteListenerImpl extends RemoteListener {
+// 🚀 SINGLE CLASS: Remote listener service
+@ServiceContract(remote: true)
+class RemoteListener extends FluxService {
   int _count = 0;
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote service
     _registerRemoteListenerDispatcher();
+    await super.initialize();
   }
 
-  @override
   Future<void> onTick(String id) async {
     _count++;
     logger.info('Listener saw tick', metadata: {'id': id, 'count': _count});
   }
 
-  @override
   Future<int> count() async => _count;
 }
 
-class Orchestrator extends BaseService with ServiceClientMixin {
+// 🚀 SINGLE CLASS: Local hub service
+@ServiceContract(remote: false)
+class LocalHub extends FluxService {
+  int _ticks = 0;
+
+  @override
+  Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for local service
+    _registerLocalHubDispatcher();
+    await super.initialize();
+  }
+
+  Future<void> onTick(String id) async {
+    _ticks++;
+    logger.info('Hub received tick', metadata: {'id': id, 'ticks': _ticks});
+  }
+}
+
+// 🚀 SINGLE CLASS: Implementation moved into main classes above
+
+// 🚀 SINGLE CLASS: Local orchestrator
+class Orchestrator extends FluxService {
   @override
   List<Type> get optionalDependencies => [RemoteEmitter, RemoteListener];
 
@@ -88,29 +86,30 @@ class Orchestrator extends BaseService with ServiceClientMixin {
 
 Future<void> _runEventbridgedemoDemo() async {
   final locator = ServiceLocator();
-  
-    // Local hub must register IDs for host-side dispatch
-    registerLocalHubGenerated();
-    locator.register<LocalHub>(() => LocalHub());
-    locator.register<Orchestrator>(() => Orchestrator());
 
-    await locator.registerWorkerServiceProxy<RemoteListener>(
-      serviceName: 'RemoteListener',
-      serviceFactory: () => RemoteListenerImpl(),
-      registerGenerated: registerRemoteListenerGenerated,
-    );
-    await locator.registerWorkerServiceProxy<RemoteEmitter>(
-      serviceName: 'RemoteEmitter',
-      serviceFactory: () => RemoteEmitterImpl(),
-      registerGenerated: registerRemoteEmitterGenerated,
-    );
+  // Local hub must register IDs for host-side dispatch
+  registerLocalHubGenerated();
+  locator.register<LocalHub>(() => LocalHub());
+  locator.register<Orchestrator>(() => Orchestrator());
 
-    await locator.initializeAll();
+  // 🚀 SINGLE CLASS: Same class for interface and implementation!
+  await locator.registerWorkerServiceProxy<RemoteListener>(
+    serviceName: 'RemoteListener',
+    serviceFactory: () => RemoteListener(),
+    registerGenerated: registerRemoteListenerGenerated,
+  );
+  await locator.registerWorkerServiceProxy<RemoteEmitter>(
+    serviceName: 'RemoteEmitter',
+    serviceFactory: () => RemoteEmitter(),
+    registerGenerated: registerRemoteEmitterGenerated,
+  );
 
-    final orchestrator = locator.get<Orchestrator>();
-    final count = await orchestrator.run();
+  await locator.initializeAll();
 
-    await locator.destroyAll();
+  final orchestrator = locator.get<Orchestrator>();
+  final count = await orchestrator.run();
+
+  await locator.destroyAll();
 }
 
 void main() {

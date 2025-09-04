@@ -40,7 +40,21 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
 
     var nextId = 1;
     final methodIds = <String, int>{};
-    for (final m in classEl.methods.where((m) => m.isAbstract && !m.isStatic)) {
+    // 🚀 SINGLE CLASS: Generate for both abstract AND concrete methods
+    // Exclude inherited methods from BaseService/FluxService
+    final inheritedMethods = {
+      'initialize',
+      'destroy',
+      'onDependencyAvailable',
+      'onDependencyUnavailable'
+    };
+    for (final m in classEl.methods.where((m) =>
+            !m.isStatic &&
+            !m.isPrivate &&
+            !m.isOperator &&
+            !inheritedMethods.contains(m.name) &&
+            m.enclosingElement == classEl // Only methods declared in this class
+        )) {
       if (m.returnType is! InterfaceType && !m.returnType.isDartAsyncFuture) {
         // Only generate for Future-returning methods in MVP
         continue;

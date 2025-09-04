@@ -42,10 +42,9 @@ class TaskEvent extends ServiceEvent {
   }
 }
 
-// 🎯 OPTIMIZED: Local service with automatic infrastructure
+// 🚀 SINGLE CLASS: Local service with automatic infrastructure
 @ServiceContract(remote: false)
-class TaskOrchestrator extends BaseService
-    with ServiceEventMixin, ServiceClientMixin {
+class TaskOrchestrator extends FluxService {
   final List<String> completedTasks = [];
 
   @override
@@ -53,6 +52,7 @@ class TaskOrchestrator extends BaseService
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for local service
     _registerTaskOrchestratorDispatcher();
     await super.initialize();
 
@@ -101,26 +101,18 @@ class TaskOrchestrator extends BaseService
   }
 }
 
-// 🎯 OPTIMIZED: Remote service (runs in isolate, but API is identical!)
+// 🚀 SINGLE CLASS: Remote service (runs in isolate, but API is identical!)
 @ServiceContract(remote: true)
-abstract class TaskProcessor extends BaseService {
-  Future<Map<String, dynamic>> processTask(
-      String taskId, Map<String, dynamic> data);
-}
-
-class TaskProcessorImpl extends TaskProcessor
-    with ServiceEventMixin, ServiceClientMixin {
+class TaskProcessor extends FluxService {
   @override
   List<Type> get optionalDependencies => [TaskLogger];
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote services
     _registerTaskProcessorDispatcher();
     _registerTaskLoggerClientFactory();
     await super.initialize();
-
-    // NOTE: In worker isolates, event infrastructure isn't available yet
-    // This is the next optimization target
   }
 
   @override
@@ -149,24 +141,18 @@ class TaskProcessorImpl extends TaskProcessor
   }
 }
 
-// 🎯 OPTIMIZED: Another remote service
+// 🚀 SINGLE CLASS: Another remote service
 @ServiceContract(remote: true)
-abstract class TaskLogger extends BaseService {
-  Future<void> logTaskProgress(
-      String taskId, String status, Map<String, dynamic> data);
-  Future<List<Map<String, dynamic>>> getTaskLogs();
-}
-
-class TaskLoggerImpl extends TaskLogger with ServiceEventMixin {
+class TaskLogger extends FluxService {
   final List<Map<String, dynamic>> logs = [];
 
   @override
   Future<void> initialize() async {
+    // 🚀 FLUX: Minimal boilerplate for remote services
     _registerTaskLoggerDispatcher();
     await super.initialize();
   }
 
-  @override
   Future<void> logTaskProgress(
       String taskId, String status, Map<String, dynamic> data) async {
     final logEntry = {
@@ -191,7 +177,6 @@ class TaskLoggerImpl extends TaskLogger with ServiceEventMixin {
     }
   }
 
-  @override
   Future<List<Map<String, dynamic>>> getTaskLogs() async => logs;
 }
 
@@ -205,16 +190,16 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
   registerTaskOrchestratorGenerated();
   locator.register<TaskOrchestrator>(() => TaskOrchestrator());
 
-  // Register remote services - they get automatic event infrastructure too
+  // 🚀 SINGLE CLASS: Same class for interface and implementation!
   await locator.registerWorkerServiceProxy<TaskProcessor>(
     serviceName: 'TaskProcessor',
-    serviceFactory: () => TaskProcessorImpl(),
+    serviceFactory: () => TaskProcessor(),
     registerGenerated: registerTaskProcessorGenerated,
   );
 
   await locator.registerWorkerServiceProxy<TaskLogger>(
     serviceName: 'TaskLogger',
-    serviceFactory: () => TaskLoggerImpl(),
+    serviceFactory: () => TaskLogger(),
     registerGenerated: registerTaskLoggerGenerated,
   );
 

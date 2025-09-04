@@ -1,0 +1,103 @@
+/// FluxService - The simplified public API for the Dart Service Framework
+library flux_service;
+
+import 'dart:async';
+import 'package:meta/meta.dart';
+
+import 'base_service.dart';
+import 'events/event_mixin.dart';
+import 'service_proxy.dart';
+import 'service_logger.dart';
+
+/// 🚀 FLUX: The ultimate simplified service class!
+///
+/// Just extend FluxService and focus on your business logic.
+/// All event and proxy infrastructure is included automatically.
+///
+/// Features included out-of-the-box:
+/// - ✅ Event sending/receiving (sendEvent, onEvent)
+/// - ✅ Cross-service calls (getService)
+/// - ✅ Complete isolate transparency
+/// - ✅ Automatic infrastructure setup
+/// - ✅ Structured logging
+/// - ✅ Lifecycle management
+///
+/// ## Example Usage:
+///
+/// ```dart
+/// // Define your service interface
+/// @ServiceContract(remote: true)
+/// abstract class PaymentService extends FluxService {
+///   Future<bool> processPayment(String userId, double amount);
+/// }
+///
+/// // Implement your service - that's it!
+/// class PaymentServiceImpl extends PaymentService {
+///   @override
+///   Future<bool> processPayment(String userId, double amount) async {
+///     // Send events automatically
+///     await sendEvent(PaymentEvent(userId: userId, amount: amount));
+///
+///     // Call other services transparently (local or remote!)
+///     final user = getService<UserService>();
+///     final isValid = await user.validateUser(userId);
+///
+///     return isValid && amount > 0;
+///   }
+/// }
+/// ```
+///
+/// ## Zero Boilerplate:
+/// - No manual mixin declarations
+/// - No dispatcher registration calls
+/// - No event infrastructure setup
+/// - Just pure business logic!
+abstract class FluxService extends BaseService
+    with ServiceEventMixin, ServiceClientMixin {
+  /// Creates a Flux service with all capabilities enabled
+  FluxService({
+    super.config,
+    super.logger,
+  });
+
+  @override
+  @mustCallSuper
+  Future<void> initialize() async {
+    // 🚀 AUTOMATIC: All infrastructure setup happens automatically
+    // - Event dispatcher registration (via extension)
+    // - Service client factory setup
+    // - Cross-isolate communication setup
+    // - Event bridge configuration
+
+    await super.initialize();
+
+    logger.info('FluxService initialized with full capabilities', metadata: {
+      'serviceName': serviceName,
+      'hasEventCapabilities': true,
+      'hasClientCapabilities': true,
+      'automaticInfrastructure': true,
+    });
+  }
+
+  @override
+  @mustCallSuper
+  Future<void> destroy() async {
+    logger.info('FluxService destroying', metadata: {
+      'serviceName': serviceName,
+    });
+
+    await super.destroy();
+
+    logger.info('FluxService destroyed successfully');
+  }
+}
+
+/// 🎯 CONVENIENCE: For services that only need events (rare case)
+abstract class FluxEventService extends BaseService with ServiceEventMixin {
+  FluxEventService({super.config, super.logger});
+}
+
+/// 🎯 CONVENIENCE: For services that only need client calls (rare case)
+abstract class FluxClientService extends BaseService with ServiceClientMixin {
+  FluxClientService({super.config, super.logger});
+}

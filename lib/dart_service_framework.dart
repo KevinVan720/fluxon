@@ -12,6 +12,7 @@ library dart_service_framework;
 
 // Core framework exports
 export 'src/base_service.dart';
+export 'src/flux_service.dart'; // 🚀 FLUX: Simplified public API
 export 'src/service_locator.dart';
 export 'src/service_registry.dart';
 export 'src/dependency_resolver.dart';

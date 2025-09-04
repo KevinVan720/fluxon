@@ -10,6 +10,13 @@ part of 'cross_isolate_events_test.dart';
 class MessageCoordinatorClient extends MessageCoordinator {
   MessageCoordinatorClient(this._proxy);
   final ServiceProxy<MessageCoordinator> _proxy;
+
+  @override
+  Future<void> sendMessage(
+      String content, String sender, String recipient) async {
+    return await _proxy
+        .callMethod('sendMessage', [content, sender, recipient], namedArgs: {});
+  }
 }
 
 void _registerMessageCoordinatorClientFactory() {
@@ -18,7 +25,9 @@ void _registerMessageCoordinatorClientFactory() {
   );
 }
 
-class _MessageCoordinatorMethods {}
+class _MessageCoordinatorMethods {
+  static const int sendMessageId = 1;
+}
 
 Future<dynamic> _MessageCoordinatorDispatcher(
   BaseService service,
@@ -28,6 +37,9 @@ Future<dynamic> _MessageCoordinatorDispatcher(
 ) async {
   final s = service as MessageCoordinator;
   switch (methodId) {
+    case _MessageCoordinatorMethods.sendMessageId:
+      return await s.sendMessage(
+          positionalArgs[0], positionalArgs[1], positionalArgs[2]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -40,7 +52,9 @@ void _registerMessageCoordinatorDispatcher() {
 }
 
 void _registerMessageCoordinatorMethodIds() {
-  ServiceMethodIdRegistry.register<MessageCoordinator>({});
+  ServiceMethodIdRegistry.register<MessageCoordinator>({
+    'sendMessage': _MessageCoordinatorMethods.sendMessageId,
+  });
 }
 
 void registerMessageCoordinatorGenerated() {

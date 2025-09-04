@@ -125,6 +125,11 @@ void registerRemoteListenerGenerated() {
 class LocalHubClient extends LocalHub {
   LocalHubClient(this._proxy);
   final ServiceProxy<LocalHub> _proxy;
+
+  @override
+  Future<void> onTick(String id) async {
+    return await _proxy.callMethod('onTick', [id], namedArgs: {});
+  }
 }
 
 void _registerLocalHubClientFactory() {
@@ -133,7 +138,9 @@ void _registerLocalHubClientFactory() {
   );
 }
 
-class _LocalHubMethods {}
+class _LocalHubMethods {
+  static const int onTickId = 1;
+}
 
 Future<dynamic> _LocalHubDispatcher(
   BaseService service,
@@ -143,6 +150,8 @@ Future<dynamic> _LocalHubDispatcher(
 ) async {
   final s = service as LocalHub;
   switch (methodId) {
+    case _LocalHubMethods.onTickId:
+      return await s.onTick(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -155,7 +164,9 @@ void _registerLocalHubDispatcher() {
 }
 
 void _registerLocalHubMethodIds() {
-  ServiceMethodIdRegistry.register<LocalHub>({});
+  ServiceMethodIdRegistry.register<LocalHub>({
+    'onTick': _LocalHubMethods.onTickId,
+  });
 }
 
 void registerLocalHubGenerated() {

@@ -10,6 +10,12 @@ part of 'isolate_transparency_test.dart';
 class TaskOrchestratorClient extends TaskOrchestrator {
   TaskOrchestratorClient(this._proxy);
   final ServiceProxy<TaskOrchestrator> _proxy;
+
+  @override
+  Future<void> executeTask(String taskId, Map<String, dynamic> data) async {
+    return await _proxy
+        .callMethod('executeTask', [taskId, data], namedArgs: {});
+  }
 }
 
 void _registerTaskOrchestratorClientFactory() {
@@ -18,7 +24,9 @@ void _registerTaskOrchestratorClientFactory() {
   );
 }
 
-class _TaskOrchestratorMethods {}
+class _TaskOrchestratorMethods {
+  static const int executeTaskId = 1;
+}
 
 Future<dynamic> _TaskOrchestratorDispatcher(
   BaseService service,
@@ -28,6 +36,8 @@ Future<dynamic> _TaskOrchestratorDispatcher(
 ) async {
   final s = service as TaskOrchestrator;
   switch (methodId) {
+    case _TaskOrchestratorMethods.executeTaskId:
+      return await s.executeTask(positionalArgs[0], positionalArgs[1]);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -40,7 +50,9 @@ void _registerTaskOrchestratorDispatcher() {
 }
 
 void _registerTaskOrchestratorMethodIds() {
-  ServiceMethodIdRegistry.register<TaskOrchestrator>({});
+  ServiceMethodIdRegistry.register<TaskOrchestrator>({
+    'executeTask': _TaskOrchestratorMethods.executeTaskId,
+  });
 }
 
 void registerTaskOrchestratorGenerated() {
