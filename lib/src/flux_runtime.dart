@@ -689,13 +689,16 @@ class FluxRuntime {
         'order': initOrder.map((t) => t.toString()).toList(),
       });
 
-      // 🚀 OPTIMIZATION: Set up proxy registry and event infrastructure FIRST
-      _setupProxyRegistry();
+      // 🚀 CRITICAL: Set up proxy registry for local services BEFORE initialization
+      _setupEventInfrastructureForRegisteredServices();
 
       // Initialize services in order
       for (final serviceType in initOrder) {
         await _initializeService(serviceType);
       }
+
+      // 🚀 OPTIMIZATION: Set up proxy registry and event infrastructure AFTER initialization
+      _setupProxyRegistry();
 
       _isInitialized = true;
       _logger.info('All services initialized successfully');
@@ -893,6 +896,9 @@ class FluxRuntime {
 
       // Store the initialized instance
       _instances[serviceType] = service;
+
+      // 🚀 CRITICAL: Register local proxy immediately after initialization
+      _registerLocalProxy(serviceType);
 
       // Update service info
       _serviceInfos[serviceType] = _serviceInfos[serviceType]!.copyWith(

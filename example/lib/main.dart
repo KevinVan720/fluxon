@@ -32,24 +32,24 @@ void main() async {
   final runtime = FluxRuntime();
 
   // 🔗 DEPENDENCY SYSTEM: Services automatically resolve dependencies
-  // StorageService (no dependencies)
-  runtime.register<StorageService>(() => StorageService());
+  // StorageService (no dependencies, use Impl for automatic registration)
+  runtime.register<StorageService>(() => StorageServiceImpl());
 
-  // UserService depends on StorageService
-  runtime.register<UserService>(() => UserService());
+  // UserService depends on StorageService (use Impl for automatic registration)
+  runtime.register<UserService>(() => UserServiceImpl());
 
-  // TaskService depends on StorageService
-  runtime.register<TaskService>(() => TaskService());
+  // TaskService depends on StorageService (use Impl for automatic registration)
+  runtime.register<TaskService>(() => TaskServiceImpl());
 
   // 🔄 SERVICE PROXY SYSTEM: Remote services auto-detected by Worker suffix
   // NotificationService runs in worker isolate (optional dependency on UserService)
-  runtime.register<NotificationService>(() => NotificationServiceWorker());
+  runtime.register<NotificationService>(() => NotificationServiceImpl());
 
   // AnalyticsService runs in worker isolate (no dependencies)
-  runtime.register<AnalyticsService>(() => AnalyticsServiceWorker());
+  runtime.register<AnalyticsService>(() => AnalyticsServiceImpl());
 
   // BackgroundProcessor runs in worker isolate (optional dependency on TaskService)
-  runtime.register<BackgroundProcessor>(() => BackgroundProcessorWorker());
+  runtime.register<BackgroundProcessor>(() => BackgroundProcessorImpl());
 
   // 🚀 Initialize all services (dependencies resolved automatically)
   await runtime.initializeAll();
