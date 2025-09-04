@@ -25,10 +25,7 @@ class FlakyService extends FluxService {
 Future<void> _runRetrytimeoutdemoDemo() async {
   final locator = ServiceLocator();
   try {
-    await locator.registerWorkerServiceProxy<FlakyService>(
-      serviceName: 'FlakyService',
-      serviceFactory: () => FlakyServiceWorker(),
-    );
+    locator.register<FlakyService>(() => FlakyServiceWorker());
 
     await locator.initializeAll();
 

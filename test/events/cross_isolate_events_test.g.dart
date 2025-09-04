@@ -131,11 +131,25 @@ class MessageProcessorWorker extends MessageProcessor {
   Future<void> registerHostSide() async {
     _registerMessageProcessorClientFactory();
     _registerMessageProcessorMethodIds();
+    // Auto-registered from dependencies/optionalDependencies
+    try {
+      _registerMessageLoggerClientFactory();
+    } catch (_) {}
+    try {
+      _registerMessageLoggerMethodIds();
+    } catch (_) {}
   }
 
   @override
   Future<void> initialize() async {
     _registerMessageProcessorDispatcher();
+    // Ensure worker isolate can create clients for dependencies
+    try {
+      _registerMessageLoggerClientFactory();
+    } catch (_) {}
+    try {
+      _registerMessageLoggerMethodIds();
+    } catch (_) {}
     await super.initialize();
   }
 }

@@ -20,7 +20,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     Element element,
     ConstantReader annotation,
     BuildStep buildStep,
-  ) {
+  ) async {
     if (element is! ClassElement) return '';
     if (!_serviceContractChecker.hasAnnotationOf(element)) return '';
 
@@ -29,6 +29,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     final isRemote = annotation.peek('remote')?.boolValue ?? false;
 
     final buf = StringBuffer();
+
+    // Discover declared dependency type names by scanning source text.
+    final sourceText = await buildStep.readAsString(buildStep.inputId);
+    final depTypeNames = _extractDependencyTypeNamesFromSource(
+      sourceText,
+      className,
+    );
     // NOTE: This content is emitted into a shared part (.g.dart) by
     // SharedPartBuilder. Do not include library/import/part directives here.
     // The surrounding part file provides the library context.
@@ -206,10 +213,28 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln('  Future<void> registerHostSide() async {');
       buf.writeln('    _register${className}ClientFactory();');
       buf.writeln('    _register${className}MethodIds();');
+      for (final dep in depTypeNames) {
+        if (dep != className) {
+          buf.writeln(
+              '    // Auto-registered from dependencies/optionalDependencies');
+          buf.writeln(
+              '    try { _register${dep}ClientFactory(); } catch (_) {}');
+          buf.writeln('    try { _register${dep}MethodIds(); } catch (_) {}');
+        }
+      }
       buf.writeln('  }');
       buf.writeln('  @override');
       buf.writeln('  Future<void> initialize() async {');
       buf.writeln('    _register${className}Dispatcher();');
+      for (final dep in depTypeNames) {
+        if (dep != className) {
+          buf.writeln(
+              '    // Ensure worker isolate can create clients for dependencies');
+          buf.writeln(
+              '    try { _register${dep}ClientFactory(); } catch (_) {}');
+          buf.writeln('    try { _register${dep}MethodIds(); } catch (_) {}');
+        }
+      }
       buf.writeln('    await super.initialize();');
       buf.writeln('  }');
       buf.writeln('}');
@@ -229,26 +254,47 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
 
   /// Extract dependency types from optionalDependencies/dependencies getters
   List<String> _extractDependencyTypes(ClassElement classEl) {
-    final dependencies = <String>[];
+    // Fallback retained (unused with source scan) in case future use needed.
+    return <String>[];
+  }
 
-    for (final method in classEl.methods) {
-      if (method.name == 'optionalDependencies' ||
-          method.name == 'dependencies') {
-        // Try to extract the return type which should be List<Type>
-        final returnType = method.returnType;
-        if (returnType.isDartCoreList) {
-          // For now, we'll use a simplified approach
-          // In a full implementation, we'd parse the method body or type annotations
-          // This is a placeholder that can be enhanced
+  /// Scan the source code to extract Type identifiers from
+  /// `dependencies` and `optionalDependencies` getters for [className].
+  List<String> _extractDependencyTypeNamesFromSource(
+    String source,
+    String className,
+  ) {
+    final result = <String>{};
+    // Find the start of the desired class
+    final classStartRegex =
+        RegExp(r'\bclass\s+' + RegExp.escape(className) + r'\b');
+    final startMatch = classStartRegex.firstMatch(source);
+    if (startMatch == null) return result.toList();
+    final start = startMatch.start;
+    // Find the start of the next class after this one (to bound the slice)
+    final nextClassRegex = RegExp(r'\nclass\s+');
+    final nextMatch = nextClassRegex.firstMatch(source.substring(start + 1));
+    final end = nextMatch == null ? source.length : start + 1 + nextMatch.start;
+    final body = source.substring(start, end);
 
-          // Look for Type literals in the method body (if available)
-          // For MVP, we'll return empty list and require manual specification
-          break;
+    // Find getters like: List<Type> get dependencies => [A, B, C];
+    final depGetterRegex = RegExp(
+        r'List<\s*Type\s*>\s*get\s*(dependencies|optionalDependencies)\s*=>\s*\[(.*?)\];',
+        multiLine: true);
+    for (final m in depGetterRegex.allMatches(body)) {
+      final listContent = m.group(2) ?? '';
+      // Split by commas and trim
+      for (final part in listContent.split(',')) {
+        final name = part.trim();
+        if (name.isEmpty) continue;
+        // Filter out invalid identifiers
+        if (RegExp(r'^[A-Za-z_][A-Za-z0-9_]*\$?').hasMatch(name)) {
+          result.add(name.replaceAll(r'$', ''));
         }
       }
     }
 
-    return dependencies; // Empty for now - can be enhanced to parse actual dependencies
+    return result.toList();
   }
 }
 

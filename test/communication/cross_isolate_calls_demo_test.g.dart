@@ -67,11 +67,25 @@ class ServiceAWorker extends ServiceA {
   Future<void> registerHostSide() async {
     _registerServiceAClientFactory();
     _registerServiceAMethodIds();
+    // Auto-registered from dependencies/optionalDependencies
+    try {
+      _registerServiceBClientFactory();
+    } catch (_) {}
+    try {
+      _registerServiceBMethodIds();
+    } catch (_) {}
   }
 
   @override
   Future<void> initialize() async {
     _registerServiceADispatcher();
+    // Ensure worker isolate can create clients for dependencies
+    try {
+      _registerServiceBClientFactory();
+    } catch (_) {}
+    try {
+      _registerServiceBMethodIds();
+    } catch (_) {}
     await super.initialize();
   }
 }
@@ -144,11 +158,25 @@ class ServiceBWorker extends ServiceB {
   Future<void> registerHostSide() async {
     _registerServiceBClientFactory();
     _registerServiceBMethodIds();
+    // Auto-registered from dependencies/optionalDependencies
+    try {
+      _registerServiceAClientFactory();
+    } catch (_) {}
+    try {
+      _registerServiceAMethodIds();
+    } catch (_) {}
   }
 
   @override
   Future<void> initialize() async {
     _registerServiceBDispatcher();
+    // Ensure worker isolate can create clients for dependencies
+    try {
+      _registerServiceAClientFactory();
+    } catch (_) {}
+    try {
+      _registerServiceAMethodIds();
+    } catch (_) {}
     await super.initialize();
   }
 }

@@ -58,6 +58,7 @@ class ServiceLocator {
   final Map<Type, ServiceFactory> _factories = {};
   final Map<Type, BaseService> _instances = {};
   final Map<Type, ServiceInfo> _serviceInfos = {};
+  final List<Future<void>> _pendingRemoteRegistrations = [];
 
   bool _isInitialized = false;
   bool _isInitializing = false;
@@ -119,10 +120,30 @@ class ServiceLocator {
       );
     }
 
-    _factories[serviceType] = factory;
-
     // Create a temporary instance to get dependency information
     final tempInstance = factory();
+
+    // If this is a generated Worker class, route to remote registration
+    if (tempInstance is FluxService) {
+      final isWorker = tempInstance.runtimeType.toString().endsWith('Worker') ||
+          tempInstance.clientBaseType != tempInstance.runtimeType;
+      if (isWorker) {
+        final baseTypeName = tempInstance.clientBaseType.toString();
+        // Schedule remote proxy registration and await it in initializeAll
+        final f = registerWorkerServiceProxy<T>(
+          serviceName: baseTypeName,
+          serviceFactory: factory,
+        );
+        _pendingRemoteRegistrations.add(f);
+        _logger.info('Scheduled remote worker registration', metadata: {
+          'service': baseTypeName,
+          'workerType': tempInstance.runtimeType.toString(),
+        });
+        return;
+      }
+    }
+
+    _factories[serviceType] = factory;
     final dependencies = tempInstance.dependencies;
     final optionalDependencies = tempInstance.optionalDependencies;
 
@@ -620,6 +641,11 @@ class ServiceLocator {
     _logger.info('Starting service initialization');
 
     try {
+      // Ensure any scheduled remote worker registrations are completed
+      if (_pendingRemoteRegistrations.isNotEmpty) {
+        await Future.wait(_pendingRemoteRegistrations);
+        _pendingRemoteRegistrations.clear();
+      }
       // Initialize registry
       await _registry.initialize();
       // Validate dependencies

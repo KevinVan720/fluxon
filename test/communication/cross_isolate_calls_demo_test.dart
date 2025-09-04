@@ -9,13 +9,6 @@ class ServiceA extends FluxService {
   @override
   List<Type> get optionalDependencies => [ServiceB];
 
-  @override
-  Future<void> initialize() async {
-    // 🚀 FLUX: Worker class will register dispatcher automatically
-    _registerServiceBClientFactory();
-    await super.initialize();
-  }
-
   Future<int> increment(int x) async {
     // This demonstrates a worker service calling another worker service
     final b = getService<ServiceB>();
@@ -29,13 +22,6 @@ class ServiceA extends FluxService {
 class ServiceB extends FluxService {
   @override
   List<Type> get optionalDependencies => [ServiceA];
-
-  @override
-  Future<void> initialize() async {
-    // 🚀 FLUX: Worker class will register dispatcher automatically
-    _registerServiceAClientFactory();
-    await super.initialize();
-  }
 
   Future<int> doubleIt(int x) async => x * 2;
 }
@@ -58,15 +44,9 @@ Future<void> _runCrossisolatecallsdemoDemo() async {
 
   locator.register<Orchestrator>(() => Orchestrator());
 
-  // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  await locator.registerWorkerServiceProxy<ServiceA>(
-    serviceName: 'ServiceA',
-    serviceFactory: () => ServiceAWorker(),
-  );
-  await locator.registerWorkerServiceProxy<ServiceB>(
-    serviceName: 'ServiceB',
-    serviceFactory: () => ServiceBWorker(),
-  );
+  // 🚀 SIMPLE API: same register() for local and remote (worker auto-detected)
+  locator.register<ServiceA>(() => ServiceAWorker());
+  locator.register<ServiceB>(() => ServiceBWorker());
 
   await locator.initializeAll();
 

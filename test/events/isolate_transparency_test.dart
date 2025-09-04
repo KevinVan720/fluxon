@@ -188,15 +188,8 @@ Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
   locator.register<TaskOrchestrator>(() => TaskOrchestrator());
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  await locator.registerWorkerServiceProxy<TaskProcessor>(
-    serviceName: 'TaskProcessor',
-    serviceFactory: () => TaskProcessorWorker(),
-  );
-
-  await locator.registerWorkerServiceProxy<TaskLogger>(
-    serviceName: 'TaskLogger',
-    serviceFactory: () => TaskLoggerWorker(),
-  );
+  locator.register<TaskProcessor>(() => TaskProcessorWorker());
+  locator.register<TaskLogger>(() => TaskLoggerWorker());
 
   // 🚀 OPTIMIZATION: All event infrastructure is set up automatically!
   await locator.initializeAll();

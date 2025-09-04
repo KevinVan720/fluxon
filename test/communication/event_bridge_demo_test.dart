@@ -91,14 +91,8 @@ Future<void> _runEventbridgedemoDemo() async {
   registerLocalHubGenerated();
   locator.register<LocalHub>(() => LocalHub());
   locator.register<Orchestrator>(() => Orchestrator());
-  await locator.registerWorkerServiceProxy<RemoteListener>(
-    serviceName: 'RemoteListener',
-    serviceFactory: () => RemoteListenerWorker(),
-  );
-  await locator.registerWorkerServiceProxy<RemoteEmitter>(
-    serviceName: 'RemoteEmitter',
-    serviceFactory: () => RemoteEmitterWorker(),
-  );
+  locator.register<RemoteListener>(() => RemoteListenerWorker());
+  locator.register<RemoteEmitter>(() => RemoteEmitterWorker());
 
   await locator.initializeAll();
 

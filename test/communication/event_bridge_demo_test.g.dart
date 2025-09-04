@@ -67,11 +67,39 @@ class RemoteEmitterWorker extends RemoteEmitter {
   Future<void> registerHostSide() async {
     _registerRemoteEmitterClientFactory();
     _registerRemoteEmitterMethodIds();
+    // Auto-registered from dependencies/optionalDependencies
+    try {
+      _registerLocalHubClientFactory();
+    } catch (_) {}
+    try {
+      _registerLocalHubMethodIds();
+    } catch (_) {}
+    // Auto-registered from dependencies/optionalDependencies
+    try {
+      _registerRemoteListenerClientFactory();
+    } catch (_) {}
+    try {
+      _registerRemoteListenerMethodIds();
+    } catch (_) {}
   }
 
   @override
   Future<void> initialize() async {
     _registerRemoteEmitterDispatcher();
+    // Ensure worker isolate can create clients for dependencies
+    try {
+      _registerLocalHubClientFactory();
+    } catch (_) {}
+    try {
+      _registerLocalHubMethodIds();
+    } catch (_) {}
+    // Ensure worker isolate can create clients for dependencies
+    try {
+      _registerRemoteListenerClientFactory();
+    } catch (_) {}
+    try {
+      _registerRemoteListenerMethodIds();
+    } catch (_) {}
     await super.initialize();
   }
 }

@@ -130,11 +130,25 @@ class TaskProcessorWorker extends TaskProcessor {
   Future<void> registerHostSide() async {
     _registerTaskProcessorClientFactory();
     _registerTaskProcessorMethodIds();
+    // Auto-registered from dependencies/optionalDependencies
+    try {
+      _registerTaskLoggerClientFactory();
+    } catch (_) {}
+    try {
+      _registerTaskLoggerMethodIds();
+    } catch (_) {}
   }
 
   @override
   Future<void> initialize() async {
     _registerTaskProcessorDispatcher();
+    // Ensure worker isolate can create clients for dependencies
+    try {
+      _registerTaskLoggerClientFactory();
+    } catch (_) {}
+    try {
+      _registerTaskLoggerMethodIds();
+    } catch (_) {}
     await super.initialize();
   }
 }

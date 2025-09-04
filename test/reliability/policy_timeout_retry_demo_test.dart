@@ -24,10 +24,7 @@ class PolicyService extends FluxService {
 Future<void> _runPolicytimeoutretrydemoDemo() async {
   final locator = ServiceLocator();
   try {
-    await locator.registerWorkerServiceProxy<PolicyService>(
-      serviceName: 'PolicyService',
-      serviceFactory: () => PolicyServiceWorker(),
-    );
+    locator.register<PolicyService>(() => PolicyServiceWorker());
 
     await locator.initializeAll();
 

@@ -12,10 +12,7 @@ Future<void> _runVersionskewdemoDemo() async {
   final locator = ServiceLocator();
   try {
     // Register worker with ApiV1
-    await locator.registerWorkerServiceProxy<ApiV1>(
-      serviceName: 'ApiV1',
-      serviceFactory: () => ApiV1Worker(),
-    );
+    locator.register<ApiV1>(() => ApiV1Worker());
 
     await locator.initializeAll();
 

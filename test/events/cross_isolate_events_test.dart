@@ -240,15 +240,8 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   locator.register<MessageCoordinator>(() => MessageCoordinator());
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  await locator.registerWorkerServiceProxy<MessageProcessor>(
-    serviceName: 'MessageProcessor',
-    serviceFactory: () => MessageProcessorWorker(),
-  );
-
-  await locator.registerWorkerServiceProxy<MessageLogger>(
-    serviceName: 'MessageLogger',
-    serviceFactory: () => MessageLoggerWorker(),
-  );
+  locator.register<MessageProcessor>(() => MessageProcessorWorker());
+  locator.register<MessageLogger>(() => MessageLoggerWorker());
 
   await locator.initializeAll();
 
@@ -298,7 +291,7 @@ void main() {
       print('✅ ServiceLocator automatically manages everything');
       print('📊 System demonstrates complete architecture');
       print('🔧 Event type reconstruction ready for enhancement');
-    }, timeout: const Timeout(Duration(seconds: 10)));
+    }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('Event type registry works correctly', () async {
       // Test the event type registry

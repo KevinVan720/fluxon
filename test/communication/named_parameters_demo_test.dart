@@ -27,10 +27,7 @@ Future<void> _runNamedparametersdemoDemo() async {
   final locator = ServiceLocator();
 
   locator.register<Coordinator>(() => Coordinator());
-  await locator.registerWorkerServiceProxy<ReportService>(
-    serviceName: 'ReportService',
-    serviceFactory: () => ReportServiceWorker(),
-  );
+  locator.register<ReportService>(() => ReportServiceWorker());
   await locator.initializeAll();
   final c = locator.get<Coordinator>();
   await c.run();

@@ -59,14 +59,8 @@ Future<void> _runFanoutaggregationdemoDemo() async {
   locator.register<Aggregator>(() => Aggregator());
 
   // 🚀 SINGLE CLASS: Same class for interface and implementation!
-  await locator.registerWorkerServiceProxy<PricingService>(
-    serviceName: 'PricingService',
-    serviceFactory: () => PricingServiceWorker(),
-  );
-  await locator.registerWorkerServiceProxy<InventoryService>(
-    serviceName: 'InventoryService',
-    serviceFactory: () => InventoryServiceWorker(),
-  );
+  locator.register<PricingService>(() => PricingServiceWorker());
+  locator.register<InventoryService>(() => InventoryServiceWorker());
 
   await locator.initializeAll();
 
