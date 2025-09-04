@@ -78,8 +78,8 @@ Future<void> _runEventbridgedemoDemo() async {
   final locator = FluxRuntime();
 
   // 🚀 WORKER-TO-MAIN: LocalHub stays local, workers call it via bridge
-  // 🚀 AUTO-REGISTRATION: No longer need manual $registerLocalHubLocalSide()!
-  locator.register<LocalHub>(LocalHub.new);
+  // 🚀 AUTO-REGISTRATION: Use LocalHubLocalWorker for automatic registration!
+  locator.register<LocalHub>(LocalHubLocalWorker.new);
   locator.register<Orchestrator>(Orchestrator.new);
   locator.register<RemoteListener>(RemoteListenerWorker.new);
   locator.register<RemoteEmitter>(RemoteEmitterWorker.new);

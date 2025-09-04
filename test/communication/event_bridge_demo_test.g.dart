@@ -287,6 +287,14 @@ void registerLocalHubGenerated() {
   $registerLocalHubMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class LocalHubLocalWorker extends LocalHub {
+  LocalHubLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerLocalHubLocalSide();
+  }
+}
+
 void $registerLocalHubLocalSide() {
   $registerLocalHubDispatcher();
   $registerLocalHubClientFactory();

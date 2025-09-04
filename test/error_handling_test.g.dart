@@ -48,6 +48,14 @@ void registerFailingInitServiceGenerated() {
   $registerFailingInitServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class FailingInitServiceLocalWorker extends FailingInitService {
+  FailingInitServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerFailingInitServiceLocalSide();
+  }
+}
+
 void $registerFailingInitServiceLocalSide() {
   $registerFailingInitServiceDispatcher();
   $registerFailingInitServiceClientFactory();
@@ -212,6 +220,14 @@ void registerInvalidDependencyServiceGenerated() {
   $registerInvalidDependencyServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class InvalidDependencyServiceLocalWorker extends InvalidDependencyService {
+  InvalidDependencyServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerInvalidDependencyServiceLocalSide();
+  }
+}
+
 void $registerInvalidDependencyServiceLocalSide() {
   $registerInvalidDependencyServiceDispatcher();
   $registerInvalidDependencyServiceClientFactory();
@@ -285,6 +301,14 @@ void $registerCorruptingServiceMethodIds() {
 void registerCorruptingServiceGenerated() {
   $registerCorruptingServiceClientFactory();
   $registerCorruptingServiceMethodIds();
+}
+
+// Local worker implementation that auto-registers local side
+class CorruptingServiceLocalWorker extends CorruptingService {
+  CorruptingServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerCorruptingServiceLocalSide();
+  }
 }
 
 void $registerCorruptingServiceLocalSide() {
@@ -448,6 +472,14 @@ void $registerMemoryLeakServiceMethodIds() {
 void registerMemoryLeakServiceGenerated() {
   $registerMemoryLeakServiceClientFactory();
   $registerMemoryLeakServiceMethodIds();
+}
+
+// Local worker implementation that auto-registers local side
+class MemoryLeakServiceLocalWorker extends MemoryLeakService {
+  MemoryLeakServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerMemoryLeakServiceLocalSide();
+  }
 }
 
 void $registerMemoryLeakServiceLocalSide() {

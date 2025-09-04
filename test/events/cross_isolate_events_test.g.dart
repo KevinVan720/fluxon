@@ -62,6 +62,14 @@ void registerMessageCoordinatorGenerated() {
   $registerMessageCoordinatorMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class MessageCoordinatorLocalWorker extends MessageCoordinator {
+  MessageCoordinatorLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerMessageCoordinatorLocalSide();
+  }
+}
+
 void $registerMessageCoordinatorLocalSide() {
   $registerMessageCoordinatorDispatcher();
   $registerMessageCoordinatorClientFactory();

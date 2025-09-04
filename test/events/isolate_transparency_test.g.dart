@@ -60,6 +60,14 @@ void registerTaskOrchestratorGenerated() {
   $registerTaskOrchestratorMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class TaskOrchestratorLocalWorker extends TaskOrchestrator {
+  TaskOrchestratorLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerTaskOrchestratorLocalSide();
+  }
+}
+
 void $registerTaskOrchestratorLocalSide() {
   $registerTaskOrchestratorDispatcher();
   $registerTaskOrchestratorClientFactory();

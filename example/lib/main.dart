@@ -9,7 +9,7 @@ import 'services/analytics_service.dart';
 import 'services/background_processor.dart';
 import 'screens/home_screen.dart';
 
-part 'main.g.dart'; // Generated code
+// part 'main.g.dart'; // Generated code - not needed for main files
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

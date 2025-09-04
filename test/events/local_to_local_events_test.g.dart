@@ -59,6 +59,14 @@ void registerUserServiceGenerated() {
   $registerUserServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class UserServiceLocalWorker extends UserService {
+  UserServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerUserServiceLocalSide();
+  }
+}
+
 void $registerUserServiceLocalSide() {
   $registerUserServiceDispatcher();
   $registerUserServiceClientFactory();
@@ -130,6 +138,14 @@ void registerOrderServiceGenerated() {
   $registerOrderServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class OrderServiceLocalWorker extends OrderService {
+  OrderServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerOrderServiceLocalSide();
+  }
+}
+
 void $registerOrderServiceLocalSide() {
   $registerOrderServiceDispatcher();
   $registerOrderServiceClientFactory();
@@ -185,6 +201,14 @@ void $registerNotificationServiceMethodIds() {
 void registerNotificationServiceGenerated() {
   $registerNotificationServiceClientFactory();
   $registerNotificationServiceMethodIds();
+}
+
+// Local worker implementation that auto-registers local side
+class NotificationServiceLocalWorker extends NotificationService {
+  NotificationServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerNotificationServiceLocalSide();
+  }
 }
 
 void $registerNotificationServiceLocalSide() {
@@ -254,6 +278,14 @@ void $registerAnalyticsServiceMethodIds() {
 void registerAnalyticsServiceGenerated() {
   $registerAnalyticsServiceClientFactory();
   $registerAnalyticsServiceMethodIds();
+}
+
+// Local worker implementation that auto-registers local side
+class AnalyticsServiceLocalWorker extends AnalyticsService {
+  AnalyticsServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerAnalyticsServiceLocalSide();
+  }
 }
 
 void $registerAnalyticsServiceLocalSide() {

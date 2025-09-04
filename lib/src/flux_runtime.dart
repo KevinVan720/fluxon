@@ -3,7 +3,6 @@ library flux_runtime;
 
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:mirrors';
 
 import 'package:squadron/squadron.dart';
 
@@ -124,9 +123,11 @@ class FluxRuntime {
 
     // If this is a generated Worker class, route to remote registration
     if (tempInstance is FluxService) {
-      final isWorker = tempInstance.runtimeType.toString().endsWith('Worker') ||
-          tempInstance.clientBaseType != tempInstance.runtimeType;
-      if (isWorker) {
+      final typeName = tempInstance.runtimeType.toString();
+      final isRemoteWorker =
+          (typeName.endsWith('Worker') && !typeName.endsWith('LocalWorker')) ||
+              tempInstance.clientBaseType != tempInstance.runtimeType;
+      if (isRemoteWorker) {
         final baseTypeName = tempInstance.clientBaseType.toString();
         // Schedule remote proxy registration and await it in initializeAll
         final f = registerWorkerServiceProxy<T>(
@@ -410,35 +411,6 @@ class FluxRuntime {
               'serviceType': className,
             });
         return;
-      }
-
-      // If registry approach fails, try to call the function by name
-      // This is a fallback for when the generated code hasn't loaded yet
-      try {
-        // Dynamic function lookup as fallback
-        final library = currentMirrorSystem().isolate.rootLibrary;
-        library.invoke(Symbol(functionName), []);
-        _logger.debug(
-            'Auto-registered local side for service via dynamic lookup',
-            metadata: {
-              'serviceType': className,
-            });
-        return;
-      } catch (_) {
-        // Dynamic lookup failed, try searching libraries
-        for (final lib in currentMirrorSystem().libraries.values) {
-          try {
-            lib.invoke(Symbol(functionName), []);
-            _logger.debug(
-                'Auto-registered local side for service via library search',
-                metadata: {
-                  'serviceType': className,
-                });
-            return;
-          } catch (_) {
-            continue;
-          }
-        }
       }
 
       _logger.debug('No auto-registration function found', metadata: {

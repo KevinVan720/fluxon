@@ -145,6 +145,14 @@ void registerTaskServiceGenerated() {
   $registerTaskServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class TaskServiceLocalWorker extends TaskService {
+  TaskServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerTaskServiceLocalSide();
+  }
+}
+
 void $registerTaskServiceLocalSide() {
   $registerTaskServiceDispatcher();
   $registerTaskServiceClientFactory();

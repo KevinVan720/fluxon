@@ -147,6 +147,14 @@ void registerCoordinatorGenerated() {
   $registerCoordinatorMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class CoordinatorLocalWorker extends Coordinator {
+  CoordinatorLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerCoordinatorLocalSide();
+  }
+}
+
 void $registerCoordinatorLocalSide() {
   $registerCoordinatorDispatcher();
   $registerCoordinatorClientFactory();

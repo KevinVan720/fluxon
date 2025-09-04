@@ -185,6 +185,14 @@ void registerRaceConditionServiceGenerated() {
   $registerRaceConditionServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class RaceConditionServiceLocalWorker extends RaceConditionService {
+  RaceConditionServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerRaceConditionServiceLocalSide();
+  }
+}
+
 void $registerRaceConditionServiceLocalSide() {
   $registerRaceConditionServiceDispatcher();
   $registerRaceConditionServiceClientFactory();

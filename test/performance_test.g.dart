@@ -157,6 +157,14 @@ void registerEventReceiverServiceGenerated() {
   $registerEventReceiverServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class EventReceiverServiceLocalWorker extends EventReceiverService {
+  EventReceiverServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerEventReceiverServiceLocalSide();
+  }
+}
+
 void $registerEventReceiverServiceLocalSide() {
   $registerEventReceiverServiceDispatcher();
   $registerEventReceiverServiceClientFactory();
@@ -233,6 +241,14 @@ void $registerLoadTestServiceMethodIds() {
 void registerLoadTestServiceGenerated() {
   $registerLoadTestServiceClientFactory();
   $registerLoadTestServiceMethodIds();
+}
+
+// Local worker implementation that auto-registers local side
+class LoadTestServiceLocalWorker extends LoadTestService {
+  LoadTestServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerLoadTestServiceLocalSide();
+  }
 }
 
 void $registerLoadTestServiceLocalSide() {

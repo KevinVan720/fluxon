@@ -138,6 +138,14 @@ void registerUserServiceGenerated() {
   $registerUserServiceMethodIds();
 }
 
+// Local worker implementation that auto-registers local side
+class UserServiceLocalWorker extends UserService {
+  UserServiceLocalWorker() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerUserServiceLocalSide();
+  }
+}
+
 void $registerUserServiceLocalSide() {
   $registerUserServiceDispatcher();
   $registerUserServiceClientFactory();

@@ -241,6 +241,20 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       buf.writeln();
     }
 
+    // 🚀 LOCAL WORKER: Generate a local worker class for local services (similar to remote workers)
+    if (!isRemote && !classEl.isAbstract) {
+      buf.writeln(
+          '// Local worker implementation that auto-registers local side');
+      buf.writeln('class ${className}LocalWorker extends $className {');
+      buf.writeln('  ${className}LocalWorker() {');
+      buf.writeln(
+          '    // 🚀 AUTO-REGISTRATION: Register local side when instance is created');
+      buf.writeln('    \$register${className}LocalSide();');
+      buf.writeln('  }');
+      buf.writeln('}');
+      buf.writeln();
+    }
+
     // 🚀 LOCAL AUTO-REGISTRATION: emit a hidden registrar invoked by ServiceLocator
     buf.writeln('void \$register${className}LocalSide() {');
     buf.writeln('  \$register${className}Dispatcher();');
