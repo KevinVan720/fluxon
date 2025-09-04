@@ -85,9 +85,8 @@ class FlakyServiceWorker extends FlakyService {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin FlakyServiceRegistration {
-  void registerService() {
-    _registerFlakyServiceDispatcher();
-  }
+void _registerFlakyServiceLocalSide() {
+  _registerFlakyServiceDispatcher();
+  _registerFlakyServiceClientFactory();
+  _registerFlakyServiceMethodIds();
 }

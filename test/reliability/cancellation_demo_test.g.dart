@@ -85,9 +85,8 @@ class SlowServiceWorker extends SlowService {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin SlowServiceRegistration {
-  void registerService() {
-    _registerSlowServiceDispatcher();
-  }
+void _registerSlowServiceLocalSide() {
+  _registerSlowServiceDispatcher();
+  _registerSlowServiceClientFactory();
+  _registerSlowServiceMethodIds();
 }

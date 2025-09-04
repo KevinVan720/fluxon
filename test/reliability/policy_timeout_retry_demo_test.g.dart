@@ -91,9 +91,8 @@ class PolicyServiceWorker extends PolicyService {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin PolicyServiceRegistration {
-  void registerService() {
-    _registerPolicyServiceDispatcher();
-  }
+void _registerPolicyServiceLocalSide() {
+  _registerPolicyServiceDispatcher();
+  _registerPolicyServiceClientFactory();
+  _registerPolicyServiceMethodIds();
 }

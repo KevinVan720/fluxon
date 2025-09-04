@@ -76,9 +76,8 @@ class ApiV1Worker extends ApiV1 {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin ApiV1Registration {
-  void registerService() {
-    _registerApiV1Dispatcher();
-  }
+void _registerApiV1LocalSide() {
+  _registerApiV1Dispatcher();
+  _registerApiV1ClientFactory();
+  _registerApiV1MethodIds();
 }

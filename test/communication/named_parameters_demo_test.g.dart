@@ -79,9 +79,73 @@ class ReportServiceWorker extends ReportService {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin ReportServiceRegistration {
-  void registerService() {
-    _registerReportServiceDispatcher();
+void _registerReportServiceLocalSide() {
+  _registerReportServiceDispatcher();
+  _registerReportServiceClientFactory();
+  _registerReportServiceMethodIds();
+}
+
+// Service client for Coordinator
+class CoordinatorClient extends Coordinator {
+  CoordinatorClient(this._proxy);
+  final ServiceProxy<Coordinator> _proxy;
+
+  @override
+  Future<void> run() async {
+    return await _proxy.callMethod('run', [], namedArgs: {});
   }
+}
+
+void _registerCoordinatorClientFactory() {
+  GeneratedClientRegistry.register<Coordinator>(
+    (proxy) => CoordinatorClient(proxy),
+  );
+}
+
+class _CoordinatorMethods {
+  static const int runId = 1;
+}
+
+Future<dynamic> _CoordinatorDispatcher(
+  BaseService service,
+  int methodId,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+) async {
+  final s = service as Coordinator;
+  switch (methodId) {
+    case _CoordinatorMethods.runId:
+      return await s.run();
+    default:
+      throw ServiceException('Unknown method id: $methodId');
+  }
+}
+
+void _registerCoordinatorDispatcher() {
+  GeneratedDispatcherRegistry.register<Coordinator>(
+    _CoordinatorDispatcher,
+  );
+}
+
+void _registerCoordinatorMethodIds() {
+  ServiceMethodIdRegistry.register<Coordinator>({
+    'run': _CoordinatorMethods.runId,
+  });
+}
+
+void registerCoordinatorGenerated() {
+  _registerCoordinatorClientFactory();
+  _registerCoordinatorMethodIds();
+}
+
+void _registerCoordinatorLocalSide() {
+  _registerCoordinatorDispatcher();
+  _registerCoordinatorClientFactory();
+  _registerCoordinatorMethodIds();
+  try {
+    _registerReportServiceClientFactory();
+  } catch (_) {}
+  try {
+    _registerReportServiceMethodIds();
+  } catch (_) {}
 }

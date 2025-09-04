@@ -62,11 +62,22 @@ void registerMessageCoordinatorGenerated() {
   _registerMessageCoordinatorMethodIds();
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin MessageCoordinatorRegistration {
-  void registerService() {
-    _registerMessageCoordinatorDispatcher();
-  }
+void _registerMessageCoordinatorLocalSide() {
+  _registerMessageCoordinatorDispatcher();
+  _registerMessageCoordinatorClientFactory();
+  _registerMessageCoordinatorMethodIds();
+  try {
+    _registerMessageProcessorClientFactory();
+  } catch (_) {}
+  try {
+    _registerMessageProcessorMethodIds();
+  } catch (_) {}
+  try {
+    _registerMessageLoggerClientFactory();
+  } catch (_) {}
+  try {
+    _registerMessageLoggerMethodIds();
+  } catch (_) {}
 }
 
 // Service client for MessageProcessor
@@ -154,11 +165,16 @@ class MessageProcessorWorker extends MessageProcessor {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin MessageProcessorRegistration {
-  void registerService() {
-    _registerMessageProcessorDispatcher();
-  }
+void _registerMessageProcessorLocalSide() {
+  _registerMessageProcessorDispatcher();
+  _registerMessageProcessorClientFactory();
+  _registerMessageProcessorMethodIds();
+  try {
+    _registerMessageLoggerClientFactory();
+  } catch (_) {}
+  try {
+    _registerMessageLoggerMethodIds();
+  } catch (_) {}
 }
 
 // Service client for MessageLogger
@@ -243,9 +259,8 @@ class MessageLoggerWorker extends MessageLogger {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin MessageLoggerRegistration {
-  void registerService() {
-    _registerMessageLoggerDispatcher();
-  }
+void _registerMessageLoggerLocalSide() {
+  _registerMessageLoggerDispatcher();
+  _registerMessageLoggerClientFactory();
+  _registerMessageLoggerMethodIds();
 }

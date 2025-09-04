@@ -90,11 +90,16 @@ class ServiceAWorker extends ServiceA {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin ServiceARegistration {
-  void registerService() {
-    _registerServiceADispatcher();
-  }
+void _registerServiceALocalSide() {
+  _registerServiceADispatcher();
+  _registerServiceAClientFactory();
+  _registerServiceAMethodIds();
+  try {
+    _registerServiceBClientFactory();
+  } catch (_) {}
+  try {
+    _registerServiceBMethodIds();
+  } catch (_) {}
 }
 
 // Service client for ServiceB
@@ -181,9 +186,14 @@ class ServiceBWorker extends ServiceB {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin ServiceBRegistration {
-  void registerService() {
-    _registerServiceBDispatcher();
-  }
+void _registerServiceBLocalSide() {
+  _registerServiceBDispatcher();
+  _registerServiceBClientFactory();
+  _registerServiceBMethodIds();
+  try {
+    _registerServiceAClientFactory();
+  } catch (_) {}
+  try {
+    _registerServiceAMethodIds();
+  } catch (_) {}
 }

@@ -76,11 +76,10 @@ class PricingServiceWorker extends PricingService {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin PricingServiceRegistration {
-  void registerService() {
-    _registerPricingServiceDispatcher();
-  }
+void _registerPricingServiceLocalSide() {
+  _registerPricingServiceDispatcher();
+  _registerPricingServiceClientFactory();
+  _registerPricingServiceMethodIds();
 }
 
 // Service client for InventoryService
@@ -153,9 +152,8 @@ class InventoryServiceWorker extends InventoryService {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin InventoryServiceRegistration {
-  void registerService() {
-    _registerInventoryServiceDispatcher();
-  }
+void _registerInventoryServiceLocalSide() {
+  _registerInventoryServiceDispatcher();
+  _registerInventoryServiceClientFactory();
+  _registerInventoryServiceMethodIds();
 }

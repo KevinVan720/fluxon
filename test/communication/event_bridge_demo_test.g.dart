@@ -104,11 +104,22 @@ class RemoteEmitterWorker extends RemoteEmitter {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin RemoteEmitterRegistration {
-  void registerService() {
-    _registerRemoteEmitterDispatcher();
-  }
+void _registerRemoteEmitterLocalSide() {
+  _registerRemoteEmitterDispatcher();
+  _registerRemoteEmitterClientFactory();
+  _registerRemoteEmitterMethodIds();
+  try {
+    _registerLocalHubClientFactory();
+  } catch (_) {}
+  try {
+    _registerLocalHubMethodIds();
+  } catch (_) {}
+  try {
+    _registerRemoteListenerClientFactory();
+  } catch (_) {}
+  try {
+    _registerRemoteListenerMethodIds();
+  } catch (_) {}
 }
 
 // Service client for RemoteListener
@@ -190,11 +201,10 @@ class RemoteListenerWorker extends RemoteListener {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin RemoteListenerRegistration {
-  void registerService() {
-    _registerRemoteListenerDispatcher();
-  }
+void _registerRemoteListenerLocalSide() {
+  _registerRemoteListenerDispatcher();
+  _registerRemoteListenerClientFactory();
+  _registerRemoteListenerMethodIds();
 }
 
 // Service client for LocalHub
@@ -259,9 +269,8 @@ void registerLocalHubGenerated() {
   _registerLocalHubMethodIds();
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin LocalHubRegistration {
-  void registerService() {
-    _registerLocalHubDispatcher();
-  }
+void _registerLocalHubLocalSide() {
+  _registerLocalHubDispatcher();
+  _registerLocalHubClientFactory();
+  _registerLocalHubMethodIds();
 }

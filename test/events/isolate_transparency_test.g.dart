@@ -60,11 +60,22 @@ void registerTaskOrchestratorGenerated() {
   _registerTaskOrchestratorMethodIds();
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin TaskOrchestratorRegistration {
-  void registerService() {
-    _registerTaskOrchestratorDispatcher();
-  }
+void _registerTaskOrchestratorLocalSide() {
+  _registerTaskOrchestratorDispatcher();
+  _registerTaskOrchestratorClientFactory();
+  _registerTaskOrchestratorMethodIds();
+  try {
+    _registerTaskProcessorClientFactory();
+  } catch (_) {}
+  try {
+    _registerTaskProcessorMethodIds();
+  } catch (_) {}
+  try {
+    _registerTaskLoggerClientFactory();
+  } catch (_) {}
+  try {
+    _registerTaskLoggerMethodIds();
+  } catch (_) {}
 }
 
 // Service client for TaskProcessor
@@ -153,11 +164,16 @@ class TaskProcessorWorker extends TaskProcessor {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin TaskProcessorRegistration {
-  void registerService() {
-    _registerTaskProcessorDispatcher();
-  }
+void _registerTaskProcessorLocalSide() {
+  _registerTaskProcessorDispatcher();
+  _registerTaskProcessorClientFactory();
+  _registerTaskProcessorMethodIds();
+  try {
+    _registerTaskLoggerClientFactory();
+  } catch (_) {}
+  try {
+    _registerTaskLoggerMethodIds();
+  } catch (_) {}
 }
 
 // Service client for TaskLogger
@@ -242,9 +258,8 @@ class TaskLoggerWorker extends TaskLogger {
   }
 }
 
-// 🚀 FLUX: Single registration call mixin
-mixin TaskLoggerRegistration {
-  void registerService() {
-    _registerTaskLoggerDispatcher();
-  }
+void _registerTaskLoggerLocalSide() {
+  _registerTaskLoggerDispatcher();
+  _registerTaskLoggerClientFactory();
+  _registerTaskLoggerMethodIds();
 }

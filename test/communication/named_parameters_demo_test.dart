@@ -10,7 +10,8 @@ class ReportService extends FluxService {
       '[title=$title, year=${year ?? 'n/a'}, detailed=$detailed]';
 }
 
-class Coordinator extends BaseService with ServiceClientMixin {
+@ServiceContract(remote: false)
+class Coordinator extends FluxService {
   @override
   List<Type> get optionalDependencies => [ReportService];
 
@@ -18,7 +19,7 @@ class Coordinator extends BaseService with ServiceClientMixin {
     final report = getService<ReportService>();
     final res =
         await report.generateReport('Ops Summary', year: 2025, detailed: true);
-    print(res);
+    logger.info('Report generated: $res');
   }
 }
 

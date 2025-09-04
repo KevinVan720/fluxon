@@ -6,6 +6,8 @@ import 'dart:async';
 import 'package:dart_service_framework/dart_service_framework.dart';
 import 'package:test/test.dart';
 
+part 'local_to_local_events_test.g.dart';
+
 // Test event types for local communication
 class UserCreatedEvent extends ServiceEvent {
   const UserCreatedEvent({
@@ -126,7 +128,8 @@ class SystemAlertEvent extends ServiceEvent {
 }
 
 // Local test services with event communication
-class UserService extends BaseService with ServiceEventMixin {
+@ServiceContract(remote: false)
+class UserService extends FluxService {
   final List<Map<String, dynamic>> users = [];
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -225,7 +228,8 @@ class UserService extends BaseService with ServiceEventMixin {
   }
 }
 
-class OrderService extends BaseService with ServiceEventMixin {
+@ServiceContract(remote: false)
+class OrderService extends FluxService {
   final List<Map<String, dynamic>> orders = [];
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -303,7 +307,8 @@ class OrderService extends BaseService with ServiceEventMixin {
   }
 }
 
-class NotificationService extends BaseService with ServiceEventMixin {
+@ServiceContract(remote: false)
+class NotificationService extends FluxService {
   final List<String> notifications = [];
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -360,7 +365,8 @@ class NotificationService extends BaseService with ServiceEventMixin {
   }
 }
 
-class AnalyticsService extends BaseService with ServiceEventMixin {
+@ServiceContract(remote: false)
+class AnalyticsService extends FluxService {
   final Map<String, int> eventCounts = {};
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -408,12 +414,12 @@ class AnalyticsService extends BaseService with ServiceEventMixin {
     });
   }
 
-  Map<String, int> getAnalytics() => Map.unmodifiable(eventCounts);
+  Future<Map<String, int>> getAnalytics() async =>
+      Map.unmodifiable(eventCounts);
 }
 
 void main() {
   group('Local-to-Local Event Communication Tests', () {
-    late EventDispatcher dispatcher;
     late FluxRuntime locator;
     late UserService userService;
     late OrderService orderService;
@@ -421,34 +427,25 @@ void main() {
     late AnalyticsService analyticsService;
 
     setUp(() async {
-      dispatcher = EventDispatcher();
       locator = FluxRuntime();
 
-      // Create services
-      userService = UserService();
-      orderService = OrderService();
-      notificationService = NotificationService();
-      analyticsService = AnalyticsService();
+      // 🚀 FLUX: Simple registration with automatic infrastructure
+      locator.register<UserService>(() => UserService());
+      locator.register<OrderService>(() => OrderService());
+      locator.register<NotificationService>(() => NotificationService());
+      locator.register<AnalyticsService>(() => AnalyticsService());
 
-      // Register services with locator
-      locator.register<UserService>(() => userService);
-      locator.register<OrderService>(() => orderService);
-      locator.register<NotificationService>(() => notificationService);
-      locator.register<AnalyticsService>(() => analyticsService);
-
-      // Set event dispatchers
-      userService.setEventDispatcher(dispatcher);
-      orderService.setEventDispatcher(dispatcher);
-      notificationService.setEventDispatcher(dispatcher);
-      analyticsService.setEventDispatcher(dispatcher);
-
-      // Initialize services
       await locator.initializeAll();
+
+      // Get services after initialization
+      userService = locator.get<UserService>();
+      orderService = locator.get<OrderService>();
+      notificationService = locator.get<NotificationService>();
+      analyticsService = locator.get<AnalyticsService>();
     });
 
     tearDown(() async {
       await locator.destroyAll();
-      dispatcher.dispose();
     });
 
     test('should handle complete user creation workflow with events', () async {
@@ -689,7 +686,7 @@ void main() {
       print('Events were processed and distributed correctly');
 
       // The optimized infrastructure processes events automatically
-      // Statistics tracking would need to be accessed through ServiceLocator
+      // Statistics tracking would need to be accessed through FluxRuntime
       expect(true, isTrue); // Test passes - events were processed successfully
 
       print('Local-to-local event communication working correctly');
