@@ -329,16 +329,7 @@ class ServiceLocator {
         });
       }
 
-      // 🚀 NEW: Automatically invoke generated local-side registrars
-      try {
-        // Expect a top-level function named _register<TypeName>LocalSide
-        final registrarName = '_register' + type.toString() + 'LocalSide';
-        // Use method id registry to check if already registered; skip if so
-        if (GeneratedDispatcherRegistry.findDispatcherForObject(service) ==
-            null) {
-          // ignore: invalid_use_of_protected_member
-        }
-      } catch (_) {}
+      // Note: local-side registration is performed by generated code when needed.
     }
 
     // Also set up for registered but not yet initialized services
@@ -366,13 +357,7 @@ class ServiceLocator {
           service.setProxyRegistry(_proxyRegistry);
         }
 
-        // 🚀 NEW: Auto invoke local-side registrar for services created here
-        try {
-          final registrarName = '_register' + type.toString() + 'LocalSide';
-          // No direct invocation without mirrors; rely on generated worker/local
-          // being referenced elsewhere to include in build. The registrar will be
-          // tree-shaken if unused, so we ensure usage by referencing a symbol.
-        } catch (_) {}
+        // Note: local-side registration is performed by generated code when needed.
 
         _logger.debug('Pre-initialized service infrastructure', metadata: {
           'serviceType': type.toString(),
