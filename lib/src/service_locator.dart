@@ -440,12 +440,38 @@ class ServiceLocator {
           final method = message['method'] as String;
           final positional = (message['positional'] as List).cast<dynamic>();
           final named = Map<String, dynamic>.from(message['named'] as Map);
-          final targetType = _proxyRegistry.registeredTypes.firstWhere(
-            (t) => t.toString() == serviceTypeStr,
-            orElse: () => throw ServiceNotFoundException(serviceTypeStr),
-          );
-          final proxy = _proxyRegistry.tryGetProxyByType(targetType);
+
+          // 🚀 WORKER-TO-MAIN: Check both proxy registry AND local services
+          Type? targetType;
+          ServiceProxy? proxy;
+          BaseService? localService;
+
+          // First try proxy registry (for remote services)
+          try {
+            targetType = _proxyRegistry.registeredTypes.firstWhere(
+              (t) => t.toString() == serviceTypeStr,
+            );
+            proxy = _proxyRegistry.tryGetProxyByType(targetType);
+          } catch (e) {
+            // Not found in proxy registry, try local services
+          }
+
+          // If not found in proxy registry, check local services
           if (proxy == null) {
+            // Look for local service by type name
+            for (final entry in _instances.entries) {
+              if (entry.key.toString() == serviceTypeStr) {
+                targetType = entry.key;
+                localService = entry.value;
+                // Create a temporary local proxy for the call
+                proxy = LocalServiceProxy<BaseService>();
+                await proxy.connect(localService);
+                break;
+              }
+            }
+          }
+
+          if (proxy == null || targetType == null) {
             throw ServiceNotFoundException(serviceTypeStr);
           }
           dynamic result;

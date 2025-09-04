@@ -130,6 +130,11 @@ class LocalHubClient extends LocalHub {
   Future<void> onTick(String id) async {
     return await _proxy.callMethod('onTick', [id], namedArgs: {});
   }
+
+  @override
+  Future<int> getTicks() async {
+    return await _proxy.callMethod('getTicks', [], namedArgs: {});
+  }
 }
 
 void _registerLocalHubClientFactory() {
@@ -140,6 +145,7 @@ void _registerLocalHubClientFactory() {
 
 class _LocalHubMethods {
   static const int onTickId = 1;
+  static const int getTicksId = 2;
 }
 
 Future<dynamic> _LocalHubDispatcher(
@@ -152,6 +158,8 @@ Future<dynamic> _LocalHubDispatcher(
   switch (methodId) {
     case _LocalHubMethods.onTickId:
       return await s.onTick(positionalArgs[0]);
+    case _LocalHubMethods.getTicksId:
+      return await s.getTicks();
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -166,6 +174,7 @@ void _registerLocalHubDispatcher() {
 void _registerLocalHubMethodIds() {
   ServiceMethodIdRegistry.register<LocalHub>({
     'onTick': _LocalHubMethods.onTickId,
+    'getTicks': _LocalHubMethods.getTicksId,
   });
 }
 
