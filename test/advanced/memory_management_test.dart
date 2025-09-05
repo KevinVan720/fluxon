@@ -205,12 +205,10 @@ class CircularReferenceService extends FluxService {
     logger.info('Created $count circular references');
   }
 
-  Map<String, dynamic> getCircularStats() {
-    return {
-      'dataCount': _data.length,
-      'hasSelfReference': _selfReference != null,
-    };
-  }
+  Map<String, dynamic> getCircularStats() => {
+        'dataCount': _data.length,
+        'hasSelfReference': _selfReference != null,
+      };
 }
 
 void main() {
@@ -460,7 +458,7 @@ void main() {
         final service = runtime.get<MemoryIntensiveService>();
 
         // Rapid allocation/deallocation cycles
-        for (int cycle = 0; cycle < 10; cycle++) {
+        for (var cycle = 0; cycle < 10; cycle++) {
           await service.allocateMemory(50, 1000);
           await service.forceGarbageCollection();
         }
@@ -479,7 +477,7 @@ void main() {
 
         // Concurrent memory operations
         final futures = <Future>[];
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           futures.add(service.allocateMemory(10, 1000));
         }
 

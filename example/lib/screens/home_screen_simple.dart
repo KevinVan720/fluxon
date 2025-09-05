@@ -188,8 +188,8 @@ class _HomeScreenSimpleState extends State<HomeScreenSimple> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _createDemoTask,
-        child: const Icon(Icons.add),
         tooltip: 'Create Demo Task',
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -24,13 +24,6 @@ enum Permission {
 }
 
 class SecurityContext {
-  final String userId;
-  final String sessionId;
-  final List<SecurityRole> roles;
-  final List<Permission> permissions;
-  final Map<String, dynamic> attributes;
-  final DateTime expiresAt;
-
   const SecurityContext({
     required this.userId,
     required this.sessionId,
@@ -39,20 +32,6 @@ class SecurityContext {
     required this.attributes,
     required this.expiresAt,
   });
-
-  bool hasRole(SecurityRole role) => roles.contains(role);
-  bool hasPermission(Permission permission) => permissions.contains(permission);
-  bool isExpired() => DateTime.now().isAfter(expiresAt);
-  bool hasAttribute(String key, dynamic value) => attributes[key] == value;
-
-  Map<String, dynamic> toJson() => {
-        'userId': userId,
-        'sessionId': sessionId,
-        'roles': roles.map((r) => r.toString()).toList(),
-        'permissions': permissions.map((p) => p.toString()).toList(),
-        'attributes': attributes,
-        'expiresAt': expiresAt.toIso8601String(),
-      };
 
   factory SecurityContext.fromJson(Map<String, dynamic> json) {
     return SecurityContext(
@@ -68,18 +47,37 @@ class SecurityContext {
       expiresAt: DateTime.parse(json['expiresAt'] as String),
     );
   }
+  final String userId;
+  final String sessionId;
+  final List<SecurityRole> roles;
+  final List<Permission> permissions;
+  final Map<String, dynamic> attributes;
+  final DateTime expiresAt;
+
+  bool hasRole(SecurityRole role) => roles.contains(role);
+  bool hasPermission(Permission permission) => permissions.contains(permission);
+  bool isExpired() => DateTime.now().isAfter(expiresAt);
+  bool hasAttribute(String key, value) => attributes[key] == value;
+
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'sessionId': sessionId,
+        'roles': roles.map((r) => r.toString()).toList(),
+        'permissions': permissions.map((p) => p.toString()).toList(),
+        'attributes': attributes,
+        'expiresAt': expiresAt.toIso8601String(),
+      };
 }
 
 // Security service for authentication and authorization
 @ServiceContract(remote: false)
 class SecurityService extends FluxService {
+  SecurityService();
   final Map<String, SecurityContext> _activeSessions = {};
   final Map<String, String> _userPasswords = {};
   final Map<String, List<SecurityRole>> _userRoles = {};
   final Map<String, List<Permission>> _rolePermissions = {};
   final List<Map<String, dynamic>> _auditLog = [];
-
-  SecurityService();
 
   @override
   Future<void> initialize() async {
@@ -130,7 +128,7 @@ class SecurityService extends FluxService {
       roles: roles,
       permissions: permissions,
       attributes: {'ip': '127.0.0.1', 'userAgent': 'test'},
-      expiresAt: DateTime.now().add(Duration(hours: 1)),
+      expiresAt: DateTime.now().add(const Duration(hours: 1)),
     );
 
     _activeSessions[sessionId] = context;
@@ -247,23 +245,19 @@ class SecurityService extends FluxService {
     return base64Encode(bytes);
   }
 
-  List<Map<String, dynamic>> getAuditLog() {
-    return List.from(_auditLog);
-  }
+  List<Map<String, dynamic>> getAuditLog() => List.from(_auditLog);
 
-  Map<String, dynamic> getSecurityStats() {
-    return {
-      'activeSessions': _activeSessions.length,
-      'totalUsers': _userPasswords.length,
-      'auditLogEntries': _auditLog.length,
-    };
-  }
+  Map<String, dynamic> getSecurityStats() => {
+        'activeSessions': _activeSessions.length,
+        'totalUsers': _userPasswords.length,
+        'auditLogEntries': _auditLog.length,
+      };
 }
 
 // Exception for security violations
 class SecurityException implements Exception {
-  final String message;
   SecurityException(this.message);
+  final String message;
 
   @override
   String toString() => 'SecurityException: $message';
@@ -272,11 +266,10 @@ class SecurityException implements Exception {
 // Secure data service with access control
 @ServiceContract(remote: false)
 class SecureDataService extends FluxService {
+  SecureDataService(this._securityService);
   final SecurityService _securityService;
   final Map<String, Map<String, dynamic>> _data = {};
   final Map<String, String> _dataOwners = {};
-
-  SecureDataService(this._securityService);
 
   @override
   Future<void> initialize() async {
@@ -379,12 +372,11 @@ class SecureDataService extends FluxService {
 // Secure API service with rate limiting
 @ServiceContract(remote: false)
 class SecureApiService extends FluxService {
+  SecureApiService(this._securityService);
   final SecurityService _securityService;
   final Map<String, List<DateTime>> _requestHistory = {};
   final Map<String, int> _rateLimits = {};
   final Map<String, int> _requestCounts = {};
-
-  SecureApiService(this._securityService);
 
   @override
   Future<void> initialize() async {
@@ -420,7 +412,7 @@ class SecureApiService extends FluxService {
     _recordRequest(context.userId);
 
     // Simulate API processing
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     logger.info('API call made: $endpoint by ${context.userId}');
     return 'API call to $endpoint successful';
@@ -428,10 +420,10 @@ class SecureApiService extends FluxService {
 
   Future<bool> _checkRateLimit(String userId, List<SecurityRole> roles) async {
     final now = DateTime.now();
-    final oneMinuteAgo = now.subtract(Duration(minutes: 1));
+    final oneMinuteAgo = now.subtract(const Duration(minutes: 1));
 
     // Get user's rate limit
-    int rateLimit = _rateLimits['default'] ?? 10;
+    var rateLimit = _rateLimits['default'] ?? 10;
     if (roles.contains(SecurityRole.admin)) {
       rateLimit = _rateLimits['admin'] ?? 100;
     } else if (roles.contains(SecurityRole.user)) {
@@ -481,20 +473,17 @@ class SecureApiService extends FluxService {
     _requestCounts[userId] = (_requestCounts[userId] ?? 0) + 1;
   }
 
-  Map<String, dynamic> getApiStats() {
-    return {
-      'requestCounts': Map.from(_requestCounts),
-      'rateLimits': Map.from(_rateLimits),
-    };
-  }
+  Map<String, dynamic> getApiStats() => {
+        'requestCounts': Map.from(_requestCounts),
+        'rateLimits': Map.from(_rateLimits),
+      };
 }
 
 // Encryption service for sensitive data
 @ServiceContract(remote: false)
 class EncryptionService extends FluxService {
-  final String _encryptionKey = 'test_encryption_key_12345';
-
   EncryptionService();
+  final String _encryptionKey = 'test_encryption_key_12345';
 
   @override
   Future<void> initialize() async {
@@ -508,7 +497,7 @@ class EncryptionService extends FluxService {
     final keyBytes = _encryptionKey.codeUnits;
     final encrypted = <int>[];
 
-    for (int i = 0; i < bytes.length; i++) {
+    for (var i = 0; i < bytes.length; i++) {
       encrypted.add(bytes[i] ^ keyBytes[i % keyBytes.length]);
     }
 
@@ -521,7 +510,7 @@ class EncryptionService extends FluxService {
     final keyBytes = _encryptionKey.codeUnits;
     final decrypted = <int>[];
 
-    for (int i = 0; i < encrypted.length; i++) {
+    for (var i = 0; i < encrypted.length; i++) {
       decrypted.add(encrypted[i] ^ keyBytes[i % keyBytes.length]);
     }
 
@@ -807,7 +796,7 @@ void main() {
             await securityService.authenticate('user1', 'user123');
 
         // Make many API calls to trigger rate limiting
-        for (int i = 0; i < 60; i++) {
+        for (var i = 0; i < 60; i++) {
           try {
             await apiService.makeApiCall(userSession, '/api/public', {});
           } catch (e) {
@@ -908,7 +897,7 @@ void main() {
         final futures = <Future>[];
 
         // Create multiple sessions concurrently
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           futures.add(securityService.authenticate('user1', 'user123'));
         }
 

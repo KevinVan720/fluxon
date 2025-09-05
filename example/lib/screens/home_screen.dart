@@ -113,16 +113,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         children: [
           FloatingActionButton(
             onPressed: _testHeavyOperation,
-            child: const Icon(Icons.speed),
             tooltip: 'Test Heavy Operation',
             heroTag: "heavy_operation",
+            child: const Icon(Icons.speed),
           ),
           const SizedBox(height: 8),
           FloatingActionButton(
             onPressed: _createTask,
-            child: const Icon(Icons.add),
             tooltip: 'Create New Task',
             heroTag: "create_task",
+            child: const Icon(Icons.add),
           ),
         ],
       ),

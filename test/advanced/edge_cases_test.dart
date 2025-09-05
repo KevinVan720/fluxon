@@ -7,11 +7,10 @@ import 'package:test/test.dart';
 // Service that tests extreme values and boundary conditions
 @ServiceContract(remote: false)
 class BoundaryTestService extends FluxService {
+  BoundaryTestService();
   final List<String> _operations = [];
   int _maxOperations = 1000000;
   int _operationCount = 0;
-
-  BoundaryTestService();
 
   @override
   Future<void> initialize() async {
@@ -55,23 +54,20 @@ class BoundaryTestService extends FluxService {
     _maxOperations = max;
   }
 
-  Map<String, dynamic> getStats() {
-    return {
-      'operationCount': _operationCount,
-      'maxOperations': _maxOperations,
-      'operations': List.from(_operations),
-    };
-  }
+  Map<String, dynamic> getStats() => {
+        'operationCount': _operationCount,
+        'maxOperations': _maxOperations,
+        'operations': List.from(_operations),
+      };
 }
 
 // Service that tests extreme dependency scenarios
 @ServiceContract(remote: false)
 class DependencyTestService extends FluxService {
+  DependencyTestService(this._dependencies, this._optionalDependencies);
   final List<Type> _dependencies;
   final List<Type> _optionalDependencies;
   final Map<String, dynamic> _data = {};
-
-  DependencyTestService(this._dependencies, this._optionalDependencies);
 
   @override
   List<Type> get dependencies => _dependencies;
@@ -91,21 +87,18 @@ class DependencyTestService extends FluxService {
     return 'Operation $operationId completed with ${_dependencies.length} dependencies';
   }
 
-  Map<String, dynamic> getData() {
-    return Map.from(_data);
-  }
+  Map<String, dynamic> getData() => Map.from(_data);
 }
 
 // Service that tests extreme event scenarios
 @ServiceContract(remote: false)
 class EventTestService extends FluxService {
+  EventTestService();
   final List<ServiceEvent> _receivedEvents = [];
   final Map<String, int> _eventCounts = {};
   int _maxEvents = 1000000;
   bool _shouldFail = false;
   int _sentEvents = 0;
-
-  EventTestService();
 
   @override
   Future<void> initialize() async {
@@ -124,7 +117,7 @@ class EventTestService extends FluxService {
         throw Exception('Event processing intentionally failed');
       }
 
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration.zero,
       );
@@ -162,18 +155,28 @@ class EventTestService extends FluxService {
     _shouldFail = fail;
   }
 
-  Map<String, dynamic> getEventStats() {
-    return {
-      'receivedEvents': _receivedEvents.length,
-      'sentEvents': _sentEvents,
-      'maxEvents': _maxEvents,
-      'eventCounts': Map.from(_eventCounts),
-    };
-  }
+  Map<String, dynamic> getEventStats() => {
+        'receivedEvents': _receivedEvents.length,
+        'sentEvents': _sentEvents,
+        'maxEvents': _maxEvents,
+        'eventCounts': Map.from(_eventCounts),
+      };
 }
 
 // Test event for edge case testing
 class TestEvent extends ServiceEvent {
+  factory TestEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return TestEvent(
+      eventId: json['eventId'] as String,
+      sourceService: json['sourceService'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      correlationId: json['correlationId'] as String?,
+      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
+      message: data['message'] as String,
+      priority: data['priority'] as int,
+    );
+  }
   const TestEvent({
     required super.eventId,
     required super.sourceService,
@@ -192,27 +195,13 @@ class TestEvent extends ServiceEvent {
         'message': message,
         'priority': priority,
       };
-
-  factory TestEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return TestEvent(
-      eventId: json['eventId'] as String,
-      sourceService: json['sourceService'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      correlationId: json['correlationId'] as String?,
-      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
-      message: data['message'] as String,
-      priority: data['priority'] as int,
-    );
-  }
 }
 
 // Service that tests extreme timeout scenarios
 @ServiceContract(remote: true)
 class TimeoutTestService extends FluxService {
-  final Map<String, Duration> _operationDelays = {};
-
   TimeoutTestService();
+  final Map<String, Duration> _operationDelays = {};
 
   @override
   Future<void> initialize() async {
@@ -228,7 +217,7 @@ class TimeoutTestService extends FluxService {
 
   Future<String> performInfiniteOperation(String operationId) async {
     // This will never complete
-    await Future.delayed(Duration(days: 1));
+    await Future.delayed(const Duration(days: 1));
     return 'This should never be reached';
   }
 
@@ -236,21 +225,19 @@ class TimeoutTestService extends FluxService {
     final random = Random();
     final delay = Duration(
         milliseconds: random.nextInt(1000)); // Reduced from 10000 to 1000
-    return await performOperation(operationId, delay);
+    return performOperation(operationId, delay);
   }
 
-  Map<String, dynamic> getOperationDelays() {
-    return _operationDelays.map((k, v) => MapEntry(k, v.inMilliseconds));
-  }
+  Map<String, dynamic> getOperationDelays() =>
+      _operationDelays.map((k, v) => MapEntry(k, v.inMilliseconds));
 }
 
 // Service that tests extreme memory scenarios
 @ServiceContract(remote: false)
 class MemoryTestService extends FluxService {
+  MemoryTestService();
   final List<List<int>> _memoryChunks = [];
   int _maxMemoryChunks = 1000;
-
-  MemoryTestService();
 
   @override
   Future<void> initialize() async {
@@ -266,7 +253,7 @@ class MemoryTestService extends FluxService {
     final chunk = List<int>.filled(chunkSize, 42);
     _memoryChunks.add(chunk);
 
-    return 'Operation $operationId allocated ${chunkSize} integers (total chunks: ${_memoryChunks.length})';
+    return 'Operation $operationId allocated $chunkSize integers (total chunks: ${_memoryChunks.length})';
   }
 
   Future<String> allocateMemoryWithPattern(
@@ -278,7 +265,7 @@ class MemoryTestService extends FluxService {
     final chunk = List<int>.filled(chunkSize, pattern);
     _memoryChunks.add(chunk);
 
-    return 'Operation $operationId allocated ${chunkSize} integers with pattern $pattern';
+    return 'Operation $operationId allocated $chunkSize integers with pattern $pattern';
   }
 
   void setMaxMemoryChunks(int max) {
@@ -299,12 +286,11 @@ class MemoryTestService extends FluxService {
 // Service that tests extreme concurrency scenarios
 @ServiceContract(remote: false)
 class ConcurrencyTestService extends FluxService {
+  ConcurrencyTestService();
   final Map<String, int> _operationCounts = {};
   final Map<String, List<String>> _operationHistory = {};
   int _maxConcurrentOperations = 1000;
   int _currentConcurrentOperations = 0;
-
-  ConcurrencyTestService();
 
   @override
   Future<void> initialize() async {
@@ -326,7 +312,7 @@ class ConcurrencyTestService extends FluxService {
 
     try {
       // Simulate some work
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 10));
       return 'Concurrent operation $operationId completed (active: $_currentConcurrentOperations)';
     } finally {
       _currentConcurrentOperations--;
@@ -349,15 +335,13 @@ class ConcurrencyTestService extends FluxService {
     _maxConcurrentOperations = max;
   }
 
-  Map<String, dynamic> getConcurrencyStats() {
-    return {
-      'currentConcurrentOperations': _currentConcurrentOperations,
-      'maxConcurrentOperations': _maxConcurrentOperations,
-      'operationCounts': Map.from(_operationCounts),
-      'operationHistory':
-          _operationHistory.map((k, v) => MapEntry(k, List.from(v))),
-    };
-  }
+  Map<String, dynamic> getConcurrencyStats() => {
+        'currentConcurrentOperations': _currentConcurrentOperations,
+        'maxConcurrentOperations': _maxConcurrentOperations,
+        'operationCounts': Map.from(_operationCounts),
+        'operationHistory':
+            _operationHistory.map((k, v) => MapEntry(k, List.from(v))),
+      };
 }
 
 void main() {
@@ -419,7 +403,7 @@ void main() {
 
         // Test with long delay (but not infinite)
         final longResult = await service.performOperationWithDelay(
-            'long_delay', Duration(seconds: 1));
+            'long_delay', const Duration(seconds: 1));
         expect(longResult, contains('1000ms'));
       });
     });
@@ -441,8 +425,8 @@ void main() {
         // Create a chain of dependencies using different service types
         runtime.register<DependencyTestService>(
             () => DependencyTestService([], []));
-        runtime.register<BoundaryTestService>(() => BoundaryTestService());
-        runtime.register<EventTestService>(() => EventTestService());
+        runtime.register<BoundaryTestService>(BoundaryTestService.new);
+        runtime.register<EventTestService>(EventTestService.new);
 
         await runtime.initializeAll();
 
@@ -465,7 +449,7 @@ void main() {
 
         // Should throw an exception for circular dependencies
         expect(
-          () => testRuntime.initializeAll(),
+          testRuntime.initializeAll,
           throwsA(isA<CircularDependencyException>()),
         );
 
@@ -485,12 +469,12 @@ void main() {
         service.setMaxEvents(100);
 
         // Send events up to the limit
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await service.sendTestEvent('event_$i', 'Message $i');
         }
 
         await Future.delayed(
-            Duration(milliseconds: 100)); // Allow events to process
+            const Duration(milliseconds: 100)); // Allow events to process
 
         final stats = service.getEventStats();
         expect(stats['receivedEvents'], equals(100));
@@ -504,12 +488,12 @@ void main() {
         service.setShouldFail(true);
 
         // Send events that will fail
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           await service.sendTestEvent('failing_event_$i', 'Message $i');
         }
 
         await Future.delayed(
-            Duration(milliseconds: 100)); // Allow events to process
+            const Duration(milliseconds: 100)); // Allow events to process
 
         // Service should still be functional despite event failures
         expect(service.isInitialized, isTrue);
@@ -523,13 +507,13 @@ void main() {
 
         // Send many events rapidly
         final futures = <Future>[];
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           futures.add(service.sendTestEvent('rapid_event_$i', 'Message $i'));
         }
 
         await Future.wait(futures);
         await Future.delayed(
-            Duration(milliseconds: 500)); // Allow events to process
+            const Duration(milliseconds: 500)); // Allow events to process
 
         final stats = service.getEventStats();
         // Check that events were sent
@@ -549,7 +533,7 @@ void main() {
 
         // Test with very short timeout
         final result = await service.performOperation(
-            'short_timeout', Duration(milliseconds: 1));
+            'short_timeout', const Duration(milliseconds: 1));
         expect(result, contains('1ms'));
       });
 
@@ -562,8 +546,8 @@ void main() {
         // This should timeout
         expect(
           () => service
-              .performOperation('timeout_test', Duration(seconds: 10))
-              .timeout(Duration(milliseconds: 100)),
+              .performOperation('timeout_test', const Duration(seconds: 10))
+              .timeout(const Duration(milliseconds: 100)),
           throwsA(isA<TimeoutException>()),
         );
       });
@@ -575,7 +559,7 @@ void main() {
         final service = runtime.get<TimeoutTestService>();
 
         // Test with random delays
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           final result =
               await service.performOperationWithRandomDelay('random_$i');
           expect(result, contains('completed'));
@@ -595,7 +579,7 @@ void main() {
         service.setMaxMemoryChunks(5);
 
         // Allocate up to the limit
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final result = await service.allocateMemory('chunk_$i', 1000);
           expect(result, contains('allocated'));
         }
@@ -628,7 +612,7 @@ void main() {
         final service = runtime.get<MemoryTestService>();
 
         // Test with different patterns
-        for (int pattern = 0; pattern < 10; pattern++) {
+        for (var pattern = 0; pattern < 10; pattern++) {
           final result = await service.allocateMemoryWithPattern(
               'pattern_$pattern', 1000, pattern);
           expect(result, contains('pattern $pattern'));
@@ -649,16 +633,16 @@ void main() {
 
         // Start 2 concurrent operations
         final futures = <Future>[];
-        for (int i = 0; i < 2; i++) {
+        for (var i = 0; i < 2; i++) {
           futures.add(service.performConcurrentOperation('concurrent_$i'));
         }
 
         // Wait a bit to ensure operations are running
-        await Future.delayed(Duration(milliseconds: 5));
+        await Future.delayed(const Duration(milliseconds: 5));
 
         // This should fail because we're at the limit
         expect(
-          () async => await service.performConcurrentOperation('overflow'),
+          () async => service.performConcurrentOperation('overflow'),
           throwsA(isA<StateError>()),
         );
 
@@ -690,7 +674,7 @@ void main() {
 
         // Start many concurrent operations
         final futures = <Future>[];
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           futures.add(service.performConcurrentOperation('delayed_$i'));
         }
 
@@ -792,7 +776,7 @@ void main() {
         final stopwatch = Stopwatch()..start();
 
         // Perform many operations rapidly
-        for (int i = 0; i < 10000; i++) {
+        for (var i = 0; i < 10000; i++) {
           await service.performOperation('perf_$i');
         }
 
@@ -813,12 +797,12 @@ void main() {
         // Mix different operation types
         final futures = <Future>[];
 
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           futures.add(service.performOperation('mixed_$i'));
           futures
               .add(service.performOperationWithLargePayload('large_$i', 1000));
           futures.add(service.performOperationWithDelay(
-              'delayed_$i', Duration(milliseconds: 1)));
+              'delayed_$i', const Duration(milliseconds: 1)));
         }
 
         final results = await Future.wait(futures);

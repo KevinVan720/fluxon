@@ -9,12 +9,6 @@ enum CircuitState { closed, open, halfOpen }
 
 // Circuit breaker configuration
 class CircuitBreakerConfig {
-  final int failureThreshold;
-  final Duration timeout;
-  final Duration resetTimeout;
-  final Duration halfOpenTimeout;
-  final double successThreshold;
-
   const CircuitBreakerConfig({
     this.failureThreshold = 5,
     this.timeout = const Duration(seconds: 30),
@@ -22,10 +16,16 @@ class CircuitBreakerConfig {
     this.halfOpenTimeout = const Duration(seconds: 10),
     this.successThreshold = 0.5,
   });
+  final int failureThreshold;
+  final Duration timeout;
+  final Duration resetTimeout;
+  final Duration halfOpenTimeout;
+  final double successThreshold;
 }
 
 // Circuit breaker implementation
 class CircuitBreaker {
+  CircuitBreaker(this.serviceName, this.config);
   final CircuitBreakerConfig config;
   final String serviceName;
 
@@ -35,8 +35,6 @@ class CircuitBreaker {
   int _halfOpenAttempts = 0;
   DateTime? _lastFailureTime;
   DateTime? _lastSuccessTime;
-
-  CircuitBreaker(this.serviceName, this.config);
 
   CircuitState get state => _state;
   int get failureCount => _failureCount;
@@ -129,22 +127,20 @@ class CircuitBreaker {
     _lastSuccessTime = null;
   }
 
-  Map<String, dynamic> getStats() {
-    return {
-      'state': _state.toString(),
-      'failureCount': _failureCount,
-      'successCount': _successCount,
-      'halfOpenAttempts': _halfOpenAttempts,
-      'lastFailureTime': _lastFailureTime?.toIso8601String(),
-      'lastSuccessTime': _lastSuccessTime?.toIso8601String(),
-    };
-  }
+  Map<String, dynamic> getStats() => {
+        'state': _state.toString(),
+        'failureCount': _failureCount,
+        'successCount': _successCount,
+        'halfOpenAttempts': _halfOpenAttempts,
+        'lastFailureTime': _lastFailureTime?.toIso8601String(),
+        'lastSuccessTime': _lastSuccessTime?.toIso8601String(),
+      };
 }
 
 // Exception for circuit breaker open
 class CircuitBreakerOpenException implements Exception {
-  final String message;
   CircuitBreakerOpenException(this.message);
+  final String message;
 
   @override
   String toString() => 'CircuitBreakerOpenException: $message';
@@ -153,12 +149,11 @@ class CircuitBreakerOpenException implements Exception {
 // Flaky service that fails intermittently
 @ServiceContract(remote: true)
 class FlakyService extends FluxService {
+  FlakyService();
   final Random _random = Random();
   double _failureRate = 0.3; // 30% failure rate
   int _callCount = 0;
   final List<String> _callHistory = [];
-
-  FlakyService();
 
   @override
   Future<void> initialize() async {
@@ -192,7 +187,7 @@ class FlakyService extends FluxService {
     _callHistory.add('Slow call $_callCount: $operationId');
 
     // Simulate slow operation
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
 
     if (_random.nextDouble() < _failureRate) {
       throw ServiceException('Slow operation $operationId failed');
@@ -206,7 +201,7 @@ class FlakyService extends FluxService {
     _callHistory.add('Fast call $_callCount: $operationId');
 
     // Simulate fast operation
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
 
     if (_random.nextDouble() < _failureRate) {
       throw ServiceException('Fast operation $operationId failed');
@@ -215,23 +210,16 @@ class FlakyService extends FluxService {
     return 'Fast operation $operationId completed';
   }
 
-  Map<String, dynamic> getStats() {
-    return {
-      'callCount': _callCount,
-      'failureRate': _failureRate,
-      'callHistory': List.from(_callHistory),
-    };
-  }
+  Map<String, dynamic> getStats() => {
+        'callCount': _callCount,
+        'failureRate': _failureRate,
+        'callHistory': List.from(_callHistory),
+      };
 }
 
 // Service with circuit breaker protection
 @ServiceContract(remote: false)
 class ProtectedService extends FluxService {
-  late CircuitBreaker _circuitBreaker;
-  final FlakyService _flakyService;
-  int _protectedCallCount = 0;
-  int _circuitBreakerTrips = 0;
-
   ProtectedService(this._flakyService) {
     _circuitBreaker = CircuitBreaker(
       'FlakyService',
@@ -243,6 +231,10 @@ class ProtectedService extends FluxService {
       ),
     );
   }
+  late CircuitBreaker _circuitBreaker;
+  final FlakyService _flakyService;
+  int _protectedCallCount = 0;
+  int _circuitBreakerTrips = 0;
 
   @override
   Future<void> initialize() async {
@@ -254,9 +246,8 @@ class ProtectedService extends FluxService {
     _protectedCallCount++;
 
     try {
-      final result = await _circuitBreaker.execute(() async {
-        return await _flakyService.performOperation(operationId);
-      });
+      final result = await _circuitBreaker.execute(
+          () async => await _flakyService.performOperation(operationId));
 
       logger.info('Protected call succeeded: $operationId');
       return result;
@@ -274,9 +265,8 @@ class ProtectedService extends FluxService {
     _protectedCallCount++;
 
     try {
-      final result = await _circuitBreaker.execute(() async {
-        return await _flakyService.performSlowOperation(operationId);
-      });
+      final result = await _circuitBreaker.execute(
+          () async => await _flakyService.performSlowOperation(operationId));
 
       logger.info('Protected slow call succeeded: $operationId');
       return result;
@@ -291,13 +281,11 @@ class ProtectedService extends FluxService {
     }
   }
 
-  Map<String, dynamic> getStats() {
-    return {
-      'protectedCallCount': _protectedCallCount,
-      'circuitBreakerTrips': _circuitBreakerTrips,
-      'circuitBreakerStats': _circuitBreaker.getStats(),
-    };
-  }
+  Map<String, dynamic> getStats() => {
+        'protectedCallCount': _protectedCallCount,
+        'circuitBreakerTrips': _circuitBreakerTrips,
+        'circuitBreakerStats': _circuitBreaker.getStats(),
+      };
 
   void resetCircuitBreaker() {
     _circuitBreaker.reset();
@@ -308,10 +296,9 @@ class ProtectedService extends FluxService {
 // Service that monitors circuit breaker health
 @ServiceContract(remote: false)
 class CircuitBreakerMonitorService extends FluxService {
+  CircuitBreakerMonitorService();
   final Map<String, CircuitBreaker> _monitoredBreakers = {};
   final List<Map<String, dynamic>> _healthEvents = [];
-
-  CircuitBreakerMonitorService();
 
   @override
   Future<void> initialize() async {
@@ -347,9 +334,7 @@ class CircuitBreakerMonitorService extends FluxService {
     });
   }
 
-  List<Map<String, dynamic>> getHealthEvents() {
-    return List.from(_healthEvents);
-  }
+  List<Map<String, dynamic>> getHealthEvents() => List.from(_healthEvents);
 }
 
 void main() {
@@ -395,7 +380,7 @@ void main() {
         flakyService.setFailureRate(1.0); // 100% failure rate
 
         // Make calls that will fail
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           try {
             await protectedService.callProtectedOperation('test-$i');
           } catch (e) {
@@ -416,7 +401,7 @@ void main() {
         flakyService.setFailureRate(1.0); // 100% failure rate
 
         // Open the circuit
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           try {
             await protectedService.callProtectedOperation('test-$i');
           } catch (e) {
@@ -428,7 +413,7 @@ void main() {
         flakyService.setFailureRate(0.0); // No failures
 
         // Wait a bit for circuit to potentially reset
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         // Try a call - should either succeed or be rejected
         final result =
@@ -445,7 +430,7 @@ void main() {
         flakyService.setFailureRate(1.0); // 100% failure rate
 
         // Open the circuit
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           try {
             await protectedService.callProtectedOperation('test-$i');
           } catch (e) {
@@ -492,7 +477,7 @@ void main() {
         flakyService.setFailureRate(0.3); // 30% failure rate
 
         // Make several calls
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           try {
             await protectedService.callProtectedOperation('monitor-test-$i');
           } catch (e) {
@@ -532,11 +517,11 @@ void main() {
     group('Stress Testing', () {
       test('should handle rapid state transitions', () async {
         // Rapidly change failure rate to cause state transitions
-        for (int cycle = 0; cycle < 5; cycle++) {
+        for (var cycle = 0; cycle < 5; cycle++) {
           flakyService.setFailureRate(1.0); // 100% failure
 
           // Make calls to open circuit
-          for (int i = 0; i < 3; i++) {
+          for (var i = 0; i < 3; i++) {
             try {
               await protectedService.callProtectedOperation('cycle-$cycle-$i');
             } catch (e) {
@@ -548,7 +533,7 @@ void main() {
           protectedService.resetCircuitBreaker();
           flakyService.setFailureRate(0.0); // 0% failure
 
-          await Future.delayed(Duration(milliseconds: 10));
+          await Future.delayed(const Duration(milliseconds: 10));
         }
 
         final stats = protectedService.getStats();
@@ -590,7 +575,7 @@ void main() {
         expect(breaker2.isClosed, isTrue);
 
         // Open one breaker
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           try {
             await breaker1.execute(() async {
               throw Exception('Test failure');

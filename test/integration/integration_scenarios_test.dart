@@ -6,13 +6,12 @@ import 'package:test/test.dart';
 // E-commerce system integration test
 @ServiceContract(remote: false)
 class ECommerceIntegrationService extends FluxService {
+  ECommerceIntegrationService();
   final Map<String, Map<String, dynamic>> _orders = {};
   final Map<String, Map<String, dynamic>> _users = {};
   final Map<String, Map<String, dynamic>> _products = {};
   final Map<String, Map<String, dynamic>> _inventory = {};
   final List<Map<String, dynamic>> _events = [];
-
-  ECommerceIntegrationService();
 
   @override
   Future<void> initialize() async {
@@ -25,7 +24,7 @@ class ECommerceIntegrationService extends FluxService {
         'orderId': event.orderId,
         'timestamp': DateTime.now().toIso8601String(),
       });
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration.zero,
       );
@@ -38,7 +37,7 @@ class ECommerceIntegrationService extends FluxService {
         'amount': event.amount,
         'timestamp': DateTime.now().toIso8601String(),
       });
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration.zero,
       );
@@ -51,7 +50,7 @@ class ECommerceIntegrationService extends FluxService {
         'quantity': event.quantity,
         'timestamp': DateTime.now().toIso8601String(),
       });
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration.zero,
       );
@@ -247,22 +246,33 @@ class ECommerceIntegrationService extends FluxService {
     logger.info('Order fulfilled: $orderId');
   }
 
-  Map<String, dynamic> getSystemState() {
-    return {
-      'users': _users.length,
-      'products': _products.length,
-      'orders': _orders.length,
-      'inventory': _inventory.map((k, v) => MapEntry(k, {
-            'quantity': v['quantity'],
-            'reserved': v['reserved'],
-          })),
-      'events': List.from(_events),
-    };
-  }
+  Map<String, dynamic> getSystemState() => {
+        'users': _users.length,
+        'products': _products.length,
+        'orders': _orders.length,
+        'inventory': _inventory.map((k, v) => MapEntry(k, {
+              'quantity': v['quantity'],
+              'reserved': v['reserved'],
+            })),
+        'events': List.from(_events),
+      };
 }
 
 // Event types for e-commerce system
 class OrderCreatedEvent extends ServiceEvent {
+  factory OrderCreatedEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return OrderCreatedEvent(
+      eventId: json['eventId'] as String,
+      sourceService: json['sourceService'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      correlationId: json['correlationId'] as String?,
+      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
+      orderId: data['orderId'] as String,
+      userId: data['userId'] as String,
+      total: (data['total'] as num).toDouble(),
+    );
+  }
   const OrderCreatedEvent({
     required super.eventId,
     required super.sourceService,
@@ -284,23 +294,21 @@ class OrderCreatedEvent extends ServiceEvent {
         'userId': userId,
         'total': total,
       };
+}
 
-  factory OrderCreatedEvent.fromJson(Map<String, dynamic> json) {
+class PaymentProcessedEvent extends ServiceEvent {
+  factory PaymentProcessedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
-    return OrderCreatedEvent(
+    return PaymentProcessedEvent(
       eventId: json['eventId'] as String,
       sourceService: json['sourceService'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
       correlationId: json['correlationId'] as String?,
       metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
       orderId: data['orderId'] as String,
-      userId: data['userId'] as String,
-      total: (data['total'] as num).toDouble(),
+      amount: (data['amount'] as num).toDouble(),
     );
   }
-}
-
-class PaymentProcessedEvent extends ServiceEvent {
   const PaymentProcessedEvent({
     required super.eventId,
     required super.sourceService,
@@ -319,22 +327,21 @@ class PaymentProcessedEvent extends ServiceEvent {
         'orderId': orderId,
         'amount': amount,
       };
+}
 
-  factory PaymentProcessedEvent.fromJson(Map<String, dynamic> json) {
+class InventoryUpdatedEvent extends ServiceEvent {
+  factory InventoryUpdatedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
-    return PaymentProcessedEvent(
+    return InventoryUpdatedEvent(
       eventId: json['eventId'] as String,
       sourceService: json['sourceService'] as String,
       timestamp: DateTime.parse(json['timestamp'] as String),
       correlationId: json['correlationId'] as String?,
       metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
-      orderId: data['orderId'] as String,
-      amount: (data['amount'] as num).toDouble(),
+      productId: data['productId'] as String,
+      quantity: data['quantity'] as int,
     );
   }
-}
-
-class InventoryUpdatedEvent extends ServiceEvent {
   const InventoryUpdatedEvent({
     required super.eventId,
     required super.sourceService,
@@ -353,27 +360,13 @@ class InventoryUpdatedEvent extends ServiceEvent {
         'productId': productId,
         'quantity': quantity,
       };
-
-  factory InventoryUpdatedEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return InventoryUpdatedEvent(
-      eventId: json['eventId'] as String,
-      sourceService: json['sourceService'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      correlationId: json['correlationId'] as String?,
-      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
-      productId: data['productId'] as String,
-      quantity: data['quantity'] as int,
-    );
-  }
 }
 
 // Microservices architecture integration test
 @ServiceContract(remote: true)
 class UserService extends FluxService {
-  final Map<String, Map<String, dynamic>> _users = {};
-
   UserService();
+  final Map<String, Map<String, dynamic>> _users = {};
 
   @override
   Future<void> initialize() async {
@@ -394,20 +387,16 @@ class UserService extends FluxService {
     return userId;
   }
 
-  Future<Map<String, dynamic>?> getUser(String userId) async {
-    return _users[userId];
-  }
+  Future<Map<String, dynamic>?> getUser(String userId) async => _users[userId];
 
-  Future<List<Map<String, dynamic>>> getAllUsers() async {
-    return _users.values.toList();
-  }
+  Future<List<Map<String, dynamic>>> getAllUsers() async =>
+      _users.values.toList();
 }
 
 @ServiceContract(remote: true)
 class ProductService extends FluxService {
-  final Map<String, Map<String, dynamic>> _products = {};
-
   ProductService();
+  final Map<String, Map<String, dynamic>> _products = {};
 
   @override
   Future<void> initialize() async {
@@ -428,22 +417,19 @@ class ProductService extends FluxService {
     return productId;
   }
 
-  Future<Map<String, dynamic>?> getProduct(String productId) async {
-    return _products[productId];
-  }
+  Future<Map<String, dynamic>?> getProduct(String productId) async =>
+      _products[productId];
 
-  Future<List<Map<String, dynamic>>> getAllProducts() async {
-    return _products.values.toList();
-  }
+  Future<List<Map<String, dynamic>>> getAllProducts() async =>
+      _products.values.toList();
 }
 
 @ServiceContract(remote: false)
 class OrderService extends FluxService {
+  OrderService(this._userService, this._productService);
   final Map<String, Map<String, dynamic>> _orders = {};
   final UserService _userService;
   final ProductService _productService;
-
-  OrderService(this._userService, this._productService);
 
   @override
   Future<void> initialize() async {
@@ -479,23 +465,20 @@ class OrderService extends FluxService {
     return orderId;
   }
 
-  Future<Map<String, dynamic>?> getOrder(String orderId) async {
-    return _orders[orderId];
-  }
+  Future<Map<String, dynamic>?> getOrder(String orderId) async =>
+      _orders[orderId];
 
-  Future<List<Map<String, dynamic>>> getOrdersForUser(String userId) async {
-    return _orders.values.where((order) => order['userId'] == userId).toList();
-  }
+  Future<List<Map<String, dynamic>>> getOrdersForUser(String userId) async =>
+      _orders.values.where((order) => order['userId'] == userId).toList();
 }
 
 // Real-time collaboration system integration test
 @ServiceContract(remote: false)
 class CollaborationService extends FluxService {
+  CollaborationService();
   final Map<String, Map<String, dynamic>> _documents = {};
   final Map<String, Set<String>> _collaborators = {};
   final Map<String, List<Map<String, dynamic>>> _changes = {};
-
-  CollaborationService();
 
   @override
   Future<void> initialize() async {
@@ -508,7 +491,7 @@ class CollaborationService extends FluxService {
         'change': event.change,
         'timestamp': event.timestamp.toIso8601String(),
       });
-      return EventProcessingResponse(
+      return const EventProcessingResponse(
         result: EventProcessingResult.success,
         processingTime: Duration.zero,
       );
@@ -583,21 +566,31 @@ class CollaborationService extends FluxService {
     logger.info('Change made to document $documentId by $userId');
   }
 
-  Future<Map<String, dynamic>?> getDocument(String documentId) async {
-    return _documents[documentId];
-  }
+  Future<Map<String, dynamic>?> getDocument(String documentId) async =>
+      _documents[documentId];
 
-  Future<List<String>> getCollaborators(String documentId) async {
-    return _collaborators[documentId]?.toList() ?? [];
-  }
+  Future<List<String>> getCollaborators(String documentId) async =>
+      _collaborators[documentId]?.toList() ?? [];
 
   Future<List<Map<String, dynamic>>> getDocumentChanges(
-      String documentId) async {
-    return _changes[documentId] ?? [];
-  }
+          String documentId) async =>
+      _changes[documentId] ?? [];
 }
 
 class DocumentChangeEvent extends ServiceEvent {
+  factory DocumentChangeEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return DocumentChangeEvent(
+      eventId: json['eventId'] as String,
+      sourceService: json['sourceService'] as String,
+      timestamp: DateTime.parse(json['timestamp'] as String),
+      correlationId: json['correlationId'] as String?,
+      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
+      documentId: data['documentId'] as String,
+      userId: data['userId'] as String,
+      change: data['change'] as String,
+    );
+  }
   const DocumentChangeEvent({
     required super.eventId,
     required super.sourceService,
@@ -619,20 +612,6 @@ class DocumentChangeEvent extends ServiceEvent {
         'userId': userId,
         'change': change,
       };
-
-  factory DocumentChangeEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return DocumentChangeEvent(
-      eventId: json['eventId'] as String,
-      sourceService: json['sourceService'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      correlationId: json['correlationId'] as String?,
-      metadata: Map<String, dynamic>.from(json['metadata'] as Map? ?? {}),
-      documentId: data['documentId'] as String,
-      userId: data['userId'] as String,
-      change: data['change'] as String,
-    );
-  }
 }
 
 void main() {
@@ -927,7 +906,7 @@ void main() {
         final users = <String>[];
         final products = <String>[];
 
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           users
               .add(await ecommerce.createUser('User $i', 'user$i@example.com'));
           products.add(
@@ -936,7 +915,7 @@ void main() {
 
         // Create many orders
         final orders = <String>[];
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           final user = users[i % users.length];
           final product = products[i % products.length];
           orders.add(await ecommerce.createOrder(user, {product: 1}));
@@ -944,7 +923,7 @@ void main() {
 
         // Create many documents
         final documents = <String>[];
-        for (int i = 0; i < 20; i++) {
+        for (var i = 0; i < 20; i++) {
           final user = users[i % users.length];
           documents
               .add(await collaboration.createDocument('Document $i', user));

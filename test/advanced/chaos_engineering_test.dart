@@ -6,14 +6,6 @@ import 'package:test/test.dart';
 
 // Chaos engineering configuration
 class ChaosConfig {
-  final double failureRate;
-  final Duration delayRange;
-  final Duration timeoutRange;
-  final List<String> failureTypes;
-  final bool enableRandomCrashes;
-  final bool enableMemoryLeaks;
-  final bool enableNetworkPartition;
-
   const ChaosConfig({
     this.failureRate = 0.1,
     this.delayRange = const Duration(milliseconds: 100),
@@ -23,19 +15,25 @@ class ChaosConfig {
     this.enableMemoryLeaks = true,
     this.enableNetworkPartition = false,
   });
+  final double failureRate;
+  final Duration delayRange;
+  final Duration timeoutRange;
+  final List<String> failureTypes;
+  final bool enableRandomCrashes;
+  final bool enableMemoryLeaks;
+  final bool enableNetworkPartition;
 }
 
 // Chaos monkey service for fault injection
 @ServiceContract(remote: false)
 class ChaosMonkeyService extends FluxService {
+  ChaosMonkeyService(this._config);
   final Random _random = Random();
   final ChaosConfig _config;
   final Map<String, int> _failureCounts = {};
   final Map<String, int> _successCounts = {};
   final List<Map<String, dynamic>> _chaosEvents = [];
   bool _chaosEnabled = false;
-
-  ChaosMonkeyService(this._config);
 
   @override
   Future<void> initialize() async {
@@ -61,15 +59,15 @@ class ChaosMonkeyService extends FluxService {
   Future<T> injectChaos<T>(
       String operationName, Future<T> Function() operation) async {
     if (!_chaosEnabled) {
-      return await operation();
+      return operation();
     }
 
     _successCounts[operationName] = (_successCounts[operationName] ?? 0) + 1;
 
     if (_random.nextDouble() < _config.failureRate) {
-      return await _injectFailure(operationName, operation);
+      return _injectFailure(operationName, operation);
     } else {
-      return await _injectDelay(operationName, operation);
+      return _injectDelay(operationName, operation);
     }
   }
 
@@ -87,7 +85,7 @@ class ChaosMonkeyService extends FluxService {
 
     switch (failureType) {
       case 'timeout':
-        return await operation().timeout(_config.timeoutRange);
+        return operation().timeout(_config.timeoutRange);
       case 'exception':
         throw ChaosException(
             'Chaos monkey injected exception in $operationName');
@@ -95,14 +93,14 @@ class ChaosMonkeyService extends FluxService {
         if (_config.enableRandomCrashes) {
           throw ChaosException('Chaos monkey crashed $operationName');
         }
-        return await operation();
+        return operation();
       case 'memory_leak':
         if (_config.enableMemoryLeaks) {
           _simulateMemoryLeak();
         }
-        return await operation();
+        return operation();
       default:
-        return await operation();
+        return operation();
     }
   }
 
@@ -110,7 +108,7 @@ class ChaosMonkeyService extends FluxService {
       String operationName, Future<T> Function() operation) async {
     final delayMs = _random.nextInt(_config.delayRange.inMilliseconds);
     await Future.delayed(Duration(milliseconds: delayMs));
-    return await operation();
+    return operation();
   }
 
   void _simulateMemoryLeak() {
@@ -158,8 +156,8 @@ class ChaosMonkeyService extends FluxService {
 
 // Exception for chaos engineering
 class ChaosException implements Exception {
-  final String message;
   ChaosException(this.message);
+  final String message;
 
   @override
   String toString() => 'ChaosException: $message';
@@ -168,13 +166,12 @@ class ChaosException implements Exception {
 // Resilient service that handles chaos
 @ServiceContract(remote: true)
 class ResilientService extends FluxService {
+  ResilientService(this._chaosMonkey);
   final ChaosMonkeyService _chaosMonkey;
   int _operationCount = 0;
   int _successCount = 0;
   int _failureCount = 0;
   final List<String> _operationHistory = [];
-
-  ResilientService(this._chaosMonkey);
 
   @override
   Future<void> initialize() async {
@@ -190,7 +187,7 @@ class ResilientService extends FluxService {
       final result =
           await _chaosMonkey.injectChaos('performOperation', () async {
         // Simulate some work
-        await Future.delayed(Duration(milliseconds: 50));
+        await Future.delayed(const Duration(milliseconds: 50));
         return 'Operation $operationId completed successfully';
       });
 
@@ -209,11 +206,11 @@ class ResilientService extends FluxService {
     _operationHistory.add('Critical operation $operationId started');
 
     // Retry logic for critical operations
-    for (int attempt = 1; attempt <= 3; attempt++) {
+    for (var attempt = 1; attempt <= 3; attempt++) {
       try {
         final result = await _chaosMonkey
             .injectChaos('performCriticalOperation', () async {
-          await Future.delayed(Duration(milliseconds: 100));
+          await Future.delayed(const Duration(milliseconds: 100));
           return 'Critical operation $operationId completed on attempt $attempt';
         });
 
@@ -247,7 +244,7 @@ class ResilientService extends FluxService {
       try {
         final result =
             await _chaosMonkey.injectChaos('performBatchOperation', () async {
-          await Future.delayed(Duration(milliseconds: 25));
+          await Future.delayed(const Duration(milliseconds: 25));
           return 'Batch item $operationId completed';
         });
         results.add(result);
@@ -265,25 +262,22 @@ class ResilientService extends FluxService {
     return 'Batch completed: ${results.length} successes, ${errors.length} failures';
   }
 
-  Map<String, dynamic> getResilienceStats() {
-    return {
-      'operationCount': _operationCount,
-      'successCount': _successCount,
-      'failureCount': _failureCount,
-      'successRate':
-          _operationCount == 0 ? 0.0 : _successCount / _operationCount,
-      'operationHistory': List.from(_operationHistory),
-    };
-  }
+  Map<String, dynamic> getResilienceStats() => {
+        'operationCount': _operationCount,
+        'successCount': _successCount,
+        'failureCount': _failureCount,
+        'successRate':
+            _operationCount == 0 ? 0.0 : _successCount / _operationCount,
+        'operationHistory': List.from(_operationHistory),
+      };
 }
 
 // Service that simulates network partitions
 @ServiceContract(remote: false)
 class NetworkPartitionService extends FluxService {
+  NetworkPartitionService();
   final Map<String, bool> _partitionedServices = {};
   final List<Map<String, dynamic>> _partitionEvents = [];
-
-  NetworkPartitionService();
 
   @override
   Future<void> initialize() async {
@@ -310,9 +304,8 @@ class NetworkPartitionService extends FluxService {
     logger.info('Service $serviceName has been healed and reconnected');
   }
 
-  bool isServicePartitioned(String serviceName) {
-    return _partitionedServices[serviceName] ?? false;
-  }
+  bool isServicePartitioned(String serviceName) =>
+      _partitionedServices[serviceName] ?? false;
 
   void _recordEvent(String eventType, Map<String, dynamic> data) {
     _partitionEvents.add({
@@ -322,30 +315,27 @@ class NetworkPartitionService extends FluxService {
     });
   }
 
-  Map<String, dynamic> getPartitionStatus() {
-    return {
-      'partitionedServices': _partitionedServices.entries
-          .where((e) => e.value)
-          .map((e) => e.key)
-          .toList(),
-      'partitionEvents': List.from(_partitionEvents),
-    };
-  }
+  Map<String, dynamic> getPartitionStatus() => {
+        'partitionedServices': _partitionedServices.entries
+            .where((e) => e.value)
+            .map((e) => e.key)
+            .toList(),
+        'partitionEvents': List.from(_partitionEvents),
+      };
 }
 
 // Service that simulates resource exhaustion
 @ServiceContract(remote: false)
 class ResourceExhaustionService extends FluxService {
-  final Map<String, int> _resourceUsage = {};
-  final Map<String, int> _resourceLimits = {};
-  final List<Map<String, dynamic>> _exhaustionEvents = [];
-
   ResourceExhaustionService() {
     // Set default resource limits
     _resourceLimits['memory'] = 1000; // MB
     _resourceLimits['cpu'] = 80; // Percentage
     _resourceLimits['connections'] = 100;
   }
+  final Map<String, int> _resourceUsage = {};
+  final Map<String, int> _resourceLimits = {};
+  final List<Map<String, dynamic>> _exhaustionEvents = [];
 
   @override
   Future<void> initialize() async {
@@ -393,30 +383,27 @@ class ResourceExhaustionService extends FluxService {
     });
   }
 
-  Map<String, dynamic> getResourceStatus() {
-    return {
-      'usage': Map.from(_resourceUsage),
-      'limits': Map.from(_resourceLimits),
-      'exhaustionEvents': List.from(_exhaustionEvents),
-    };
-  }
+  Map<String, dynamic> getResourceStatus() => {
+        'usage': Map.from(_resourceUsage),
+        'limits': Map.from(_resourceLimits),
+        'exhaustionEvents': List.from(_exhaustionEvents),
+      };
 }
 
 // Chaos engineering test orchestrator
 @ServiceContract(remote: false)
 class ChaosTestOrchestrator extends FluxService {
-  final ChaosMonkeyService _chaosMonkey;
-  final ResilientService _resilientService;
-  final NetworkPartitionService _partitionService;
-  final ResourceExhaustionService _resourceService;
-  final List<Map<String, dynamic>> _testResults = [];
-
   ChaosTestOrchestrator(
     this._chaosMonkey,
     this._resilientService,
     this._partitionService,
     this._resourceService,
   );
+  final ChaosMonkeyService _chaosMonkey;
+  final ResilientService _resilientService;
+  final NetworkPartitionService _partitionService;
+  final ResourceExhaustionService _resourceService;
+  final List<Map<String, dynamic>> _testResults = [];
 
   @override
   Future<void> initialize() async {
@@ -434,9 +421,9 @@ class ChaosTestOrchestrator extends FluxService {
     final startTime = DateTime.now();
     final endTime = startTime.add(duration);
 
-    int operationCount = 0;
-    int successCount = 0;
-    int failureCount = 0;
+    var operationCount = 0;
+    var successCount = 0;
+    var failureCount = 0;
 
     while (DateTime.now().isBefore(endTime)) {
       try {
@@ -448,7 +435,7 @@ class ChaosTestOrchestrator extends FluxService {
       operationCount++;
 
       // Small delay to prevent overwhelming
-      await Future.delayed(Duration(milliseconds: 10));
+      await Future.delayed(const Duration(milliseconds: 10));
     }
 
     _chaosMonkey.disableChaos();
@@ -479,11 +466,11 @@ class ChaosTestOrchestrator extends FluxService {
     _partitionService.partitionService('ResilientService');
 
     // Try operations during partition
-    int operationCount = 0;
-    int successCount = 0;
-    int failureCount = 0;
+    var operationCount = 0;
+    var successCount = 0;
+    var failureCount = 0;
 
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       try {
         await _resilientService.performOperation('partition_test_$i');
         successCount++;
@@ -497,7 +484,7 @@ class ChaosTestOrchestrator extends FluxService {
     _partitionService.healService('ResilientService');
 
     // Try operations after healing
-    for (int i = 0; i < 10; i++) {
+    for (var i = 0; i < 10; i++) {
       try {
         await _resilientService.performOperation('healed_test_$i');
         successCount++;
@@ -527,8 +514,8 @@ class ChaosTestOrchestrator extends FluxService {
     logger.info('Starting resource exhaustion test');
 
     // Try to exhaust memory
-    int memoryOperations = 0;
-    int memoryFailures = 0;
+    var memoryOperations = 0;
+    var memoryFailures = 0;
 
     while (memoryOperations < 100) {
       if (_resourceService.consumeResource('memory', 10)) {
@@ -540,8 +527,8 @@ class ChaosTestOrchestrator extends FluxService {
     }
 
     // Try to exhaust connections
-    int connectionOperations = 0;
-    int connectionFailures = 0;
+    var connectionOperations = 0;
+    var connectionFailures = 0;
 
     while (connectionOperations < 100) {
       if (_resourceService.consumeResource('connections', 1)) {
@@ -568,9 +555,7 @@ class ChaosTestOrchestrator extends FluxService {
     return testResult;
   }
 
-  List<Map<String, dynamic>> getAllTestResults() {
-    return List.from(_testResults);
-  }
+  List<Map<String, dynamic>> getAllTestResults() => List.from(_testResults);
 }
 
 void main() {
@@ -585,12 +570,10 @@ void main() {
     setUp(() async {
       runtime = FluxRuntime();
 
-      final chaosConfig = ChaosConfig(
+      const chaosConfig = ChaosConfig(
         failureRate: 0.3,
         delayRange: Duration(milliseconds: 50),
         timeoutRange: Duration(seconds: 2),
-        enableRandomCrashes: true,
-        enableMemoryLeaks: true,
       );
 
       runtime
@@ -625,10 +608,10 @@ void main() {
       test('should inject failures when chaos is enabled', () async {
         chaosMonkey.enableChaos();
 
-        int successCount = 0;
-        int failureCount = 0;
+        var successCount = 0;
+        var failureCount = 0;
 
-        for (int i = 0; i < 20; i++) {
+        for (var i = 0; i < 20; i++) {
           try {
             await resilientService.performOperation('test_$i');
             successCount++;
@@ -648,10 +631,10 @@ void main() {
       test('should not inject failures when chaos is disabled', () async {
         chaosMonkey.disableChaos();
 
-        int successCount = 0;
-        int failureCount = 0;
+        var successCount = 0;
+        var failureCount = 0;
 
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           try {
             await resilientService.performOperation('test_$i');
             successCount++;
@@ -667,10 +650,10 @@ void main() {
       test('should handle critical operations with retry logic', () async {
         chaosMonkey.enableChaos();
 
-        int successCount = 0;
-        int failureCount = 0;
+        var successCount = 0;
+        var failureCount = 0;
 
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           try {
             await resilientService.performCriticalOperation('critical_$i');
             successCount++;
@@ -732,7 +715,7 @@ void main() {
     group('Chaos Test Orchestration', () {
       test('should run comprehensive chaos tests', () async {
         final result = await orchestrator.runChaosTest(
-            'comprehensive_test', Duration(seconds: 2));
+            'comprehensive_test', const Duration(seconds: 2));
 
         expect(result['testName'], equals('comprehensive_test'));
         expect(result['operationCount'], greaterThan(0));
@@ -761,7 +744,7 @@ void main() {
       });
 
       test('should track all test results', () async {
-        await orchestrator.runChaosTest('test1', Duration(seconds: 1));
+        await orchestrator.runChaosTest('test1', const Duration(seconds: 1));
         await orchestrator.runNetworkPartitionTest();
         await orchestrator.runResourceExhaustionTest();
 
@@ -791,7 +774,7 @@ void main() {
         chaosMonkey.enableChaos();
 
         // Perform some operations
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           try {
             await resilientService.performOperation('destruction_test_$i');
           } catch (e) {
@@ -810,7 +793,7 @@ void main() {
         final futures = <Future>[];
 
         // Start multiple concurrent operations
-        for (int i = 0; i < 50; i++) {
+        for (var i = 0; i < 50; i++) {
           futures.add(Future(() async {
             try {
               return await resilientService.performOperation('concurrent_$i');

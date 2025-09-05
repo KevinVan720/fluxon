@@ -1,7 +1,6 @@
 import 'package:uuid/uuid.dart';
 import 'package:dart_service_framework/dart_service_framework.dart';
 import '../events/task_events.dart';
-import '../models/task.dart';
 import 'user_service.dart';
 
 part 'notification_service.g.dart';

@@ -7,13 +7,12 @@ import 'package:test/test.dart';
 // Metrics collection service
 @ServiceContract(remote: false)
 class MetricsCollectorService extends FluxService {
+  MetricsCollectorService();
   final Map<String, int> _counters = {};
   final Map<String, List<double>> _gauges = {};
   final Map<String, List<Duration>> _timers = {};
   final Map<String, List<String>> _histograms = {};
   final List<Map<String, dynamic>> _events = [];
-
-  MetricsCollectorService();
 
   @override
   Future<void> initialize() async {
@@ -50,33 +49,31 @@ class MetricsCollectorService extends FluxService {
     });
   }
 
-  Map<String, dynamic> getMetrics() {
-    return {
-      'counters': Map.from(_counters),
-      'gauges': _gauges.map((k, v) => MapEntry(k, {
-            'count': v.length,
-            'min': v.isEmpty ? 0 : v.reduce(min),
-            'max': v.isEmpty ? 0 : v.reduce(max),
-            'avg': v.isEmpty ? 0 : v.reduce((a, b) => a + b) / v.length,
-          })),
-      'timers': _timers.map((k, v) => MapEntry(k, {
-            'count': v.length,
-            'total_ms': v.fold(0, (sum, d) => sum + d.inMilliseconds),
-            'avg_ms': v.isEmpty
-                ? 0
-                : v.fold(0, (sum, d) => sum + d.inMilliseconds) / v.length,
-            'min_ms':
-                v.isEmpty ? 0 : v.map((d) => d.inMilliseconds).reduce(min),
-            'max_ms':
-                v.isEmpty ? 0 : v.map((d) => d.inMilliseconds).reduce(max),
-          })),
-      'histograms': _histograms.map((k, v) => MapEntry(k, {
-            'count': v.length,
-            'values': v.toSet().toList(),
-          })),
-      'events': List.from(_events),
-    };
-  }
+  Map<String, dynamic> getMetrics() => {
+        'counters': Map.from(_counters),
+        'gauges': _gauges.map((k, v) => MapEntry(k, {
+              'count': v.length,
+              'min': v.isEmpty ? 0 : v.reduce(min),
+              'max': v.isEmpty ? 0 : v.reduce(max),
+              'avg': v.isEmpty ? 0 : v.reduce((a, b) => a + b) / v.length,
+            })),
+        'timers': _timers.map((k, v) => MapEntry(k, {
+              'count': v.length,
+              'total_ms': v.fold(0, (sum, d) => sum + d.inMilliseconds),
+              'avg_ms': v.isEmpty
+                  ? 0
+                  : v.fold(0, (sum, d) => sum + d.inMilliseconds) / v.length,
+              'min_ms':
+                  v.isEmpty ? 0 : v.map((d) => d.inMilliseconds).reduce(min),
+              'max_ms':
+                  v.isEmpty ? 0 : v.map((d) => d.inMilliseconds).reduce(max),
+            })),
+        'histograms': _histograms.map((k, v) => MapEntry(k, {
+              'count': v.length,
+              'values': v.toSet().toList(),
+            })),
+        'events': List.from(_events),
+      };
 
   void clearMetrics() {
     _counters.clear();
@@ -90,11 +87,10 @@ class MetricsCollectorService extends FluxService {
 // Distributed tracing service
 @ServiceContract(remote: false)
 class TracingService extends FluxService {
+  TracingService();
   final List<Map<String, dynamic>> _traces = [];
   final Map<String, String> _activeSpans = {};
   int _traceIdCounter = 0;
-
-  TracingService();
 
   @override
   Future<void> initialize() async {
@@ -152,13 +148,10 @@ class TracingService extends FluxService {
     logger.debug('Tracing event: $type', metadata: data);
   }
 
-  List<Map<String, dynamic>> getTraces() {
-    return List.from(_traces);
-  }
+  List<Map<String, dynamic>> getTraces() => List.from(_traces);
 
-  List<Map<String, dynamic>> getActiveSpans() {
-    return _traces.where((s) => s['status'] == 'active').toList();
-  }
+  List<Map<String, dynamic>> getActiveSpans() =>
+      _traces.where((s) => s['status'] == 'active').toList();
 
   Map<String, dynamic> getTraceStatistics() {
     final completedTraces =
@@ -193,11 +186,10 @@ class TracingService extends FluxService {
 // Health check service
 @ServiceContract(remote: false)
 class HealthCheckService extends FluxService {
+  HealthCheckService();
   final Map<String, ServiceHealthStatus> _serviceHealth = {};
   final Map<String, DateTime> _lastHealthCheck = {};
   final List<Map<String, dynamic>> _healthEvents = [];
-
-  HealthCheckService();
 
   @override
   Future<void> initialize() async {
@@ -237,19 +229,16 @@ class HealthCheckService extends FluxService {
     };
   }
 
-  List<Map<String, dynamic>> getHealthEvents() {
-    return List.from(_healthEvents);
-  }
+  List<Map<String, dynamic>> getHealthEvents() => List.from(_healthEvents);
 }
 
 // Log aggregation service
 @ServiceContract(remote: false)
 class LogAggregationService extends FluxService {
+  LogAggregationService();
   final List<Map<String, dynamic>> _logs = [];
   final Map<String, int> _logLevels = {};
   final Map<String, int> _logSources = {};
-
-  LogAggregationService();
 
   @override
   Future<void> initialize() async {
@@ -291,26 +280,23 @@ class LogAggregationService extends FluxService {
     return List.from(filteredLogs);
   }
 
-  Map<String, dynamic> getLogStatistics() {
-    return {
-      'totalLogs': _logs.length,
-      'logLevels': Map.from(_logLevels),
-      'logSources': Map.from(_logSources),
-      'recentLogs': _logs.take(10).toList(),
-    };
-  }
+  Map<String, dynamic> getLogStatistics() => {
+        'totalLogs': _logs.length,
+        'logLevels': Map.from(_logLevels),
+        'logSources': Map.from(_logSources),
+        'recentLogs': _logs.take(10).toList(),
+      };
 }
 
 // Performance monitoring service
 @ServiceContract(remote: true)
 class PerformanceMonitoringService extends FluxService {
+  PerformanceMonitoringService();
   final Map<String, List<int>> _responseTimes = {};
 
   final Map<String, int> _requestCounts = {};
   final Map<String, int> _errorCounts = {};
   final List<Map<String, dynamic>> _performanceEvents = [];
-
-  PerformanceMonitoringService();
 
   @override
   Future<void> initialize() async {
@@ -373,20 +359,13 @@ class PerformanceMonitoringService extends FluxService {
     }
   }
 
-  List<Map<String, dynamic>> getPerformanceEvents() {
-    return List.from(_performanceEvents);
-  }
+  List<Map<String, dynamic>> getPerformanceEvents() =>
+      List.from(_performanceEvents);
 }
 
 // Observability integration service
 @ServiceContract(remote: false)
 class ObservabilityIntegrationService extends FluxService {
-  final MetricsCollectorService _metricsCollector;
-  final TracingService _tracingService;
-  final HealthCheckService _healthCheckService;
-  final LogAggregationService _logAggregationService;
-  final PerformanceMonitoringService _performanceMonitoring;
-
   ObservabilityIntegrationService(
     this._metricsCollector,
     this._tracingService,
@@ -394,6 +373,11 @@ class ObservabilityIntegrationService extends FluxService {
     this._logAggregationService,
     this._performanceMonitoring,
   );
+  final MetricsCollectorService _metricsCollector;
+  final TracingService _tracingService;
+  final HealthCheckService _healthCheckService;
+  final LogAggregationService _logAggregationService;
+  final PerformanceMonitoringService _performanceMonitoring;
 
   @override
   Future<void> initialize() async {
@@ -424,7 +408,7 @@ class ObservabilityIntegrationService extends FluxService {
       _logAggregationService.aggregateLog('INFO',
           'ObservabilityIntegrationService', 'Starting workload simulation');
 
-      await Future.delayed(Duration(milliseconds: 100));
+      await Future.delayed(const Duration(milliseconds: 100));
 
       // Record performance
       _performanceMonitoring.recordRequest('/api/simulate', 100);
@@ -432,7 +416,7 @@ class ObservabilityIntegrationService extends FluxService {
       // Record metrics
       _metricsCollector.recordGauge('cpu_usage', 75.5);
       _metricsCollector.recordTimer(
-          'workload_duration', Duration(milliseconds: 100));
+          'workload_duration', const Duration(milliseconds: 100));
 
       _metricsCollector.incrementCounter('workload_completed');
       _logAggregationService.aggregateLog('INFO',
@@ -499,7 +483,7 @@ void main() {
       test('should collect and aggregate counter metrics', () async {
         metricsCollector.incrementCounter('api_calls', 5);
         metricsCollector.incrementCounter('api_calls', 3);
-        metricsCollector.incrementCounter('errors', 1);
+        metricsCollector.incrementCounter('errors');
 
         final metrics = metricsCollector.getMetrics();
         expect(metrics['counters']['api_calls'], equals(8));
@@ -521,11 +505,11 @@ void main() {
 
       test('should collect and calculate timer statistics', () async {
         metricsCollector.recordTimer(
-            'api_response_time', Duration(milliseconds: 100));
+            'api_response_time', const Duration(milliseconds: 100));
         metricsCollector.recordTimer(
-            'api_response_time', Duration(milliseconds: 200));
+            'api_response_time', const Duration(milliseconds: 200));
         metricsCollector.recordTimer(
-            'api_response_time', Duration(milliseconds: 150));
+            'api_response_time', const Duration(milliseconds: 150));
 
         final metrics = metricsCollector.getMetrics();
         final timerStats = metrics['timers']['api_response_time'];
@@ -566,7 +550,7 @@ void main() {
       test('should track span timing', () async {
         final spanId = tracingService.startSpan('timed_operation');
 
-        await Future.delayed(Duration(milliseconds: 100));
+        await Future.delayed(const Duration(milliseconds: 100));
 
         tracingService.finishSpan(spanId, 'completed');
 
@@ -581,9 +565,9 @@ void main() {
 
       test('should calculate trace statistics', () async {
         // Create multiple spans
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final spanId = tracingService.startSpan('operation_$i');
-          await Future.delayed(Duration(milliseconds: 50));
+          await Future.delayed(const Duration(milliseconds: 50));
           tracingService.finishSpan(spanId, 'completed');
         }
 
@@ -679,7 +663,7 @@ void main() {
 
       test('should calculate percentiles', () async {
         // Record response times for percentile calculation
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           performanceMonitoring.recordRequest('/api/test', i);
         }
 
@@ -708,7 +692,7 @@ void main() {
 
       test('should handle high-volume observability data', () async {
         // Generate high volume of data
-        for (int i = 0; i < 1000; i++) {
+        for (var i = 0; i < 1000; i++) {
           metricsCollector.incrementCounter('high_volume_test');
           logAggregationService.aggregateLog(
               'DEBUG', 'TestService', 'Message $i');
@@ -741,7 +725,7 @@ void main() {
       test('should handle concurrent observability operations', () async {
         final futures = <Future>[];
 
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           futures.add(Future(() async {
             metricsCollector.incrementCounter('concurrent_test');
             logAggregationService.aggregateLog(
@@ -760,7 +744,7 @@ void main() {
 
       test('should handle observability data overflow', () async {
         // Generate large amount of data
-        for (int i = 0; i < 10000; i++) {
+        for (var i = 0; i < 10000; i++) {
           metricsCollector.recordGauge('overflow_test', i.toDouble());
         }
 

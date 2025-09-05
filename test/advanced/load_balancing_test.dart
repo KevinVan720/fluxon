@@ -16,15 +16,6 @@ enum LoadBalancingStrategy {
 
 // Service instance information
 class ServiceInstance {
-  final String id;
-  final String host;
-  final int port;
-  final int weight;
-  final int maxConnections;
-  final Duration responseTime;
-  final bool isHealthy;
-  final DateTime lastHealthCheck;
-
   const ServiceInstance({
     required this.id,
     required this.host,
@@ -35,6 +26,14 @@ class ServiceInstance {
     this.isHealthy = true,
     required this.lastHealthCheck,
   });
+  final String id;
+  final String host;
+  final int port;
+  final int weight;
+  final int maxConnections;
+  final Duration responseTime;
+  final bool isHealthy;
+  final DateTime lastHealthCheck;
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -51,13 +50,12 @@ class ServiceInstance {
 // Load balancer service
 @ServiceContract(remote: false)
 class LoadBalancerService extends FluxService {
+  LoadBalancerService();
   final Map<String, List<ServiceInstance>> _serviceInstances = {};
   final Map<String, int> _roundRobinCounters = {};
   final Map<String, int> _connectionCounts = {};
   final Map<String, LoadBalancingStrategy> _strategies = {};
   final Map<String, List<Map<String, dynamic>>> _requestHistory = {};
-
-  LoadBalancerService();
 
   @override
   Future<void> initialize() async {
@@ -140,7 +138,7 @@ class LoadBalancerService extends FluxService {
     final counter = _roundRobinCounters[serviceName]!;
 
     // Find instance based on weighted distribution
-    int currentWeight = 0;
+    var currentWeight = 0;
     for (final instance in instances) {
       currentWeight += instance.weight;
       if (counter % totalWeight < currentWeight) {
@@ -153,19 +151,17 @@ class LoadBalancerService extends FluxService {
     return instances.first;
   }
 
-  ServiceInstance _selectLeastConnections(List<ServiceInstance> instances) {
-    return instances.reduce((a, b) {
-      final connectionsA = _connectionCounts[a.id] ?? 0;
-      final connectionsB = _connectionCounts[b.id] ?? 0;
-      return connectionsA < connectionsB ? a : b;
-    });
-  }
+  ServiceInstance _selectLeastConnections(List<ServiceInstance> instances) =>
+      instances.reduce((a, b) {
+        final connectionsA = _connectionCounts[a.id] ?? 0;
+        final connectionsB = _connectionCounts[b.id] ?? 0;
+        return connectionsA < connectionsB ? a : b;
+      });
 
-  ServiceInstance _selectLeastResponseTime(List<ServiceInstance> instances) {
-    return instances.reduce((a, b) {
-      return a.responseTime <= b.responseTime ? a : b;
-    });
-  }
+  ServiceInstance _selectLeastResponseTime(List<ServiceInstance> instances) =>
+      instances.reduce((a, b) {
+        return a.responseTime <= b.responseTime ? a : b;
+      });
 
   ServiceInstance _selectRandom(List<ServiceInstance> instances) {
     final random = Random();
@@ -274,13 +270,12 @@ class LoadBalancerService extends FluxService {
 // Scalable service that can be load balanced
 @ServiceContract(remote: true)
 class ScalableService extends FluxService {
+  ScalableService(this._instanceId, this._maxConcurrentRequests);
   final String _instanceId;
   final int _maxConcurrentRequests;
   int _currentRequests = 0;
   final List<Map<String, dynamic>> _requestLog = [];
   final Map<String, Duration> _responseTimes = {};
-
-  ScalableService(this._instanceId, this._maxConcurrentRequests);
 
   @override
   Future<void> initialize() async {
@@ -300,7 +295,7 @@ class ScalableService extends FluxService {
     try {
       // Simulate processing
       final actualProcessingTime =
-          processingTime ?? Duration(milliseconds: 100);
+          processingTime ?? const Duration(milliseconds: 100);
       await Future.delayed(actualProcessingTime);
 
       final endTime = DateTime.now();
@@ -322,41 +317,35 @@ class ScalableService extends FluxService {
     }
   }
 
-  Future<String> processHeavyRequest(String requestId) async {
-    return await processRequest(requestId,
-        processingTime: Duration(seconds: 2));
-  }
+  Future<String> processHeavyRequest(String requestId) async =>
+      await processRequest(requestId, processingTime: Duration(seconds: 2));
 
-  Future<String> processLightRequest(String requestId) async {
-    return await processRequest(requestId,
-        processingTime: Duration(milliseconds: 10));
-  }
+  Future<String> processLightRequest(String requestId) async =>
+      await processRequest(requestId,
+          processingTime: Duration(milliseconds: 10));
 
-  Map<String, dynamic> getInstanceStats() {
-    return {
-      'instanceId': _instanceId,
-      'maxConcurrentRequests': _maxConcurrentRequests,
-      'currentRequests': _currentRequests,
-      'totalRequests': _requestLog.length,
-      'averageResponseTimeMs': _responseTimes.values.isEmpty
-          ? 0
-          : _responseTimes.values
-                  .fold(0, (sum, time) => sum + time.inMilliseconds) /
-              _responseTimes.length,
-    };
-  }
+  Map<String, dynamic> getInstanceStats() => {
+        'instanceId': _instanceId,
+        'maxConcurrentRequests': _maxConcurrentRequests,
+        'currentRequests': _currentRequests,
+        'totalRequests': _requestLog.length,
+        'averageResponseTimeMs': _responseTimes.values.isEmpty
+            ? 0
+            : _responseTimes.values
+                    .fold(0, (sum, time) => sum + time.inMilliseconds) /
+                _responseTimes.length,
+      };
 }
 
 // Auto-scaling service
 @ServiceContract(remote: false)
 class AutoScalingService extends FluxService {
+  AutoScalingService(this._loadBalancer);
   final LoadBalancerService _loadBalancer;
   final Map<String, List<ServiceInstance>> _serviceInstances = {};
   final Map<String, Map<String, dynamic>> _scalingPolicies = {};
   final Map<String, int> _requestCounts = {};
   final Map<String, Duration> _responseTimeAverages = {};
-
-  AutoScalingService(this._loadBalancer);
 
   @override
   Future<void> initialize() async {
@@ -454,7 +443,6 @@ class AutoScalingService extends FluxService {
       id: newInstanceId,
       host: 'localhost',
       port: 8000 + instances.length,
-      weight: 1,
       lastHealthCheck: now,
     );
 
@@ -462,8 +450,7 @@ class AutoScalingService extends FluxService {
     _serviceInstances[serviceName] = instances;
 
     // Update load balancer
-    _loadBalancer.registerService(serviceName, instances,
-        strategy: LoadBalancingStrategy.roundRobin);
+    _loadBalancer.registerService(serviceName, instances);
 
     policy['lastScaleUp'] = now;
 
@@ -492,8 +479,7 @@ class AutoScalingService extends FluxService {
     _serviceInstances[serviceName] = instances;
 
     // Update load balancer
-    _loadBalancer.registerService(serviceName, instances,
-        strategy: LoadBalancingStrategy.roundRobin);
+    _loadBalancer.registerService(serviceName, instances);
 
     policy['lastScaleDown'] = now;
 
@@ -567,12 +553,11 @@ void main() {
               lastHealthCheck: DateTime.now()),
         ];
 
-        loadBalancer.registerService('testService', instances,
-            strategy: LoadBalancingStrategy.roundRobin);
+        loadBalancer.registerService('testService', instances);
 
         // Make multiple requests
         final selectedInstances = <String>[];
-        for (int i = 0; i < 9; i++) {
+        for (var i = 0; i < 9; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           selectedInstances.add(instance!.id);
         }
@@ -605,7 +590,6 @@ void main() {
               id: 'instance2',
               host: 'host2',
               port: 8002,
-              weight: 1,
               lastHealthCheck: DateTime.now()),
         ];
 
@@ -614,7 +598,7 @@ void main() {
 
         // Make multiple requests
         final selectedInstances = <String>[];
-        for (int i = 0; i < 8; i++) {
+        for (var i = 0; i < 8; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           selectedInstances.add(instance!.id);
         }
@@ -672,19 +656,19 @@ void main() {
               id: 'instance1',
               host: 'host1',
               port: 8001,
-              responseTime: Duration(milliseconds: 100),
+              responseTime: const Duration(milliseconds: 100),
               lastHealthCheck: DateTime.now()),
           ServiceInstance(
               id: 'instance2',
               host: 'host2',
               port: 8002,
-              responseTime: Duration(milliseconds: 50),
+              responseTime: const Duration(milliseconds: 50),
               lastHealthCheck: DateTime.now()),
           ServiceInstance(
               id: 'instance3',
               host: 'host3',
               port: 8003,
-              responseTime: Duration(milliseconds: 200),
+              responseTime: const Duration(milliseconds: 200),
               lastHealthCheck: DateTime.now()),
         ];
 
@@ -692,7 +676,7 @@ void main() {
             strategy: LoadBalancingStrategy.leastResponseTime);
 
         // Should always select instance2 (fastest response time)
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           expect(instance!.id, equals('instance2'));
         }
@@ -722,7 +706,7 @@ void main() {
 
         // Make many requests to test randomness
         final selectedInstances = <String>[];
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           selectedInstances.add(instance!.id);
         }
@@ -773,7 +757,6 @@ void main() {
               id: 'instance1',
               host: 'host1',
               port: 8001,
-              isHealthy: true,
               lastHealthCheck: DateTime.now()),
           ServiceInstance(
               id: 'instance2',
@@ -785,14 +768,13 @@ void main() {
               id: 'instance3',
               host: 'host3',
               port: 8003,
-              isHealthy: true,
               lastHealthCheck: DateTime.now()),
         ];
 
         loadBalancer.registerService('testService', instances);
 
         // Should only select healthy instances
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           expect(instance, isNotNull);
           expect(instance!.isHealthy, isTrue);
@@ -829,13 +811,11 @@ void main() {
               id: 'instance1',
               host: 'host1',
               port: 8001,
-              isHealthy: true,
               lastHealthCheck: DateTime.now()),
           ServiceInstance(
               id: 'instance2',
               host: 'host2',
               port: 8002,
-              isHealthy: true,
               lastHealthCheck: DateTime.now()),
         ];
 
@@ -845,7 +825,7 @@ void main() {
         loadBalancer.updateInstanceHealth('testService', 'instance1', false);
 
         // Should only select instance2
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           expect(instance!.id, equals('instance2'));
         }
@@ -867,11 +847,10 @@ void main() {
               lastHealthCheck: DateTime.now()),
         ];
 
-        loadBalancer.registerService('testService', instances,
-            strategy: LoadBalancingStrategy.roundRobin);
+        loadBalancer.registerService('testService', instances);
 
         // Make requests
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           await loadBalancer.selectInstance('testService');
         }
 
@@ -915,7 +894,6 @@ void main() {
         // Set up scaling policy
         autoScaling.setScalingPolicy(
           'testService',
-          minInstances: 1,
           maxInstances: 5,
           scaleUpThreshold: 50,
         );
@@ -933,9 +911,9 @@ void main() {
         loadBalancer.registerService('testService', initialInstances);
 
         // Simulate high load
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await autoScaling.recordRequest(
-              'testService', 'instance1', Duration(milliseconds: 100));
+              'testService', 'instance1', const Duration(milliseconds: 100));
         }
 
         // Should have scaled up
@@ -947,7 +925,6 @@ void main() {
         // Set up scaling policy
         autoScaling.setScalingPolicy(
           'testService',
-          minInstances: 1,
           maxInstances: 5,
           scaleDownThreshold: 10,
         );
@@ -974,9 +951,9 @@ void main() {
         loadBalancer.registerService('testService', instances);
 
         // Simulate low load
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await autoScaling.recordRequest(
-              'testService', 'instance1', Duration(milliseconds: 50));
+              'testService', 'instance1', const Duration(milliseconds: 50));
         }
 
         // Should have scaled down
@@ -988,10 +965,9 @@ void main() {
         // Set up scaling policy with short cooldown
         autoScaling.setScalingPolicy(
           'testService',
-          minInstances: 1,
           maxInstances: 5,
           scaleUpThreshold: 50,
-          scaleUpCooldown: Duration(seconds: 1),
+          scaleUpCooldown: const Duration(seconds: 1),
         );
 
         // Create initial instances
@@ -1007,18 +983,18 @@ void main() {
         loadBalancer.registerService('testService', initialInstances);
 
         // Simulate high load
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await autoScaling.recordRequest(
-              'testService', 'instance1', Duration(milliseconds: 100));
+              'testService', 'instance1', const Duration(milliseconds: 100));
         }
 
         final initialCount =
             autoScaling._serviceInstances['testService']!.length;
 
         // Simulate more high load immediately
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           await autoScaling.recordRequest(
-              'testService', 'instance1', Duration(milliseconds: 100));
+              'testService', 'instance1', const Duration(milliseconds: 100));
         }
 
         // Should not scale up again due to cooldown
@@ -1059,7 +1035,7 @@ void main() {
 
         // Make concurrent requests
         final futures = <Future>[];
-        for (int i = 0; i < 100; i++) {
+        for (var i = 0; i < 100; i++) {
           futures.add(loadBalancer.selectInstance('testService'));
         }
 
@@ -1076,13 +1052,11 @@ void main() {
               id: 'instance1',
               host: 'host1',
               port: 8001,
-              weight: 1,
               lastHealthCheck: DateTime.now()),
           ServiceInstance(
               id: 'instance2',
               host: 'host2',
               port: 8002,
-              weight: 1,
               lastHealthCheck: DateTime.now()),
         ];
 
@@ -1090,7 +1064,7 @@ void main() {
             strategy: LoadBalancingStrategy.weightedRoundRobin);
 
         // Make some requests
-        for (int i = 0; i < 10; i++) {
+        for (var i = 0; i < 10; i++) {
           await loadBalancer.selectInstance('testService');
         }
 
@@ -1108,7 +1082,7 @@ void main() {
 
         // Make more requests
         final selectedInstances = <String>[];
-        for (int i = 0; i < 8; i++) {
+        for (var i = 0; i < 8; i++) {
           final instance = await loadBalancer.selectInstance('testService');
           selectedInstances.add(instance!.id);
         }

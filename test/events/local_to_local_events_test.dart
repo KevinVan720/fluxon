@@ -434,10 +434,10 @@ void main() {
       locator = FluxRuntime();
 
       // 🚀 FLUX: Simple registration with automatic infrastructure
-      locator.register<UserService>(() => UserService());
-      locator.register<OrderService>(() => OrderService());
-      locator.register<NotificationService>(() => NotificationService());
-      locator.register<AnalyticsService>(() => AnalyticsService());
+      locator.register<UserService>(UserService.new);
+      locator.register<OrderService>(OrderService.new);
+      locator.register<NotificationService>(NotificationService.new);
+      locator.register<AnalyticsService>(AnalyticsService.new);
 
       await locator.initializeAll();
 

@@ -8,6 +8,18 @@ part 'concurrency_test.g.dart';
 
 // Event for concurrency testing
 class ConcurrentEvent extends ServiceEvent {
+  factory ConcurrentEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return ConcurrentEvent(
+      threadId: data['threadId'],
+      operationId: data['operationId'],
+      eventId: json['eventId'],
+      sourceService: json['sourceService'],
+      timestamp: DateTime.parse(json['timestamp']),
+      correlationId: json['correlationId'],
+      metadata: json['metadata'] ?? {},
+    );
+  }
   const ConcurrentEvent({
     required this.threadId,
     required this.operationId,
@@ -26,19 +38,6 @@ class ConcurrentEvent extends ServiceEvent {
         'threadId': threadId,
         'operationId': operationId,
       };
-
-  factory ConcurrentEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return ConcurrentEvent(
-      threadId: data['threadId'],
-      operationId: data['operationId'],
-      eventId: json['eventId'],
-      sourceService: json['sourceService'],
-      timestamp: DateTime.parse(json['timestamp']),
-      correlationId: json['correlationId'],
-      metadata: json['metadata'] ?? {},
-    );
-  }
 }
 
 // Service for testing concurrent access
@@ -49,23 +48,21 @@ class ConcurrentService extends FluxService {
 
   Future<int> incrementCounter() async {
     // Simulate some work
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
     return ++_counter;
   }
 
   Future<String> performOperation(String operationName) async {
     _operations.add(operationName);
-    await Future.delayed(Duration(milliseconds: 5));
+    await Future.delayed(const Duration(milliseconds: 5));
     return 'Operation $operationName completed';
   }
 
-  Future<Map<String, dynamic>> getState() async {
-    return {
-      'counter': _counter,
-      'operationsCount': _operations.length,
-      'operations': List.from(_operations),
-    };
-  }
+  Future<Map<String, dynamic>> getState() async => {
+        'counter': _counter,
+        'operationsCount': _operations.length,
+        'operations': List.from(_operations),
+      };
 
   Future<void> reset() async {
     _counter = 0;
@@ -103,8 +100,8 @@ class RaceConditionService extends FluxService {
       int threadCount, int operationsPerThread) async {
     final futures = <Future>[];
 
-    for (int thread = 0; thread < threadCount; thread++) {
-      for (int op = 0; op < operationsPerThread; op++) {
+    for (var thread = 0; thread < threadCount; thread++) {
+      for (var op = 0; op < operationsPerThread; op++) {
         futures.add(sendEvent(
           ConcurrentEvent(
             threadId: thread,
@@ -135,8 +132,7 @@ void main() {
 
     setUp(() {
       runtime = FluxRuntime();
-      EventTypeRegistry.register<ConcurrentEvent>(
-          (json) => ConcurrentEvent.fromJson(json));
+      EventTypeRegistry.register<ConcurrentEvent>(ConcurrentEvent.fromJson);
     });
 
     tearDown(() async {
@@ -145,7 +141,7 @@ void main() {
 
     group('Concurrent Service Access', () {
       test('should handle concurrent method calls safely', () async {
-        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
+        runtime.register<ConcurrentService>(ConcurrentServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<ConcurrentService>();
@@ -166,7 +162,7 @@ void main() {
 
       test('should handle concurrent operations without data corruption',
           () async {
-        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
+        runtime.register<ConcurrentService>(ConcurrentServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<ConcurrentService>();
@@ -188,7 +184,7 @@ void main() {
 
     group('Race Condition Handling', () {
       test('should handle concurrent event processing', () async {
-        runtime.register<RaceConditionService>(() => RaceConditionService());
+        runtime.register<RaceConditionService>(RaceConditionService.new);
         await runtime.initializeAll();
 
         final service = runtime.get<RaceConditionService>();
@@ -198,7 +194,7 @@ void main() {
             3, 5); // 3 threads, 5 ops each = 15 events
 
         // Wait for all events to process
-        await Future.delayed(Duration(milliseconds: 500));
+        await Future.delayed(const Duration(milliseconds: 500));
 
         final results = await service.getRaceResults();
 
@@ -211,17 +207,17 @@ void main() {
       });
 
       test('should maintain event ordering within threads', () async {
-        runtime.register<RaceConditionService>(() => RaceConditionService());
+        runtime.register<RaceConditionService>(RaceConditionService.new);
         await runtime.initializeAll();
 
         final service = runtime.get<RaceConditionService>();
 
         // Send events sequentially from one thread
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           await service.triggerRaceCondition(1, 1);
         }
 
-        await Future.delayed(Duration(milliseconds: 300));
+        await Future.delayed(const Duration(milliseconds: 300));
 
         final results = await service.getRaceResults();
         expect(results['eventCount'], equals(5)); // Should process all 5 events
@@ -233,7 +229,7 @@ void main() {
     group('Service Registration Concurrency', () {
       test('should handle service registration and initialization', () async {
         // Register the service
-        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
+        runtime.register<ConcurrentService>(ConcurrentServiceImpl.new);
 
         await runtime.initializeAll();
 
@@ -251,7 +247,7 @@ void main() {
 
     group('Destruction During Operations', () {
       test('should handle service destruction during active calls', () async {
-        runtime.register<ConcurrentService>(() => ConcurrentServiceImpl());
+        runtime.register<ConcurrentService>(ConcurrentServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<ConcurrentService>();
@@ -263,7 +259,7 @@ void main() {
         final destroyFuture = runtime.destroyAll();
 
         // Both should complete without hanging
-        await Future.wait([operationFuture, destroyFuture], eagerError: false);
+        await Future.wait([operationFuture, destroyFuture]);
 
         expect(runtime.isInitialized, isFalse);
 

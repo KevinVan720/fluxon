@@ -403,7 +403,7 @@ class FluxRuntime {
       });
 
       // First try the LocalSideRegistry approach
-      var success = LocalSideRegistry.tryRegisterLocalSide(serviceType);
+      final success = LocalSideRegistry.tryRegisterLocalSide(serviceType);
       if (success) {
         _logger.debug('Auto-registered local side for service via registry',
             metadata: {

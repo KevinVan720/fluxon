@@ -7,6 +7,17 @@ part 'error_handling_test.g.dart';
 
 // Test events for error scenarios
 class CorruptedEvent extends ServiceEvent {
+  factory CorruptedEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return CorruptedEvent(
+      invalidData: data,
+      eventId: json['eventId'],
+      sourceService: json['sourceService'],
+      timestamp: DateTime.parse(json['timestamp']),
+      correlationId: json['correlationId'],
+      metadata: json['metadata'] ?? {},
+    );
+  }
   const CorruptedEvent({
     required this.invalidData,
     required super.eventId,
@@ -20,26 +31,13 @@ class CorruptedEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => invalidData;
-
-  factory CorruptedEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return CorruptedEvent(
-      invalidData: data,
-      eventId: json['eventId'],
-      sourceService: json['sourceService'],
-      timestamp: DateTime.parse(json['timestamp']),
-      correlationId: json['correlationId'],
-      metadata: json['metadata'] ?? {},
-    );
-  }
 }
 
 // Service that fails during initialization
 @ServiceContract(remote: false)
 class FailingInitService extends FluxService {
-  final String failureReason;
-
   FailingInitService({this.failureReason = 'Generic failure'});
+  final String failureReason;
 
   @override
   Future<void> initialize() async {
@@ -52,12 +50,13 @@ class FailingInitService extends FluxService {
 @ServiceContract(remote: true)
 class FailingMethodService extends FluxService {
   Future<String> alwaysFails() async {
-    throw ServiceException('Method always fails');
+    throw const ServiceException('Method always fails');
   }
 
   Future<String> failsRandomly() async {
     if (DateTime.now().millisecond % 2 == 0) {
-      throw ServiceTimeoutException('Random timeout', Duration(seconds: 1));
+      throw ServiceTimeoutException(
+          'Random timeout', const Duration(seconds: 1));
     }
     return 'Success';
   }
@@ -81,7 +80,7 @@ class CorruptingService extends FluxService {
     await super.initialize();
 
     onEvent<CorruptedEvent>((event) async {
-      throw FormatException('Cannot process corrupted event');
+      throw const FormatException('Cannot process corrupted event');
     });
   }
 
@@ -94,7 +93,7 @@ class CorruptingService extends FluxService {
             String? correlationId,
             Map<String, dynamic> metadata = const {}}) =>
         CorruptedEvent(
-          invalidData: {
+          invalidData: const {
             'circular': null, // This will be set to create circular reference
             'invalid_date': 'not-a-date',
             'huge_number': double.infinity,
@@ -112,12 +111,12 @@ class CorruptingService extends FluxService {
 @ServiceContract(remote: true)
 class SlowService extends FluxService {
   Future<String> verySlowMethod() async {
-    await Future.delayed(Duration(seconds: 60)); // Intentionally slow
+    await Future.delayed(const Duration(seconds: 60)); // Intentionally slow
     return 'Finally done';
   }
 
   Future<String> fastMethod() async {
-    await Future.delayed(Duration(milliseconds: 10));
+    await Future.delayed(const Duration(milliseconds: 10));
     return 'Quick response';
   }
 }
@@ -129,7 +128,7 @@ class MemoryLeakService extends FluxService {
 
   Future<void> consumeMemory() async {
     // Allocate large chunks of memory
-    for (int i = 0; i < 1000; i++) {
+    for (var i = 0; i < 1000; i++) {
       _memoryHog.add(List.filled(10000, i));
     }
   }
@@ -173,8 +172,8 @@ void main() {
       });
 
       test('should handle missing dependencies', () async {
-        runtime.register<InvalidDependencyService>(
-            () => InvalidDependencyService());
+        runtime
+            .register<InvalidDependencyService>(InvalidDependencyService.new);
 
         expect(
           () => runtime.initializeAll(),
@@ -191,20 +190,19 @@ void main() {
 
     group('Method Call Failures', () {
       test('should handle remote service method failures', () async {
-        runtime
-            .register<FailingMethodService>(() => FailingMethodServiceImpl());
+        runtime.register<FailingMethodService>(FailingMethodServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<FailingMethodService>();
 
         expect(
-          () => service.alwaysFails(),
+          service.alwaysFails,
           throwsA(isA<ServiceException>()),
         );
       });
 
       test('should handle timeout scenarios', () async {
-        runtime.register<SlowService>(() => SlowServiceImpl());
+        runtime.register<SlowService>(SlowServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<SlowService>();
@@ -220,26 +218,24 @@ void main() {
 
     group('Event System Failures', () {
       test('should handle event serialization failures', () async {
-        EventTypeRegistry.register<CorruptedEvent>(
-            (json) => CorruptedEvent.fromJson(json));
+        EventTypeRegistry.register<CorruptedEvent>(CorruptedEvent.fromJson);
 
-        runtime.register<CorruptingService>(() => CorruptingService());
+        runtime.register<CorruptingService>(CorruptingService.new);
         await runtime.initializeAll();
 
         final service = runtime.get<CorruptingService>();
 
         // Service should handle corrupted events gracefully
         expect(
-          () => service.sendCorruptedEvent(),
+          service.sendCorruptedEvent,
           returnsNormally, // Should not crash the system
         );
       });
 
       test('should handle event processing failures', () async {
-        EventTypeRegistry.register<CorruptedEvent>(
-            (json) => CorruptedEvent.fromJson(json));
+        EventTypeRegistry.register<CorruptedEvent>(CorruptedEvent.fromJson);
 
-        runtime.register<CorruptingService>(() => CorruptingService());
+        runtime.register<CorruptingService>(CorruptingService.new);
         await runtime.initializeAll();
 
         final service = runtime.get<CorruptingService>();
@@ -255,7 +251,7 @@ void main() {
 
     group('Resource Management', () {
       test('should handle memory pressure gracefully', () async {
-        runtime.register<MemoryLeakService>(() => MemoryLeakService());
+        runtime.register<MemoryLeakService>(MemoryLeakService.new);
         await runtime.initializeAll();
 
         final service = runtime.get<MemoryLeakService>();
@@ -276,14 +272,13 @@ void main() {
         await runtime.initializeAll();
 
         expect(
-          () =>
-              runtime.register<FailingInitService>(() => FailingInitService()),
+          () => runtime.register<FailingInitService>(FailingInitService.new),
           throwsA(isA<ServiceStateException>()),
         );
       });
 
       test('should handle multiple initialization attempts', () async {
-        runtime.register<FailingInitService>(() => FailingInitService());
+        runtime.register<FailingInitService>(FailingInitService.new);
 
         // First attempt should fail
         expect(
@@ -299,7 +294,7 @@ void main() {
       });
 
       test('should handle destruction during initialization', () async {
-        runtime.register<SlowService>(() => SlowServiceImpl());
+        runtime.register<SlowService>(SlowServiceImpl.new);
 
         // Start initialization but don't await
         final initFuture = runtime.initializeAll();
@@ -321,15 +316,14 @@ void main() {
 
     group('Cross-Isolate Error Propagation', () {
       test('should propagate worker isolate failures to main', () async {
-        runtime
-            .register<FailingMethodService>(() => FailingMethodServiceImpl());
+        runtime.register<FailingMethodService>(FailingMethodServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<FailingMethodService>();
 
         // Worker failure should propagate as ServiceException
         expect(
-          () => service.alwaysFails(),
+          service.alwaysFails,
           throwsA(isA<ServiceException>()),
         );
 
@@ -341,7 +335,7 @@ void main() {
     group('Service Discovery Edge Cases', () {
       test('should handle service type mismatches', () async {
         // This tests the type safety of the service system
-        runtime.register<FailingInitService>(() => FailingInitService());
+        runtime.register<FailingInitService>(FailingInitService.new);
 
         expect(
           () => runtime.initializeAll(),
@@ -350,7 +344,7 @@ void main() {
       });
 
       test('should handle proxy registry corruption', () async {
-        runtime.register<MemoryLeakService>(() => MemoryLeakService());
+        runtime.register<MemoryLeakService>(MemoryLeakService.new);
         await runtime.initializeAll();
 
         // Verify proxy registry is accessible and functional

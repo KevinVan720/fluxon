@@ -8,6 +8,18 @@ part 'performance_test.g.dart';
 
 // High-throughput event for performance testing
 class PerformanceEvent extends ServiceEvent {
+  factory PerformanceEvent.fromJson(Map<String, dynamic> json) {
+    final data = json['data'] as Map<String, dynamic>;
+    return PerformanceEvent(
+      sequenceNumber: data['sequenceNumber'],
+      payload: data['payload'],
+      eventId: json['eventId'],
+      sourceService: json['sourceService'],
+      timestamp: DateTime.parse(json['timestamp']),
+      correlationId: json['correlationId'],
+      metadata: json['metadata'] ?? {},
+    );
+  }
   const PerformanceEvent({
     required this.sequenceNumber,
     required this.payload,
@@ -26,35 +38,22 @@ class PerformanceEvent extends ServiceEvent {
         'sequenceNumber': sequenceNumber,
         'payload': payload,
       };
-
-  factory PerformanceEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>;
-    return PerformanceEvent(
-      sequenceNumber: data['sequenceNumber'],
-      payload: data['payload'],
-      eventId: json['eventId'],
-      sourceService: json['sourceService'],
-      timestamp: DateTime.parse(json['timestamp']),
-      correlationId: json['correlationId'],
-      metadata: json['metadata'] ?? {},
-    );
-  }
 }
 
 // Service for performance testing
 @ServiceContract(remote: true)
 class PerformanceService extends FluxService {
-  Future<List<String>> generateLargeDataset(int count, int stringLength) async {
-    return List.generate(
-        count,
-        (i) => String.fromCharCodes(
-            List.generate(stringLength, (_) => 65 + Random().nextInt(26))));
-  }
+  Future<List<String>> generateLargeDataset(
+          int count, int stringLength) async =>
+      List.generate(
+          count,
+          (i) => String.fromCharCodes(
+              List.generate(stringLength, (_) => 65 + Random().nextInt(26))));
 
   Future<Map<String, int>> processEvents(int eventCount) async {
     final results = <String, int>{};
 
-    for (int i = 0; i < eventCount; i++) {
+    for (var i = 0; i < eventCount; i++) {
       // Simulate processing
       await Future.delayed(const Duration(microseconds: 100));
       results['processed_$i'] = i;
@@ -131,7 +130,7 @@ class LoadTestService extends FluxService {
   }
 
   Future<void> sendBurstEvents(int count) async {
-    for (int i = 0; i < count; i++) {
+    for (var i = 0; i < count; i++) {
       await sendEvent(
         PerformanceEvent(
           sequenceNumber: i,
@@ -167,8 +166,7 @@ void main() {
 
     setUp(() {
       runtime = FluxRuntime();
-      EventTypeRegistry.register<PerformanceEvent>(
-          (json) => PerformanceEvent.fromJson(json));
+      EventTypeRegistry.register<PerformanceEvent>(PerformanceEvent.fromJson);
     });
 
     tearDown(() async {
@@ -177,7 +175,7 @@ void main() {
 
     group('High Throughput', () {
       test('should handle large dataset processing', () async {
-        runtime.register<PerformanceService>(() => PerformanceServiceImpl());
+        runtime.register<PerformanceService>(PerformanceServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<PerformanceService>();
@@ -198,7 +196,7 @@ void main() {
 
       test('should handle high-volume event processing', () async {
         // Register service that will listen to its own events
-        runtime.register<LoadTestService>(() => LoadTestService());
+        runtime.register<LoadTestService>(LoadTestService.new);
         await runtime.initializeAll();
 
         final service = runtime.get<LoadTestService>();
@@ -221,13 +219,13 @@ void main() {
 
     group('Memory Management', () {
       test('should handle memory-intensive operations', () async {
-        runtime.register<PerformanceService>(() => PerformanceServiceImpl());
+        runtime.register<PerformanceService>(PerformanceServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<PerformanceService>();
 
         // Process multiple large datasets
-        for (int i = 0; i < 5; i++) {
+        for (var i = 0; i < 5; i++) {
           final result = await service.generateLargeDataset(500, 50);
           expect(result.length, equals(500));
         }
@@ -240,7 +238,7 @@ void main() {
 
     group('Concurrent Operations', () {
       test('should handle concurrent service calls', () async {
-        runtime.register<PerformanceService>(() => PerformanceServiceImpl());
+        runtime.register<PerformanceService>(PerformanceServiceImpl.new);
         await runtime.initializeAll();
 
         final service = runtime.get<PerformanceService>();
