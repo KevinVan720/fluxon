@@ -23,8 +23,8 @@ flutter run -d chrome  # Or any Flutter target
 ```
 Main Isolate (UI)              Worker Isolate 1           Worker Isolate 2
 ┌─────────────────┐           ┌─────────────────┐        ┌─────────────────┐
-│ SimpleTaskService│◄─events─►│NotificationService│      │ AnalyticsService│
-│ SimpleUserService│          │                 │◄─────►│                 │
+│ TaskService      │◄─events─►│NotificationService│      │ AnalyticsService│
+│ UserService      │          │                 │◄─────►│                 │
 │ StorageService   │          │                 │ events │                 │
 │ (UI Components)  │          │                 │        │                 │
 └─────────────────┘          └─────────────────┘        └─────────────────┘
@@ -38,9 +38,12 @@ Main Isolate (UI)              Worker Isolate 1           Worker Isolate 2
 
 ### **1. Zero-Boilerplate Service Creation**
 ```dart
-// 🚀 Simple service registration
-runtime.register<SimpleTaskService>(() => SimpleTaskService());
-runtime.register<NotificationService>(() => NotificationServiceWorker()); // Auto-detected as remote
+// 🚀 Service registration
+runtime.register<StorageService>(() => StorageServiceImpl());
+runtime.register<UserService>(() => UserServiceImpl());
+runtime.register<TaskService>(() => TaskServiceImpl());
+runtime.register<NotificationService>(() => NotificationServiceImpl()); // remote
+runtime.register<AnalyticsService>(() => AnalyticsServiceImpl());       // remote
 
 await runtime.initializeAll(); // Dependencies resolved automatically
 ```
@@ -48,7 +51,7 @@ await runtime.initializeAll(); // Dependencies resolved automatically
 ### **2. Transparent Service Calls**
 ```dart
 // 🔄 Same API for local and remote services
-final taskService = runtime.get<SimpleTaskService>();        // Local
+final taskService = runtime.get<TaskService>();                 // Local
 final notificationService = runtime.get<NotificationService>(); // Remote (worker isolate)
 
 // Both calls look identical - complete transparency!

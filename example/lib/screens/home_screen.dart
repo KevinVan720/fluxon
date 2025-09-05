@@ -432,9 +432,17 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       await _loadData(); // Refresh after action
 
       if (mounted) {
+        final pastTense =
+            {
+              'start': 'started',
+              'complete': 'completed',
+              'delete': 'deleted',
+              'details': 'opened',
+            }[action] ??
+            '${action}d';
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('Task ${action}d successfully')));
+        ).showSnackBar(SnackBar(content: Text('Task $pastTense successfully')));
       }
     } catch (e) {
       if (mounted) {
