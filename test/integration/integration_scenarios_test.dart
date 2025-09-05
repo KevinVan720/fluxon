@@ -106,7 +106,8 @@ class ECommerceIntegrationService extends FluxService {
         quantity: initialStock,
       ),
     );
-    await broadcastEvent(event);
+    await sendEvent(event,
+        distribution: EventDistribution.broadcast(includeSource: true));
 
     logger.info('Product created: $productId with $initialStock units');
     return productId;
@@ -176,7 +177,8 @@ class ECommerceIntegrationService extends FluxService {
         total: total,
       ),
     );
-    await broadcastEvent(event);
+    await sendEvent(event,
+        distribution: EventDistribution.broadcast(includeSource: true));
 
     logger.info(
         'Order created: $orderId for user $userId, total: \$${total.toStringAsFixed(2)}');
@@ -214,7 +216,8 @@ class ECommerceIntegrationService extends FluxService {
         amount: amount,
       ),
     );
-    await broadcastEvent(event);
+    await sendEvent(event,
+        distribution: EventDistribution.broadcast(includeSource: true));
 
     logger.info(
         'Payment processed for order $orderId: \$${amount.toStringAsFixed(2)}');
@@ -426,14 +429,20 @@ class ProductService extends FluxService {
 
 @ServiceContract(remote: false)
 class OrderService extends FluxService {
-  OrderService(this._userService, this._productService);
+  OrderService();
   final Map<String, Map<String, dynamic>> _orders = {};
-  final UserService _userService;
-  final ProductService _productService;
+
+  late final UserService _userService;
+  late final ProductService _productService;
 
   @override
   Future<void> initialize() async {
     await super.initialize();
+
+    // Get service dependencies after initialization
+    _userService = getService<UserService>();
+    _productService = getService<ProductService>();
+
     logger.info('Order service initialized');
   }
 
@@ -561,7 +570,8 @@ class CollaborationService extends FluxService {
         change: change,
       ),
     );
-    await broadcastEvent(event);
+    await sendEvent(event,
+        distribution: EventDistribution.broadcast(includeSource: true));
 
     logger.info('Change made to document $documentId by $userId');
   }
@@ -618,18 +628,31 @@ void main() {
   group('Integration Scenarios', () {
     late FluxRuntime runtime;
 
-    setUp(() {
+    setUp(() async {
+      // Ensure clean state before each test
       runtime = FluxRuntime();
     });
 
     tearDown(() async {
-      if (runtime.isInitialized) {
-        await runtime.destroyAll();
+      // Ensure complete cleanup after each test
+      try {
+        if (runtime.isInitialized) {
+          await runtime.destroyAll();
+        }
+      } catch (e) {
+        // Ignore cleanup errors to prevent test interference
+        print('Warning: Cleanup error in tearDown: $e');
       }
+
+      // Add a small delay to ensure cleanup is complete
+      await Future.delayed(const Duration(milliseconds: 10));
     });
 
     group('E-Commerce System Integration', () {
       test('should handle complete e-commerce workflow', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<ECommerceIntegrationService>(
             ECommerceIntegrationService.new);
         await runtime.initializeAll();
@@ -667,6 +690,9 @@ void main() {
       });
 
       test('should handle inventory management', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<ECommerceIntegrationService>(
             ECommerceIntegrationService.new);
         await runtime.initializeAll();
@@ -702,12 +728,14 @@ void main() {
 
     group('Microservices Architecture Integration', () {
       test('should handle cross-service communication', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<UserService>(UserService.new);
         runtime.register<ProductService>(ProductService.new);
-        runtime.register<OrderService>(() => OrderService(
-              runtime.get<UserService>(),
-              runtime.get<ProductService>(),
-            ));
+
+        // Register OrderService (uses ServiceClientMixin for dependency injection)
+        runtime.register<OrderService>(OrderService.new);
 
         await runtime.initializeAll();
 
@@ -742,12 +770,14 @@ void main() {
       });
 
       test('should handle service failures gracefully', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<UserService>(UserService.new);
         runtime.register<ProductService>(ProductService.new);
-        runtime.register<OrderService>(() => OrderService(
-              runtime.get<UserService>(),
-              runtime.get<ProductService>(),
-            ));
+
+        // Register OrderService (uses ServiceClientMixin for dependency injection)
+        runtime.register<OrderService>(OrderService.new);
 
         await runtime.initializeAll();
 
@@ -774,6 +804,9 @@ void main() {
 
     group('Real-time Collaboration System Integration', () {
       test('should handle document collaboration workflow', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<CollaborationService>(CollaborationService.new);
         await runtime.initializeAll();
 
@@ -809,6 +842,9 @@ void main() {
       });
 
       test('should handle unauthorized collaboration attempts', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<CollaborationService>(CollaborationService.new);
         await runtime.initializeAll();
 
@@ -833,15 +869,18 @@ void main() {
 
     group('Complex Multi-Service Workflows', () {
       test('should handle end-to-end business process', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         // Register all services
         runtime.register<ECommerceIntegrationService>(
             ECommerceIntegrationService.new);
         runtime.register<UserService>(UserService.new);
         runtime.register<ProductService>(ProductService.new);
-        runtime.register<OrderService>(() => OrderService(
-              runtime.get<UserService>(),
-              runtime.get<ProductService>(),
-            ));
+
+        // Register OrderService (uses ServiceClientMixin for dependency injection)
+        runtime.register<OrderService>(OrderService.new);
+
         runtime.register<CollaborationService>(CollaborationService.new);
 
         await runtime.initializeAll();
@@ -893,6 +932,9 @@ void main() {
       });
 
       test('should handle high-volume operations across services', () async {
+        // Ensure runtime is clean and ready
+        expect(runtime.isInitialized, isFalse);
+
         runtime.register<ECommerceIntegrationService>(
             ECommerceIntegrationService.new);
         runtime.register<CollaborationService>(CollaborationService.new);

@@ -87,7 +87,8 @@ class SecurityService extends FluxService {
     _rolePermissions[SecurityRole.admin.toString()] = Permission.values;
     _rolePermissions[SecurityRole.user.toString()] = [
       Permission.read,
-      Permission.write
+      Permission.write,
+      Permission.delete
     ];
     _rolePermissions[SecurityRole.guest.toString()] = [Permission.read];
     _rolePermissions[SecurityRole.moderator.toString()] = [
@@ -645,13 +646,13 @@ void main() {
         expect(await securityService.authorize(adminSession, Permission.manage),
             isTrue);
 
-        // User should have read and write permissions
+        // User should have read, write, and delete permissions
         expect(await securityService.authorize(userSession, Permission.read),
             isTrue);
         expect(await securityService.authorize(userSession, Permission.write),
             isTrue);
         expect(await securityService.authorize(userSession, Permission.delete),
-            isFalse);
+            isTrue);
         expect(await securityService.authorize(userSession, Permission.manage),
             isFalse);
 
