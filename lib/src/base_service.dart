@@ -6,7 +6,7 @@ import 'package:meta/meta.dart';
 
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
-import 'types/service_types.dart';
+import 'models/service_models.dart';
 part 'base_service_mixins.dart';
 
 /// Abstract base class for all services in the framework.

@@ -1,12 +1,16 @@
-import 'package:dart_service_framework/src/dependency_resolver.dart';
+import 'package:dart_service_framework/src/dependency_resolver/dependency_resolver.dart';
 import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
 import 'package:test/test.dart';
 
 // Mock service types for testing
 class ServiceA {}
+
 class ServiceB {}
+
 class ServiceC {}
+
 class ServiceD {}
+
 class ServiceE {}
 
 void main() {
@@ -20,7 +24,7 @@ void main() {
     test('should register services with dependencies', () {
       resolver.registerService(ServiceA, 'ServiceA', [], []);
       resolver.registerService(ServiceB, 'ServiceB', [ServiceA], []);
-      
+
       expect(resolver.registeredServices, contains(ServiceA));
       expect(resolver.registeredServices, contains(ServiceB));
       expect(resolver.getDependencies(ServiceB), contains(ServiceA));
@@ -31,9 +35,9 @@ void main() {
       resolver.registerService(ServiceC, 'ServiceC', [], []);
       resolver.registerService(ServiceB, 'ServiceB', [ServiceC], []);
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
-      
+
       final order = resolver.resolveInitializationOrder();
-      
+
       expect(order.indexOf(ServiceC), lessThan(order.indexOf(ServiceB)));
       expect(order.indexOf(ServiceB), lessThan(order.indexOf(ServiceA)));
     });
@@ -50,14 +54,14 @@ void main() {
       resolver.registerService(ServiceC, 'ServiceC', [ServiceD, ServiceE], []);
       resolver.registerService(ServiceB, 'ServiceB', [ServiceD], []);
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB, ServiceC], []);
-      
+
       final order = resolver.resolveInitializationOrder();
-      
+
       // D and E should come first (no dependencies)
       expect(order.indexOf(ServiceD), lessThan(order.indexOf(ServiceB)));
       expect(order.indexOf(ServiceD), lessThan(order.indexOf(ServiceC)));
       expect(order.indexOf(ServiceE), lessThan(order.indexOf(ServiceC)));
-      
+
       // B and C should come before A
       expect(order.indexOf(ServiceB), lessThan(order.indexOf(ServiceA)));
       expect(order.indexOf(ServiceC), lessThan(order.indexOf(ServiceA)));
@@ -68,7 +72,7 @@ void main() {
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
       resolver.registerService(ServiceB, 'ServiceB', [ServiceC], []);
       resolver.registerService(ServiceC, 'ServiceC', [ServiceA], []);
-      
+
       expect(
         () => resolver.validateDependencies(),
         throwsA(isA<CircularDependencyException>()),
@@ -78,7 +82,7 @@ void main() {
     test('should detect missing dependencies', () {
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
       // ServiceB is not registered
-      
+
       expect(
         () => resolver.validateDependencies(),
         throwsA(isA<DependencyNotSatisfiedException>()),
@@ -88,9 +92,9 @@ void main() {
     test('should handle optional dependencies', () {
       resolver.registerService(ServiceA, 'ServiceA', [], [ServiceB]);
       // ServiceB is not registered but it's optional
-      
+
       expect(() => resolver.validateDependencies(), returnsNormally);
-      
+
       final order = resolver.resolveInitializationOrder();
       expect(order, contains(ServiceA));
     });
@@ -98,9 +102,9 @@ void main() {
     test('should include registered optional dependencies in order', () {
       resolver.registerService(ServiceB, 'ServiceB', [], []);
       resolver.registerService(ServiceA, 'ServiceA', [], [ServiceB]);
-      
+
       final order = resolver.resolveInitializationOrder();
-      
+
       expect(order.indexOf(ServiceB), lessThan(order.indexOf(ServiceA)));
     });
 
@@ -108,10 +112,10 @@ void main() {
       resolver.registerService(ServiceC, 'ServiceC', [], []);
       resolver.registerService(ServiceB, 'ServiceB', [ServiceC], []);
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
-      
+
       final initOrder = resolver.resolveInitializationOrder();
       final destructOrder = resolver.resolveDestructionOrder();
-      
+
       expect(destructOrder, equals(initOrder.reversed.toList()));
     });
 
@@ -119,9 +123,9 @@ void main() {
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
       resolver.registerService(ServiceC, 'ServiceC', [ServiceB], []);
       resolver.registerService(ServiceB, 'ServiceB', [], []);
-      
+
       final dependents = resolver.getDependents(ServiceB);
-      
+
       expect(dependents, contains(ServiceA));
       expect(dependents, contains(ServiceC));
       expect(dependents, hasLength(2));
@@ -131,9 +135,9 @@ void main() {
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], [ServiceC]);
       resolver.registerService(ServiceB, 'ServiceB', [], []);
       resolver.registerService(ServiceC, 'ServiceC', [], []);
-      
+
       final info = resolver.getDependencyInfo(ServiceA);
-      
+
       expect(info.serviceName, equals('ServiceA'));
       expect(info.requiredDependencies, contains(ServiceB));
       expect(info.optionalDependencies, contains(ServiceC));
@@ -143,9 +147,9 @@ void main() {
     test('should visualize dependency graph', () {
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
       resolver.registerService(ServiceB, 'ServiceB', [], []);
-      
+
       final visualization = resolver.visualizeDependencyGraph();
-      
+
       expect(visualization, contains('ServiceA'));
       expect(visualization, contains('ServiceB'));
       expect(visualization, contains('├─'));
@@ -154,11 +158,11 @@ void main() {
     test('should clear all registrations', () {
       resolver.registerService(ServiceA, 'ServiceA', [], []);
       resolver.registerService(ServiceB, 'ServiceB', [], []);
-      
+
       expect(resolver.registeredServices, hasLength(2));
-      
+
       resolver.clear();
-      
+
       expect(resolver.registeredServices, isEmpty);
     });
   });
@@ -176,9 +180,9 @@ void main() {
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
       resolver.registerService(ServiceB, 'ServiceB', [], []); // Root
       resolver.registerService(ServiceC, 'ServiceC', [], []); // Root
-      
+
       final roots = analyzer.findRootServices();
-      
+
       expect(roots, contains(ServiceB));
       expect(roots, contains(ServiceC));
       expect(roots, hasLength(2));
@@ -188,9 +192,9 @@ void main() {
       resolver.registerService(ServiceA, 'ServiceA', [], []); // Leaf
       resolver.registerService(ServiceB, 'ServiceB', [ServiceA], []);
       resolver.registerService(ServiceC, 'ServiceC', [ServiceA], []);
-      
+
       final leaves = analyzer.findLeafServices();
-      
+
       expect(leaves, contains(ServiceB));
       expect(leaves, contains(ServiceC));
       expect(leaves, hasLength(2));
@@ -201,9 +205,9 @@ void main() {
       resolver.registerService(ServiceB, 'ServiceB', [ServiceD], []);
       resolver.registerService(ServiceC, 'ServiceC', [], []);
       resolver.registerService(ServiceD, 'ServiceD', [], []);
-      
+
       final stats = analyzer.getStatistics();
-      
+
       expect(stats.totalServices, equals(4));
       expect(stats.rootServices, equals(2)); // C and D
       expect(stats.leafServices, equals(1)); // A
@@ -216,9 +220,9 @@ void main() {
       resolver.registerService(ServiceC, 'ServiceC', [ServiceD], []);
       resolver.registerService(ServiceB, 'ServiceB', [ServiceC], []);
       resolver.registerService(ServiceA, 'ServiceA', [ServiceB], []);
-      
+
       final longestChain = analyzer.findLongestDependencyChain();
-      
+
       expect(longestChain, hasLength(4));
       expect(longestChain.first, equals(ServiceD));
       expect(longestChain.last, equals(ServiceA));

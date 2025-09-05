@@ -1,6 +1,5 @@
-part of 'service_types.dart';
+part of 'service_models.dart';
 
-/// Represents the current state of a service.
 enum ServiceState {
   uninitialized,
   registered,

@@ -16,7 +16,7 @@ import 'events/service_event.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'service_proxy.dart';
-import 'types/service_types.dart';
+import 'models/service_models.dart';
 
 /// A Squadron worker wrapper that runs a service in an isolate.
 class ServiceWorker extends Worker {
@@ -64,7 +64,8 @@ class ServiceWorker extends Worker {
   }
 
   /// Gets service information.
-  Future<Map<String, dynamic>> getServiceInfo() async => await send(_ServiceWorkerCommands.getInfo);
+  Future<Map<String, dynamic>> getServiceInfo() async =>
+      await send(_ServiceWorkerCommands.getInfo);
 
   /// Send an event to this worker isolate
   Future<void> sendEventToWorker(ServiceEvent event) async {
@@ -276,7 +277,8 @@ class _ServiceWorkerService implements WorkerService {
   // Forward a call from worker to host to call another service via host proxies
   Future<dynamic> _handleOutboundCallById(WorkerRequest request) async {
     // No-op: outbound calls are initiated by the worker using _hostBridgePort directly
-    throw const ServiceException('Outbound bridge should not be invoked by host');
+    throw const ServiceException(
+        'Outbound bridge should not be invoked by host');
   }
 
   Future<Map<String, dynamic>> _handleHealthCheck(WorkerRequest request) async {
@@ -517,12 +519,13 @@ class ServiceWorkerFactory {
     required ServiceFactory<T> serviceFactory,
     List<dynamic> args = const [],
     ExceptionManager? exceptionManager,
-  }) => ServiceWorker(
-      serviceName: serviceName,
-      serviceFactory: serviceFactory,
-      args: args,
-      exceptionManager: exceptionManager,
-    );
+  }) =>
+      ServiceWorker(
+        serviceName: serviceName,
+        serviceFactory: serviceFactory,
+        args: args,
+        exceptionManager: exceptionManager,
+      );
 }
 
 /// Pool of service workers for managing multiple worker instances.

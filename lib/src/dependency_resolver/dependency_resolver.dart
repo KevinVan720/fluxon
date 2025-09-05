@@ -1,7 +1,7 @@
 /// Dependency resolution system for service initialization ordering.
 library dependency_resolver;
 
-import 'exceptions/service_exceptions.dart';
+import '../exceptions/service_exceptions.dart';
 part 'dependency_resolver_models.dart';
 part 'dependency_resolver_analyzer.dart';
 

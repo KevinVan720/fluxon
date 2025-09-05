@@ -8,7 +8,7 @@ import 'package:squadron/squadron.dart';
 
 import 'base_service.dart';
 import 'codegen/dispatcher_registry.dart';
-import 'dependency_resolver.dart';
+import 'dependency_resolver/dependency_resolver.dart';
 import 'events/event_bridge.dart';
 import 'events/event_dispatcher.dart';
 import 'events/event_mixin.dart';
@@ -18,7 +18,7 @@ import 'flux_service.dart';
 import 'service_logger.dart';
 import 'service_proxy.dart';
 import 'service_worker.dart';
-import 'types/service_types.dart';
+import 'models/service_models.dart';
 
 /// Central runtime for all services in the Flux application.
 ///

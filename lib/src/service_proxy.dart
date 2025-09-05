@@ -8,7 +8,7 @@ import 'events/event_mixin.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'service_worker.dart';
-import 'types/service_types.dart';
+import 'models/service_models.dart';
 
 /// Interface for service proxy implementations.
 abstract class ServiceProxy<T extends BaseService> {

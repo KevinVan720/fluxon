@@ -1,6 +1,5 @@
-part of 'service_types.dart';
+part of 'service_models.dart';
 
-/// Result of a service operation.
 class ServiceResult<T> {
   const ServiceResult.success(this.data)
       : error = null,
@@ -22,7 +21,6 @@ class ServiceResult<T> {
       : 'ServiceResult.failure($error)';
 }
 
-/// Options for service method calls.
 class ServiceCallOptions {
   const ServiceCallOptions({
     this.timeout = const Duration(seconds: 10),

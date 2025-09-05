@@ -1,6 +1,5 @@
-part of 'service_types.dart';
+part of 'service_models.dart';
 
-/// Health status of a service.
 enum ServiceHealthStatus {
   healthy,
   degraded,
@@ -8,7 +7,6 @@ enum ServiceHealthStatus {
   unknown,
 }
 
-/// Health check result for a service.
 class ServiceHealthCheck {
   const ServiceHealthCheck({
     required this.status,

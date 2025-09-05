@@ -4,7 +4,7 @@ library service_logger;
 import 'dart:convert';
 import 'dart:io';
 
-import 'types/service_types.dart';
+import 'models/service_models.dart';
 
 /// A logger for services with automatic prefixing and metadata support.
 class ServiceLogger {

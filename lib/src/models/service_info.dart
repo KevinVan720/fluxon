@@ -1,6 +1,5 @@
-part of 'service_types.dart';
+part of 'service_models.dart';
 
-/// Information about a registered service.
 class ServiceInfo {
   const ServiceInfo({
     required this.name,
@@ -56,7 +55,6 @@ class ServiceInfo {
       'dependencies: ${dependencies.length})';
 }
 
-/// Dependency relationship between services.
 class ServiceDependency {
   const ServiceDependency({
     required this.dependent,

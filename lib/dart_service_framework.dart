@@ -15,7 +15,7 @@ export 'src/annotations/service_annotations.dart';
 export 'src/base_service.dart';
 // 🛠️ Advanced features (for framework extension)
 export 'src/codegen/dispatcher_registry.dart';
-export 'src/dependency_resolver.dart';
+export 'src/dependency_resolver/dependency_resolver.dart';
 export 'src/events/event_bridge.dart';
 export 'src/events/event_dispatcher.dart';
 export 'src/events/event_mixin.dart';
@@ -29,4 +29,4 @@ export 'src/flux_service.dart';
 export 'src/service_logger.dart';
 export 'src/service_proxy.dart';
 export 'src/service_worker.dart';
-export 'src/types/service_types.dart';
+export 'src/models/service_models.dart';

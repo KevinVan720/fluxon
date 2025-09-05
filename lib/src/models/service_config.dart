@@ -1,6 +1,5 @@
-part of 'service_types.dart';
+part of 'service_models.dart';
 
-/// Log levels for service logging.
 enum ServiceLogLevel {
   debug,
   info,
@@ -9,7 +8,6 @@ enum ServiceLogLevel {
   critical,
 }
 
-/// Configuration for service initialization.
 class ServiceConfig {
   const ServiceConfig({
     this.timeout = const Duration(seconds: 30),
