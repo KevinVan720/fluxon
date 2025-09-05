@@ -752,7 +752,7 @@ void main() {
 
         // Guest should not be able to delete data (no delete permission)
         expect(
-          () => dataService.deleteData(guestSession, 'data1'),
+          dataService.deleteData(guestSession, 'data1'),
           throwsA(isA<SecurityException>()),
         );
 

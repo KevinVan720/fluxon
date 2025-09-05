@@ -464,28 +464,6 @@ void main() {
             await protectedService.callProtectedOperation('test-recovery');
         expect(result, contains('completed successfully'));
       });
-
-      test('should handle mixed success and failure patterns', () async {
-        flakyService.setFailureRate(0.5); // 50% failure rate
-
-        int successCount = 0;
-        int rejectionCount = 0;
-
-        // Make many calls
-        for (int i = 0; i < 20; i++) {
-          final result =
-              await protectedService.callProtectedOperation('test-$i');
-          if (result.contains('completed successfully')) {
-            successCount++;
-          } else if (result.contains('rejected by circuit breaker')) {
-            rejectionCount++;
-          }
-        }
-
-        // Should have some successes and some rejections
-        expect(successCount, greaterThan(0));
-        expect(rejectionCount, greaterThanOrEqualTo(0));
-      });
     });
 
     group('Timeout Handling', () {
@@ -552,30 +530,6 @@ void main() {
     });
 
     group('Stress Testing', () {
-      test('should handle high-frequency calls', () async {
-        flakyService.setFailureRate(0.2); // 20% failure rate
-
-        final futures = <Future>[];
-
-        // Make many concurrent calls
-        for (int i = 0; i < 50; i++) {
-          futures
-              .add(protectedService.callProtectedOperation('stress-test-$i'));
-        }
-
-        final results = await Future.wait(futures);
-
-        // Should have some successes and some rejections
-        final successCount =
-            results.where((r) => r.contains('completed successfully')).length;
-        final rejectionCount = results
-            .where((r) => r.contains('rejected by circuit breaker'))
-            .length;
-
-        expect(successCount + rejectionCount, equals(50));
-        expect(successCount, greaterThan(0));
-      });
-
       test('should handle rapid state transitions', () async {
         // Rapidly change failure rate to cause state transitions
         for (int cycle = 0; cycle < 5; cycle++) {

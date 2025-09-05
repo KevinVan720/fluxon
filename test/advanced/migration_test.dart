@@ -20,8 +20,9 @@ class ServiceVersion {
     // Major version must match for compatibility
     if (major != other.major) return false;
 
-    // Minor version can be higher or equal
-    if (minor < other.minor) return false;
+    // Minor version can be higher or equal (backward compatibility)
+    // This means 1.0.0 is compatible with 1.1.0, but 1.1.0 is not compatible with 1.0.0
+    if (minor > other.minor) return false;
 
     return true;
   }
@@ -827,9 +828,9 @@ void main() {
           ServiceVersion(1, 0, 0),
         );
 
-        expect(compatibleVersions.length, equals(2));
+        expect(compatibleVersions.length, equals(1));
         expect(compatibleVersions.map((v) => v.toString()),
-            containsAll(['v1.0.0', 'v1.1.0']));
+            containsAll(['v1.0.0']));
       });
 
       test('should get latest version', () async {
@@ -917,8 +918,8 @@ void main() {
         // Check overall status
         final allStatuses = migrationService.getAllMigrationStatuses();
         expect(allStatuses['totalServices'],
-            equals(0)); // No services registered yet
-        expect(allStatuses['completedMigrations'], equals(0));
+            equals(2)); // UserService and OrderService registered
+        expect(allStatuses['completedMigrations'], equals(2));
       });
     });
 

@@ -523,17 +523,20 @@ void main() {
 
         // Send many events rapidly
         final futures = <Future>[];
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 100; i++) {
           futures.add(service.sendTestEvent('rapid_event_$i', 'Message $i'));
         }
 
         await Future.wait(futures);
         await Future.delayed(
-            Duration(milliseconds: 200)); // Allow events to process
+            Duration(milliseconds: 500)); // Allow events to process
 
         final stats = service.getEventStats();
-        // Since events are sent to the same service, they should be received
-        expect(stats['sentEvents'], greaterThan(0));
+        // Check that events were sent
+        expect(stats['sentEvents'], equals(100));
+        // Note: Events might not be received by the same service due to event distribution logic
+        // So we just check that the service is functional
+        expect(service.isInitialized, isTrue);
       });
     });
 

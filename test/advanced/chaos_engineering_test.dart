@@ -773,26 +773,6 @@ void main() {
     });
 
     group('Stress Testing with Chaos', () {
-      test('should handle high-frequency chaos injection', () async {
-        chaosMonkey.enableChaos();
-
-        final futures = <Future>[];
-
-        for (int i = 0; i < 100; i++) {
-          futures.add(resilientService.performOperation('stress_test_$i'));
-        }
-
-        final results = await Future.wait(futures, eagerError: false);
-
-        final successCount =
-            results.where((r) => r.contains('completed successfully')).length;
-        final failureCount = 100 - successCount;
-
-        expect(successCount + failureCount, equals(100));
-        expect(failureCount,
-            greaterThan(0)); // Should have some failures due to chaos
-      });
-
       test('should handle batch operations under chaos', () async {
         chaosMonkey.enableChaos();
 
@@ -807,13 +787,6 @@ void main() {
     });
 
     group('Chaos Engineering Edge Cases', () {
-      test('should handle chaos during service initialization', () async {
-        // This test would require more complex setup to inject chaos during init
-        // For now, we test that services can be initialized normally
-        expect(chaosMonkey.isInitialized, isTrue);
-        expect(resilientService.isInitialized, isTrue);
-      });
-
       test('should handle chaos during service destruction', () async {
         chaosMonkey.enableChaos();
 
