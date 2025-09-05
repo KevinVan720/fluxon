@@ -2,6 +2,8 @@
 library dependency_resolver;
 
 import 'exceptions/service_exceptions.dart';
+part 'dependency_resolver_models.dart';
+part 'dependency_resolver_analyzer.dart';
 
 /// Resolves service dependencies and determines initialization order.
 class DependencyResolver {
@@ -35,16 +37,18 @@ class DependencyResolver {
   Set<Type> get registeredServices => Set.from(_dependencies.keys);
 
   /// Gets the dependencies for a service.
-  Set<Type> getDependencies(Type serviceType) => Set.from(_dependencies[serviceType] ?? {});
+  Set<Type> getDependencies(Type serviceType) =>
+      Set.from(_dependencies[serviceType] ?? {});
 
   /// Gets the optional dependencies for a service.
-  Set<Type> getOptionalDependencies(Type serviceType) => Set.from(_optionalDependencies[serviceType] ?? {});
+  Set<Type> getOptionalDependencies(Type serviceType) =>
+      Set.from(_optionalDependencies[serviceType] ?? {});
 
   /// Gets all dependencies (required and optional) for a service.
   Set<Type> getAllDependencies(Type serviceType) => {
-      ...getDependencies(serviceType),
-      ...getOptionalDependencies(serviceType),
-    };
+        ...getDependencies(serviceType),
+        ...getOptionalDependencies(serviceType),
+      };
 
   /// Gets services that depend on the given service.
   Set<Type> getDependents(Type serviceType) {
@@ -103,7 +107,8 @@ class DependencyResolver {
   ///
   /// Returns a list of service types in the order they should be destroyed.
   /// This is the reverse of the initialization order.
-  List<Type> resolveDestructionOrder() => resolveInitializationOrder().reversed.toList();
+  List<Type> resolveDestructionOrder() =>
+      resolveInitializationOrder().reversed.toList();
 
   /// Gets the dependency graph as a map.
   Map<Type, Set<Type>> getDependencyGraph() {
@@ -177,9 +182,8 @@ class DependencyResolver {
   }
 
   /// Gets dependency information for all services.
-  List<ServiceDependencyInfo> getAllDependencyInfo() => _dependencies.keys
-        .map(getDependencyInfo)
-        .toList();
+  List<ServiceDependencyInfo> getAllDependencyInfo() =>
+      _dependencies.keys.map(getDependencyInfo).toList();
 
   /// Clears all registered services and dependencies.
   void clear() {
@@ -213,8 +217,7 @@ class DependencyResolver {
     final dependencies = {
       ..._dependencies[serviceType] ?? {},
       // Include optional dependencies that are registered
-      ..._optionalDependencies[serviceType]
-              ?.where(_dependencies.containsKey) ??
+      ..._optionalDependencies[serviceType]?.where(_dependencies.containsKey) ??
           {},
     };
 
@@ -279,215 +282,8 @@ class DependencyResolver {
     return result;
   }
 
-  String _getServiceName(Type serviceType) => _serviceNames[serviceType] ?? serviceType.toString();
+  String _getServiceName(Type serviceType) =>
+      _serviceNames[serviceType] ?? serviceType.toString();
 }
 
-/// Detailed dependency information for a service.
-class ServiceDependencyInfo {
-  /// Creates service dependency information.
-  const ServiceDependencyInfo({
-    required this.serviceType,
-    required this.serviceName,
-    required this.requiredDependencies,
-    required this.optionalDependencies,
-    required this.dependents,
-    required this.totalDependencies,
-    required this.totalDependents,
-  });
-
-  /// The service type.
-  final Type serviceType;
-
-  /// The service name.
-  final String serviceName;
-
-  /// Required dependencies.
-  final List<Type> requiredDependencies;
-
-  /// Optional dependencies.
-  final List<Type> optionalDependencies;
-
-  /// Services that depend on this service.
-  final List<Type> dependents;
-
-  /// Total number of dependencies.
-  final int totalDependencies;
-
-  /// Total number of dependents.
-  final int totalDependents;
-
-  /// Gets all dependencies (required and optional).
-  List<Type> get allDependencies => [
-        ...requiredDependencies,
-        ...optionalDependencies,
-      ];
-
-  /// Whether this service has any dependencies.
-  bool get hasDependencies => totalDependencies > 0;
-
-  /// Whether this service has any dependents.
-  bool get hasDependents => totalDependents > 0;
-
-  /// Whether this service is a leaf node (no dependents).
-  bool get isLeaf => !hasDependents;
-
-  /// Whether this service is a root node (no dependencies).
-  bool get isRoot => !hasDependencies;
-
-  @override
-  String toString() => 'ServiceDependencyInfo($serviceName: '
-        '$totalDependencies deps, $totalDependents dependents)';
-}
-
-/// Utility class for analyzing dependency graphs.
-class DependencyAnalyzer {
-  /// Creates a dependency analyzer.
-  const DependencyAnalyzer(this.resolver);
-
-  /// The dependency resolver to analyze.
-  final DependencyResolver resolver;
-
-  /// Finds services with no dependencies (root services).
-  List<Type> findRootServices() => resolver.registeredServices
-        .where((service) => resolver.getDependencies(service).isEmpty)
-        .toList();
-
-  /// Finds services with no dependents (leaf services).
-  List<Type> findLeafServices() => resolver.registeredServices
-        .where((service) => resolver.getDependents(service).isEmpty)
-        .toList();
-
-  /// Finds the longest dependency chain.
-  List<Type> findLongestDependencyChain() {
-    final chains = <List<Type>>[];
-
-    for (final root in findRootServices()) {
-      chains.add(_findLongestChainFrom(root));
-    }
-
-    return chains.reduce((a, b) => a.length > b.length ? a : b);
-  }
-
-  /// Gets dependency statistics.
-  DependencyStatistics getStatistics() {
-    final services = resolver.registeredServices;
-    final totalServices = services.length;
-
-    if (totalServices == 0) {
-      return const DependencyStatistics(
-        totalServices: 0,
-        rootServices: 0,
-        leafServices: 0,
-        averageDependencies: 0.0,
-        maxDependencies: 0,
-        averageDependents: 0.0,
-        maxDependents: 0,
-        longestChainLength: 0,
-      );
-    }
-
-    final rootServices = findRootServices().length;
-    final leafServices = findLeafServices().length;
-
-    final dependencyCounts =
-        services.map((s) => resolver.getDependencies(s).length).toList();
-
-    final dependentCounts =
-        services.map((s) => resolver.getDependents(s).length).toList();
-
-    final averageDependencies = dependencyCounts.isEmpty
-        ? 0.0
-        : dependencyCounts.reduce((a, b) => a + b) / dependencyCounts.length;
-
-    final averageDependents = dependentCounts.isEmpty
-        ? 0.0
-        : dependentCounts.reduce((a, b) => a + b) / dependentCounts.length;
-
-    final maxDependencies = dependencyCounts.isEmpty
-        ? 0
-        : dependencyCounts.reduce((a, b) => a > b ? a : b);
-
-    final maxDependents = dependentCounts.isEmpty
-        ? 0
-        : dependentCounts.reduce((a, b) => a > b ? a : b);
-
-    final longestChain = findLongestDependencyChain();
-
-    return DependencyStatistics(
-      totalServices: totalServices,
-      rootServices: rootServices,
-      leafServices: leafServices,
-      averageDependencies: averageDependencies,
-      maxDependencies: maxDependencies,
-      averageDependents: averageDependents,
-      maxDependents: maxDependents,
-      longestChainLength: longestChain.length,
-    );
-  }
-
-  List<Type> _findLongestChainFrom(Type service) {
-    final dependents = resolver.getDependents(service);
-
-    if (dependents.isEmpty) {
-      return [service];
-    }
-
-    final chains = dependents
-        .map(_findLongestChainFrom)
-        .toList();
-
-    final longestChain = chains.reduce((a, b) => a.length > b.length ? a : b);
-    return [service, ...longestChain];
-  }
-}
-
-/// Statistics about a dependency graph.
-class DependencyStatistics {
-  /// Creates dependency statistics.
-  const DependencyStatistics({
-    required this.totalServices,
-    required this.rootServices,
-    required this.leafServices,
-    required this.averageDependencies,
-    required this.maxDependencies,
-    required this.averageDependents,
-    required this.maxDependents,
-    required this.longestChainLength,
-  });
-
-  /// Total number of services.
-  final int totalServices;
-
-  /// Number of root services (no dependencies).
-  final int rootServices;
-
-  /// Number of leaf services (no dependents).
-  final int leafServices;
-
-  /// Average number of dependencies per service.
-  final double averageDependencies;
-
-  /// Maximum number of dependencies for any service.
-  final int maxDependencies;
-
-  /// Average number of dependents per service.
-  final double averageDependents;
-
-  /// Maximum number of dependents for any service.
-  final int maxDependents;
-
-  /// Length of the longest dependency chain.
-  final int longestChainLength;
-
-  @override
-  String toString() => 'DependencyStatistics(\n'
-        '  Total Services: $totalServices\n'
-        '  Root Services: $rootServices\n'
-        '  Leaf Services: $leafServices\n'
-        '  Avg Dependencies: ${averageDependencies.toStringAsFixed(2)}\n'
-        '  Max Dependencies: $maxDependencies\n'
-        '  Avg Dependents: ${averageDependents.toStringAsFixed(2)}\n'
-        '  Max Dependents: $maxDependents\n'
-        '  Longest Chain: $longestChainLength\n'
-        ')';
-}
+// Models and analyzer moved to part files.

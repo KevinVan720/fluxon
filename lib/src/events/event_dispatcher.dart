@@ -7,8 +7,10 @@ import 'dart:collection';
 import '../base_service.dart';
 import '../service_logger.dart';
 import 'models/dispatcher_models.dart';
-
 import 'service_event.dart';
+part 'event_dispatcher_routing.dart';
+
+// imports consolidated above
 
 /// Statistics and distribution result moved to models/dispatcher_models.dart
 
@@ -119,7 +121,8 @@ class EventDispatcher {
       _processEventQueue();
 
       // Determine target services based on distribution strategy
-      final targetServices = _determineTargetServices(event, distribution);
+      final targetServices =
+          _determineTargetServices(_services, event, distribution);
 
       // Process targeted services first
       if (distribution.targets.isNotEmpty) {
@@ -369,55 +372,7 @@ class EventDispatcher {
   }
 
   /// Determine target services based on distribution strategy
-  List<Type> _determineTargetServices(
-    ServiceEvent event,
-    EventDistribution distribution,
-  ) {
-    final allServices = _services.keys.toList();
-    final sourceServiceType = _getServiceTypeByName(event.sourceService);
-
-    switch (distribution.strategy) {
-      case EventDistributionStrategy.targeted:
-        return distribution.targets.map((t) => t.serviceType).toList();
-
-      case EventDistributionStrategy.broadcast:
-        var targets = allServices;
-        if (!distribution.includeSource && sourceServiceType != null) {
-          targets = targets.where((t) => t != sourceServiceType).toList();
-        }
-        return targets
-            .where((t) => !distribution.excludeServices.contains(t))
-            .toList();
-
-      case EventDistributionStrategy.broadcastExcept:
-        var targets = allServices;
-        if (!distribution.includeSource && sourceServiceType != null) {
-          targets = targets.where((t) => t != sourceServiceType).toList();
-        }
-        return targets
-            .where((t) => !distribution.excludeServices.contains(t))
-            .toList();
-
-      case EventDistributionStrategy.targetedThenBroadcast:
-        var targets = allServices;
-        if (!distribution.includeSource && sourceServiceType != null) {
-          targets = targets.where((t) => t != sourceServiceType).toList();
-        }
-        return targets
-            .where((t) => !distribution.excludeServices.contains(t))
-            .toList();
-    }
-  }
-
-  /// Get service type by service name
-  Type? _getServiceTypeByName(String serviceName) {
-    for (final entry in _services.entries) {
-      if (entry.value.serviceName == serviceName) {
-        return entry.key;
-      }
-    }
-    return null;
-  }
+  // routing helpers moved to part file
 
   /// Process the event queue
   void _processEventQueue() {
