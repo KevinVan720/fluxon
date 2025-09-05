@@ -157,7 +157,7 @@ class LoadBalancerService extends FluxService {
     return instances.reduce((a, b) {
       final connectionsA = _connectionCounts[a.id] ?? 0;
       final connectionsB = _connectionCounts[b.id] ?? 0;
-      return connectionsA <= connectionsB ? a : b;
+      return connectionsA < connectionsB ? a : b;
     });
   }
 
@@ -535,13 +535,12 @@ void main() {
       runtime = FluxRuntime();
 
       runtime.register<LoadBalancerService>(LoadBalancerService.new);
-      runtime
-          .register<AutoScalingService>(() => AutoScalingService(loadBalancer));
 
       await runtime.initializeAll();
 
       loadBalancer = runtime.get<LoadBalancerService>();
-      autoScaling = runtime.get<AutoScalingService>();
+      // Create AutoScalingService after LoadBalancerService is available
+      autoScaling = AutoScalingService(loadBalancer);
     });
 
     tearDown(() async {
@@ -659,8 +658,12 @@ void main() {
 
         // Next request should go to instance with least connections
         final instance = await loadBalancer.selectInstance('testService');
-        expect(instance!.id,
-            equals('instance2')); // Should be instance2 or instance3
+        expect(
+            instance!.id,
+            anyOf([
+              'instance2',
+              'instance3'
+            ])); // Should be instance2 or instance3
       });
 
       test('should implement least response time load balancing', () async {

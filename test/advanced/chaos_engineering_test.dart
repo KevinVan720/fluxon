@@ -612,12 +612,13 @@ void main() {
         partitionService,
         resourceService,
       );
-      runtime.register<ChaosTestOrchestrator>(() => orchestrator);
       await orchestrator.internalInitialize();
     });
 
     tearDown(() async {
-      await runtime.destroyAll();
+      if (runtime.isInitialized) {
+        await runtime.destroyAll();
+      }
     });
 
     group('Basic Chaos Injection', () {

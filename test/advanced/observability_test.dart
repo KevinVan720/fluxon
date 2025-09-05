@@ -486,13 +486,13 @@ void main() {
         logAggregationService,
         performanceMonitoring,
       );
-      runtime.register<ObservabilityIntegrationService>(
-          () => observabilityIntegration);
       await observabilityIntegration.internalInitialize();
     });
 
     tearDown(() async {
-      await runtime.destroyAll();
+      if (runtime.isInitialized) {
+        await runtime.destroyAll();
+      }
     });
 
     group('Metrics Collection', () {

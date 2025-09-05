@@ -622,7 +622,9 @@ void main() {
     });
 
     tearDown(() async {
-      await runtime.destroyAll();
+      if (runtime.isInitialized) {
+        await runtime.destroyAll();
+      }
     });
 
     group('Version Management', () {
