@@ -595,14 +595,14 @@ void main() {
 
       runtime
         ..register<ChaosMonkeyService>(() => ChaosMonkeyService(chaosConfig))
-        ..register<ResilientService>(() => ResilientService(chaosMonkey))
         ..register<NetworkPartitionService>(NetworkPartitionService.new)
         ..register<ResourceExhaustionService>(ResourceExhaustionService.new);
 
       await runtime.initializeAll();
 
       chaosMonkey = runtime.get<ChaosMonkeyService>();
-      resilientService = runtime.get<ResilientService>();
+      // Create ResilientService after ChaosMonkeyService is available
+      resilientService = ResilientService(chaosMonkey);
       partitionService = runtime.get<NetworkPartitionService>();
       resourceService = runtime.get<ResourceExhaustionService>();
 

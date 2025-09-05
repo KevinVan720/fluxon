@@ -431,11 +431,11 @@ class SecureApiService extends FluxService {
     final oneMinuteAgo = now.subtract(Duration(minutes: 1));
 
     // Get user's rate limit
-    int rateLimit = _rateLimits['default']!;
+    int rateLimit = _rateLimits['default'] ?? 10;
     if (roles.contains(SecurityRole.admin)) {
-      rateLimit = _rateLimits['admin']!;
+      rateLimit = _rateLimits['admin'] ?? 100;
     } else if (roles.contains(SecurityRole.user)) {
-      rateLimit = _rateLimits['user']!;
+      rateLimit = _rateLimits['user'] ?? 50;
     }
 
     // Clean old requests
@@ -575,17 +575,14 @@ void main() {
       runtime = FluxRuntime();
 
       runtime.register<SecurityService>(SecurityService.new);
-      runtime.register<SecureDataService>(
-          () => SecureDataService(securityService));
-      runtime
-          .register<SecureApiService>(() => SecureApiService(securityService));
       runtime.register<EncryptionService>(EncryptionService.new);
 
       await runtime.initializeAll();
 
       securityService = runtime.get<SecurityService>();
-      dataService = runtime.get<SecureDataService>();
-      apiService = runtime.get<SecureApiService>();
+      // Create dependent services after SecurityService is available
+      dataService = SecureDataService(securityService);
+      apiService = SecureApiService(securityService);
       encryptionService = runtime.get<EncryptionService>();
 
       // Create test users

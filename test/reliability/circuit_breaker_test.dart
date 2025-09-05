@@ -363,14 +363,14 @@ void main() {
       runtime = FluxRuntime();
 
       runtime.register<FlakyService>(FlakyService.new);
-      runtime.register<ProtectedService>(() => ProtectedService(flakyService));
       runtime.register<CircuitBreakerMonitorService>(
           CircuitBreakerMonitorService.new);
 
       await runtime.initializeAll();
 
       flakyService = runtime.get<FlakyService>();
-      protectedService = runtime.get<ProtectedService>();
+      // Create ProtectedService after FlakyService is available
+      protectedService = ProtectedService(flakyService);
       monitorService = runtime.get<CircuitBreakerMonitorService>();
     });
 

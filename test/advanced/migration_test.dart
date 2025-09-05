@@ -675,7 +675,7 @@ void main() {
         final status = migrationService.getMigrationStatus('UserService');
         expect(status['serviceName'], equals('UserService'));
         expect(status['hasPlan'], isTrue);
-        expect(status['migrationStatus'], equals('pending'));
+        expect(status['migrationStatus'], equals('MigrationStatus.pending'));
       });
 
       test('should track migration history', () async {
@@ -707,7 +707,7 @@ void main() {
         await migrationService.executeMigration('UserService');
 
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('completed'));
+        expect(status['migrationStatus'], equals('MigrationStatus.completed'));
       });
 
       test('should execute rolling migration', () async {
@@ -723,7 +723,7 @@ void main() {
         await migrationService.executeMigration('UserService');
 
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('completed'));
+        expect(status['migrationStatus'], equals('MigrationStatus.completed'));
       });
 
       test('should execute canary migration', () async {
@@ -738,7 +738,7 @@ void main() {
         await migrationService.executeMigration('UserService');
 
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('completed'));
+        expect(status['migrationStatus'], equals('MigrationStatus.completed'));
       });
 
       test('should execute immediate migration', () async {
@@ -753,7 +753,7 @@ void main() {
         await migrationService.executeMigration('UserService');
 
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('completed'));
+        expect(status['migrationStatus'], equals('MigrationStatus.completed'));
       });
     });
 
@@ -770,7 +770,7 @@ void main() {
         await migrationService.rollbackMigration('UserService');
 
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('rolledBack'));
+        expect(status['migrationStatus'], equals('MigrationStatus.rolledBack'));
       });
     });
 
@@ -869,7 +869,7 @@ void main() {
 
         // Verify migration completed
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('completed'));
+        expect(status['migrationStatus'], equals('MigrationStatus.completed'));
       });
 
       test('should handle migration failure and rollback', () async {
@@ -886,7 +886,7 @@ void main() {
         await migrationService.rollbackMigration('UserService');
 
         final status = migrationService.getMigrationStatus('UserService');
-        expect(status['migrationStatus'], equals('rolledBack'));
+        expect(status['migrationStatus'], equals('MigrationStatus.rolledBack'));
       });
 
       test('should handle multiple service migrations', () async {
@@ -964,8 +964,8 @@ void main() {
         final status1 = migrationService.getMigrationStatus('Service1');
         final status2 = migrationService.getMigrationStatus('Service2');
 
-        expect(status1['migrationStatus'], equals('completed'));
-        expect(status2['migrationStatus'], equals('completed'));
+        expect(status1['migrationStatus'], equals('MigrationStatus.completed'));
+        expect(status2['migrationStatus'], equals('MigrationStatus.completed'));
       });
     });
   });
