@@ -168,6 +168,15 @@ class EventTestService extends FluxService {
 
 // Test event for edge case testing
 class TestEvent extends ServiceEvent {
+  const TestEvent({
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    required this.message,
+    required this.priority,
+    super.correlationId,
+    super.metadata = const {},
+  });
   factory TestEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return TestEvent(
@@ -180,15 +189,6 @@ class TestEvent extends ServiceEvent {
       priority: data['priority'] as int,
     );
   }
-  const TestEvent({
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    required this.message,
-    required this.priority,
-    super.correlationId,
-    super.metadata = const {},
-  });
 
   final String message;
   final int priority;

@@ -2,11 +2,13 @@
 library base_service;
 
 import 'dart:async';
+
 import 'package:meta/meta.dart';
 
 import 'exceptions/service_exceptions.dart';
-import 'service_logger.dart';
 import 'models/service_models.dart';
+import 'service_logger.dart';
+
 part 'base_service_mixins.dart';
 
 /// Abstract base class for all services in the framework.

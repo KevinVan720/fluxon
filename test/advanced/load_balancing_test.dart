@@ -20,11 +20,11 @@ class ServiceInstance {
     required this.id,
     required this.host,
     required this.port,
+    required this.lastHealthCheck,
     this.weight = 1,
     this.maxConnections = 100,
     this.responseTime = Duration.zero,
     this.isHealthy = true,
-    required this.lastHealthCheck,
   });
   final String id;
   final String host;
@@ -159,9 +159,7 @@ class LoadBalancerService extends FluxService {
       });
 
   ServiceInstance _selectLeastResponseTime(List<ServiceInstance> instances) =>
-      instances.reduce((a, b) {
-        return a.responseTime <= b.responseTime ? a : b;
-      });
+      instances.reduce((a, b) => a.responseTime <= b.responseTime ? a : b);
 
   ServiceInstance _selectRandom(List<ServiceInstance> instances) {
     final random = Random();
@@ -318,11 +316,11 @@ class ScalableService extends FluxService {
   }
 
   Future<String> processHeavyRequest(String requestId) async =>
-      await processRequest(requestId, processingTime: Duration(seconds: 2));
+      processRequest(requestId, processingTime: const Duration(seconds: 2));
 
   Future<String> processLightRequest(String requestId) async =>
-      await processRequest(requestId,
-          processingTime: Duration(milliseconds: 10));
+      processRequest(requestId,
+          processingTime: const Duration(milliseconds: 10));
 
   Map<String, dynamic> getInstanceStats() => {
         'instanceId': _instanceId,

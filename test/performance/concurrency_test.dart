@@ -8,6 +8,15 @@ part 'concurrency_test.g.dart';
 
 // Event for concurrency testing
 class ConcurrentEvent extends ServiceEvent {
+  const ConcurrentEvent({
+    required this.threadId,
+    required this.operationId,
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    super.metadata = const {},
+    super.correlationId,
+  });
   factory ConcurrentEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return ConcurrentEvent(
@@ -20,15 +29,6 @@ class ConcurrentEvent extends ServiceEvent {
       metadata: json['metadata'] ?? {},
     );
   }
-  const ConcurrentEvent({
-    required this.threadId,
-    required this.operationId,
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    super.metadata = const {},
-    super.correlationId,
-  });
 
   final int threadId;
   final int operationId;

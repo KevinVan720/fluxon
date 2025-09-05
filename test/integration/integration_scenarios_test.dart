@@ -263,6 +263,16 @@ class ECommerceIntegrationService extends FluxService {
 
 // Event types for e-commerce system
 class OrderCreatedEvent extends ServiceEvent {
+  const OrderCreatedEvent({
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    required this.orderId,
+    required this.userId,
+    required this.total,
+    super.correlationId,
+    super.metadata = const {},
+  });
   factory OrderCreatedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return OrderCreatedEvent(
@@ -276,16 +286,6 @@ class OrderCreatedEvent extends ServiceEvent {
       total: (data['total'] as num).toDouble(),
     );
   }
-  const OrderCreatedEvent({
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    required this.orderId,
-    required this.userId,
-    required this.total,
-    super.correlationId,
-    super.metadata = const {},
-  });
 
   final String orderId;
   final String userId;
@@ -300,6 +300,15 @@ class OrderCreatedEvent extends ServiceEvent {
 }
 
 class PaymentProcessedEvent extends ServiceEvent {
+  const PaymentProcessedEvent({
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    required this.orderId,
+    required this.amount,
+    super.correlationId,
+    super.metadata = const {},
+  });
   factory PaymentProcessedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return PaymentProcessedEvent(
@@ -312,15 +321,6 @@ class PaymentProcessedEvent extends ServiceEvent {
       amount: (data['amount'] as num).toDouble(),
     );
   }
-  const PaymentProcessedEvent({
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    required this.orderId,
-    required this.amount,
-    super.correlationId,
-    super.metadata = const {},
-  });
 
   final String orderId;
   final double amount;
@@ -333,6 +333,15 @@ class PaymentProcessedEvent extends ServiceEvent {
 }
 
 class InventoryUpdatedEvent extends ServiceEvent {
+  const InventoryUpdatedEvent({
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    required this.productId,
+    required this.quantity,
+    super.correlationId,
+    super.metadata = const {},
+  });
   factory InventoryUpdatedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return InventoryUpdatedEvent(
@@ -345,15 +354,6 @@ class InventoryUpdatedEvent extends ServiceEvent {
       quantity: data['quantity'] as int,
     );
   }
-  const InventoryUpdatedEvent({
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    required this.productId,
-    required this.quantity,
-    super.correlationId,
-    super.metadata = const {},
-  });
 
   final String productId;
   final int quantity;
@@ -588,6 +588,16 @@ class CollaborationService extends FluxService {
 }
 
 class DocumentChangeEvent extends ServiceEvent {
+  const DocumentChangeEvent({
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    required this.documentId,
+    required this.userId,
+    required this.change,
+    super.correlationId,
+    super.metadata = const {},
+  });
   factory DocumentChangeEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return DocumentChangeEvent(
@@ -601,16 +611,6 @@ class DocumentChangeEvent extends ServiceEvent {
       change: data['change'] as String,
     );
   }
-  const DocumentChangeEvent({
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    required this.documentId,
-    required this.userId,
-    required this.change,
-    super.correlationId,
-    super.metadata = const {},
-  });
 
   final String documentId;
   final String userId;

@@ -278,7 +278,7 @@ class ConsoleLogWriter extends ServiceLogWriter {
     final formatted = entry.format();
     final output = colorize ? _colorize(formatted, entry.level) : formatted;
 
-    final IOSink chosen = _sink ??
+    final chosen = _sink ??
         ((entry.level.index >= ServiceLogLevel.error.index) ? stderr : stdout);
     chosen.writeln(output);
   }

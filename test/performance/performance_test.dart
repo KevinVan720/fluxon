@@ -8,6 +8,15 @@ part 'performance_test.g.dart';
 
 // High-throughput event for performance testing
 class PerformanceEvent extends ServiceEvent {
+  const PerformanceEvent({
+    required this.sequenceNumber,
+    required this.payload,
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    super.metadata = const {},
+    super.correlationId,
+  });
   factory PerformanceEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return PerformanceEvent(
@@ -20,15 +29,6 @@ class PerformanceEvent extends ServiceEvent {
       metadata: json['metadata'] ?? {},
     );
   }
-  const PerformanceEvent({
-    required this.sequenceNumber,
-    required this.payload,
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    super.metadata = const {},
-    super.correlationId,
-  });
 
   final int sequenceNumber;
   final Map<String, dynamic> payload;

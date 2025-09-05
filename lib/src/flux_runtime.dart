@@ -15,10 +15,10 @@ import 'events/event_mixin.dart';
 import 'events/service_event.dart';
 import 'exceptions/service_exceptions.dart';
 import 'flux_service.dart';
+import 'models/service_models.dart';
 import 'service_logger.dart';
 import 'service_proxy.dart';
 import 'service_worker.dart';
-import 'models/service_models.dart';
 
 /// Central runtime for all services in the Flux application.
 ///

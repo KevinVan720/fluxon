@@ -225,9 +225,9 @@ class ProtectedService extends FluxService {
       'FlakyService',
       const CircuitBreakerConfig(
         failureThreshold: 3,
-        timeout: const Duration(seconds: 5),
-        resetTimeout: const Duration(seconds: 10),
-        halfOpenTimeout: const Duration(seconds: 5),
+        timeout: Duration(seconds: 5),
+        resetTimeout: Duration(seconds: 10),
+        halfOpenTimeout: Duration(seconds: 5),
       ),
     );
   }
@@ -246,8 +246,8 @@ class ProtectedService extends FluxService {
     _protectedCallCount++;
 
     try {
-      final result = await _circuitBreaker.execute(
-          () async => await _flakyService.performOperation(operationId));
+      final result = await _circuitBreaker
+          .execute(() async => _flakyService.performOperation(operationId));
 
       logger.info('Protected call succeeded: $operationId');
       return result;
@@ -265,8 +265,8 @@ class ProtectedService extends FluxService {
     _protectedCallCount++;
 
     try {
-      final result = await _circuitBreaker.execute(
-          () async => await _flakyService.performSlowOperation(operationId));
+      final result = await _circuitBreaker
+          .execute(() async => _flakyService.performSlowOperation(operationId));
 
       logger.info('Protected slow call succeeded: $operationId');
       return result;

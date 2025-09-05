@@ -6,7 +6,6 @@ import 'dart:collection';
 
 import '../base_service.dart';
 import '../service_logger.dart';
-import 'models/dispatcher_models.dart';
 import 'service_event.dart';
 part 'event_dispatcher_routing.dart';
 

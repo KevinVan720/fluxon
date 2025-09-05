@@ -33,20 +33,20 @@ class SecurityContext {
     required this.expiresAt,
   });
 
-  factory SecurityContext.fromJson(Map<String, dynamic> json) {
-    return SecurityContext(
-      userId: json['userId'] as String,
-      sessionId: json['sessionId'] as String,
-      roles: (json['roles'] as List)
-          .map((r) => SecurityRole.values.firstWhere((e) => e.toString() == r))
-          .toList(),
-      permissions: (json['permissions'] as List)
-          .map((p) => Permission.values.firstWhere((e) => e.toString() == p))
-          .toList(),
-      attributes: Map<String, dynamic>.from(json['attributes'] as Map),
-      expiresAt: DateTime.parse(json['expiresAt'] as String),
-    );
-  }
+  factory SecurityContext.fromJson(Map<String, dynamic> json) =>
+      SecurityContext(
+        userId: json['userId'] as String,
+        sessionId: json['sessionId'] as String,
+        roles: (json['roles'] as List)
+            .map(
+                (r) => SecurityRole.values.firstWhere((e) => e.toString() == r))
+            .toList(),
+        permissions: (json['permissions'] as List)
+            .map((p) => Permission.values.firstWhere((e) => e.toString() == p))
+            .toList(),
+        attributes: Map<String, dynamic>.from(json['attributes'] as Map),
+        expiresAt: DateTime.parse(json['expiresAt'] as String),
+      );
   final String userId;
   final String sessionId;
   final List<SecurityRole> roles;

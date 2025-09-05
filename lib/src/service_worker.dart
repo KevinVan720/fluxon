@@ -14,9 +14,9 @@ import 'events/event_mixin.dart';
 import 'events/event_type_registry.dart';
 import 'events/service_event.dart';
 import 'exceptions/service_exceptions.dart';
+import 'models/service_models.dart';
 import 'service_logger.dart';
 import 'service_proxy.dart';
-import 'models/service_models.dart';
 
 /// A Squadron worker wrapper that runs a service in an isolate.
 class ServiceWorker extends Worker {

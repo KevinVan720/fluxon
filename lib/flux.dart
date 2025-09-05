@@ -26,7 +26,7 @@ export 'src/exceptions/service_exceptions.dart';
 // 🚀 Core Flux API
 export 'src/flux_runtime.dart' show FluxRuntime;
 export 'src/flux_service.dart';
+export 'src/models/service_models.dart';
 export 'src/service_logger.dart';
 export 'src/service_proxy.dart';
 export 'src/service_worker.dart';
-export 'src/models/service_models.dart';

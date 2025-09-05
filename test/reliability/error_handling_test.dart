@@ -7,6 +7,14 @@ part 'error_handling_test.g.dart';
 
 // Test events for error scenarios
 class CorruptedEvent extends ServiceEvent {
+  const CorruptedEvent({
+    required this.invalidData,
+    required super.eventId,
+    required super.sourceService,
+    required super.timestamp,
+    super.metadata = const {},
+    super.correlationId,
+  });
   factory CorruptedEvent.fromJson(Map<String, dynamic> json) {
     final data = json['data'] as Map<String, dynamic>;
     return CorruptedEvent(
@@ -18,14 +26,6 @@ class CorruptedEvent extends ServiceEvent {
       metadata: json['metadata'] ?? {},
     );
   }
-  const CorruptedEvent({
-    required this.invalidData,
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    super.metadata = const {},
-    super.correlationId,
-  });
 
   final Map<String, dynamic> invalidData;
 
