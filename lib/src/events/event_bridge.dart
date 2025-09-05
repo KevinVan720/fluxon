@@ -7,63 +7,8 @@ import 'dart:isolate';
 import '../service_logger.dart';
 import 'event_dispatcher.dart';
 import 'service_event.dart';
-
-/// Message types for cross-isolate event communication
-enum EventMessageType {
-  eventSend,
-  eventSubscribe,
-  eventUnsubscribe,
-  eventSubscriptionResponse,
-}
-
-/// Message for cross-isolate event communication
-class EventMessage {
-  const EventMessage({
-    required this.type,
-    required this.requestId,
-    this.eventData,
-    this.eventType,
-    this.sourceIsolate,
-    this.targetIsolate,
-    this.subscriptionId,
-    this.success,
-    this.error,
-  });
-
-  factory EventMessage.fromJson(Map<String, dynamic> json) => EventMessage(
-        type: EventMessageType.values.byName(json['type'] as String),
-        requestId: json['requestId'] as String,
-        eventData: json['eventData'] as Map<String, dynamic>?,
-        eventType: json['eventType'] as String?,
-        sourceIsolate: json['sourceIsolate'] as String?,
-        targetIsolate: json['targetIsolate'] as String?,
-        subscriptionId: json['subscriptionId'] as String?,
-        success: json['success'] as bool?,
-        error: json['error'] as String?,
-      );
-
-  final EventMessageType type;
-  final String requestId;
-  final Map<String, dynamic>? eventData;
-  final String? eventType;
-  final String? sourceIsolate;
-  final String? targetIsolate;
-  final String? subscriptionId;
-  final bool? success;
-  final String? error;
-
-  Map<String, dynamic> toJson() => {
-        'type': type.name,
-        'requestId': requestId,
-        'eventData': eventData,
-        'eventType': eventType,
-        'sourceIsolate': sourceIsolate,
-        'targetIsolate': targetIsolate,
-        'subscriptionId': subscriptionId,
-        'success': success,
-        'error': error,
-      };
-}
+part 'event_bridge_protocol.dart';
+part 'event_bridge_helpers.dart';
 
 /// Bridge for sending events across isolate boundaries
 class EventBridge {
@@ -128,7 +73,7 @@ class EventBridge {
 
     final message = EventMessage(
       type: EventMessageType.eventSend,
-      requestId: _generateRequestId(),
+      requestId: _generateRequestId(_isolateName),
       eventData: event.toJson(),
       eventType: event.runtimeType.toString(),
       sourceIsolate: _isolateName,
@@ -197,7 +142,7 @@ class EventBridge {
       throw StateError('Event bridge not connected to host');
     }
 
-    final subscriptionId = _generateRequestId();
+    final subscriptionId = _generateRequestId(_isolateName);
     final completer = Completer<bool>();
     _pendingSubscriptions[subscriptionId] = completer;
 
@@ -227,9 +172,8 @@ class EventBridge {
     });
 
     // Track active subscription metadata
-    _activeRemoteSubs[subscriptionId] = _RemoteSubscriptionRecord(
-      eventType: eventType.toString(),
-    );
+    _activeRemoteSubs[subscriptionId] =
+        _RemoteSubscriptionRecord(eventType: eventType.toString());
 
     return subscriptionId;
   }
@@ -242,7 +186,7 @@ class EventBridge {
 
     final message = EventMessage(
       type: EventMessageType.eventUnsubscribe,
-      requestId: _generateRequestId(),
+      requestId: _generateRequestId(_isolateName),
       subscriptionId: subscriptionId,
       sourceIsolate: _isolateName,
     );
@@ -343,17 +287,7 @@ class EventBridge {
     }
   }
 
-  /// Reconstruct event from JSON data
-  ServiceEvent _reconstructEventFromJson(
-      Map<String, dynamic> json, String eventType) {
-    // For now, create a generic event. In a real implementation,
-    // we'd need a registry of event types and their fromJson factories
-    return GenericServiceEvent.fromJson(json);
-  }
-
-  /// Generate a unique request ID
-  String _generateRequestId() =>
-      '${_isolateName}_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
+  // Helpers moved to part file
 
   /// Clean up the event bridge
   void dispose() {
@@ -371,36 +305,4 @@ class EventBridge {
   }
 }
 
-/// Generic service event for handling unknown event types
-class GenericServiceEvent extends ServiceEvent {
-  const GenericServiceEvent({
-    required super.eventId,
-    required super.sourceService,
-    required super.timestamp,
-    super.correlationId,
-    super.metadata = const {},
-    this.data = const {},
-  });
-
-  factory GenericServiceEvent.fromJson(Map<String, dynamic> json) {
-    final data = json['data'] as Map<String, dynamic>? ?? {};
-    return GenericServiceEvent(
-      eventId: json['eventId'] as String,
-      sourceService: json['sourceService'] as String,
-      timestamp: DateTime.parse(json['timestamp'] as String),
-      correlationId: json['correlationId'] as String?,
-      metadata: json['metadata'] as Map<String, dynamic>? ?? {},
-      data: data,
-    );
-  }
-
-  final Map<String, dynamic> data;
-
-  @override
-  Map<String, dynamic> eventDataToJson() => data;
-}
-
-class _RemoteSubscriptionRecord {
-  _RemoteSubscriptionRecord({required this.eventType});
-  final String eventType;
-}
+// Protocol and helper types moved to part files
