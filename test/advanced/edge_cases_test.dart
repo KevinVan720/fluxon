@@ -144,7 +144,10 @@ class EventTestService extends FluxService {
       ),
     );
 
-    await broadcastEvent(event);
+    await sendEvent(
+      event,
+      distribution: EventDistribution.broadcast(includeSource: true),
+    );
   }
 
   void setMaxEvents(int max) {
