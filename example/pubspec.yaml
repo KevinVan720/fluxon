@@ -33,7 +33,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   
   # Flux framework
-  dart_service_framework:
+  flux:
     path: ../
   
   # Additional dependencies for realistic app

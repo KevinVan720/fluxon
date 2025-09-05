@@ -1,4 +1,4 @@
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import '../models/task.dart';
 
 part 'simple_user_service.g.dart';

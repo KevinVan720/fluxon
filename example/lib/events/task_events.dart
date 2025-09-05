@@ -1,4 +1,4 @@
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 
 /// Event fired when a task is created
 class TaskCreatedEvent extends ServiceEvent {

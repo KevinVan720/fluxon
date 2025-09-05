@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import '../models/task.dart';
 import '../services/task_service.dart';
 import '../services/user_service.dart';

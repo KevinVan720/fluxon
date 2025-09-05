@@ -1,4 +1,4 @@
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import 'package:test/test.dart';
 
 part 'isolate_transparency_test.g.dart';

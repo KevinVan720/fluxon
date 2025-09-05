@@ -1,4 +1,4 @@
-name: dart_service_framework
+name: flux
 description: A comprehensive service locator and services framework for Dart applications using Squadron worker isolates.
 version: 1.0.0
 

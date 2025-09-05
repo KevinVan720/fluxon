@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import '../models/task.dart';
 
 part 'storage_service.g.dart';

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import '../services/analytics_service.dart';
 
 class AnalyticsScreen extends StatefulWidget {

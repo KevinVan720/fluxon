@@ -1,5 +1,5 @@
-import 'package:dart_service_framework/src/service_logger.dart';
-import 'package:dart_service_framework/src/models/service_models.dart';
+import 'package:flux/src/service_logger.dart';
+import 'package:flux/src/models/service_models.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import 'package:test/test.dart';
 
 part 'retry_timeout_demo_test.g.dart';

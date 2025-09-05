@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import '../models/task.dart';
 import '../services/task_service.dart';
 
@@ -121,10 +121,8 @@ class _CreateTaskScreenState extends State<CreateTaskScreen> {
                       ),
                       const SizedBox(width: 8),
                       Flexible(
-                        child: Text(
-                      user.name,
-                      overflow: TextOverflow.ellipsis,
-                    )),
+                        child: Text(user.name, overflow: TextOverflow.ellipsis),
+                      ),
                     ],
                   ),
                 );

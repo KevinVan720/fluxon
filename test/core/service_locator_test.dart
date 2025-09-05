@@ -1,8 +1,8 @@
-import 'package:dart_service_framework/src/base_service.dart';
-import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
-import 'package:dart_service_framework/src/flux_runtime.dart';
-import 'package:dart_service_framework/src/service_logger.dart';
-import 'package:dart_service_framework/src/models/service_models.dart';
+import 'package:flux/src/base_service.dart';
+import 'package:flux/src/exceptions/service_exceptions.dart';
+import 'package:flux/src/flux_runtime.dart';
+import 'package:flux/src/service_logger.dart';
+import 'package:flux/src/models/service_models.dart';
 import 'package:test/test.dart';
 
 // Test service implementations

@@ -3,7 +3,7 @@ library event_system_test;
 
 import 'dart:async';
 
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import 'package:test/test.dart';
 
 // Test event types
@@ -12,7 +12,9 @@ class TestEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    required this.message, required this.priority, super.correlationId,
+    required this.message,
+    required this.priority,
+    super.correlationId,
     super.metadata = const {},
   });
 
@@ -34,9 +36,9 @@ class TestEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => {
-      'message': message,
-      'priority': priority,
-    };
+        'message': message,
+        'priority': priority,
+      };
 }
 
 class CriticalEvent extends ServiceEvent {
@@ -44,7 +46,9 @@ class CriticalEvent extends ServiceEvent {
     required super.eventId,
     required super.sourceService,
     required super.timestamp,
-    required this.alertLevel, required this.details, super.correlationId,
+    required this.alertLevel,
+    required this.details,
+    super.correlationId,
     super.metadata = const {},
   });
 
@@ -66,9 +70,9 @@ class CriticalEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => {
-      'alertLevel': alertLevel,
-      'details': details,
-    };
+        'alertLevel': alertLevel,
+        'details': details,
+      };
 }
 
 // Test services

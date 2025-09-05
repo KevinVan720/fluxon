@@ -1,5 +1,5 @@
 name: flux_method_generator
-description: Code generator for dart_service_framework service contracts (clients/dispatchers)
+description: Code generator for flux service contracts (clients/dispatchers)
 version: 0.1.0
 
 environment:

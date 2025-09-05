@@ -3,7 +3,7 @@ library local_to_local_events_test;
 
 import 'dart:async';
 
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import 'package:test/test.dart';
 
 part 'local_to_local_events_test.g.dart';

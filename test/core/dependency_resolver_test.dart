@@ -1,5 +1,5 @@
-import 'package:dart_service_framework/src/dependency_resolver/dependency_resolver.dart';
-import 'package:dart_service_framework/src/exceptions/service_exceptions.dart';
+import 'package:flux/src/dependency_resolver/dependency_resolver.dart';
+import 'package:flux/src/exceptions/service_exceptions.dart';
 import 'package:test/test.dart';
 
 // Mock service types for testing

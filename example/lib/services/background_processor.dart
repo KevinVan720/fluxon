@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:uuid/uuid.dart';
-import 'package:dart_service_framework/dart_service_framework.dart';
+import 'package:flux/flux.dart';
 import '../events/task_events.dart';
 import '../models/task.dart';
 import 'task_service.dart';
