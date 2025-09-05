@@ -97,13 +97,3 @@ abstract class FluxService extends BaseService
     logger.info('FluxService destroyed successfully');
   }
 }
-
-/// 🎯 CONVENIENCE: For services that only need events (rare case)
-abstract class FluxEventService extends BaseService with ServiceEventMixin {
-  FluxEventService({super.config, super.logger});
-}
-
-/// 🎯 CONVENIENCE: For services that only need client calls (rare case)
-abstract class FluxClientService extends BaseService with ServiceClientMixin {
-  FluxClientService({super.config, super.logger});
-}

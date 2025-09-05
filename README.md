@@ -11,10 +11,6 @@ Fast, typed, event-driven services for Dart with complete isolate transparency a
    - Transparent Calls
    - Events
    - Code Generation
-5. Best Practices & Pitfalls
-6. Testing Guide
-7. Architecture
-8. Why Flux
 
 ## 1. Overview
 - Same API for local and remote services
@@ -24,13 +20,18 @@ Fast, typed, event-driven services for Dart with complete isolate transparency a
 
 ## 2. Quickstart
 ```dart
+// 1. Register event types for cross-isolate communication
+EventTypeRegistry.register<UserCreatedEvent>((json) => UserCreatedEvent.fromJson(json));
+
+// 2. Create runtime and register services
 final runtime = FluxRuntime();
 
-runtime.register<UserService>(UserService.new);          // Local
-runtime.register<EmailService>(EmailServiceWorker.new);  // Remote (auto)
+runtime.register<UserService>(() => UserServiceImpl());          // Local
+runtime.register<EmailService>(() => EmailServiceImpl());        // Remote (auto)
 
 await runtime.initializeAll();
 
+// 3. Use services transparently
 final userService = runtime.get<UserService>();
 final user = await userService.createUser('alice');
 
@@ -46,25 +47,30 @@ await runtime.destroyAll();
 ## 4. Usage Guide
 
 ### Service Registration
-Use zero‑argument factories. Avoid resolving dependencies during registration.
+Always use `@ServiceContract` annotation. Register with auto-generated `Impl` classes.
 ```dart
-runtime.register<UserService>(UserService.new);
-runtime.register<ProductService>(ProductService.new);
-runtime.register<OrderService>(OrderService.new);
+// 1. Define your service with @ServiceContract
+@ServiceContract(remote: false)  // or remote: true for worker isolates
+abstract class OrderService extends FluxService {
+  Future<Order> createOrder(String userId, List<String> productIds);
+}
+
+// 2. Register with auto-generated implementation
+runtime.register<OrderService>(() => OrderServiceImpl());
 await runtime.initializeAll();
 ```
 
 Declare dependencies inside the service and use them after initialization.
 ```dart
 @ServiceContract(remote: false)
-class OrderService extends FluxService {
+abstract class OrderService extends FluxService {
   @override
   List<Type> get dependencies => [UserService, ProductService];
 
   @override
   Future<void> initialize() async {
     await super.initialize();
-    // Access dependency clients here using client capabilities of FluxService
+    // Access dependency clients here using getService<UserService>()
   }
 }
 ```
@@ -77,10 +83,14 @@ await emailService.sendWelcomeEmail('user_1');
 ```
 
 ### Events
-Listen and send events in any service. Use `includeSource: true` if a service must receive its own broadcasts.
+Register event types and listen/send events in any service. Use `includeSource: true` if a service must receive its own broadcasts.
 ```dart
+// 1. Register event types for cross-isolate communication
+EventTypeRegistry.register<UserCreatedEvent>((json) => UserCreatedEvent.fromJson(json));
+EventTypeRegistry.register<EmailSentEvent>((json) => EmailSentEvent.fromJson(json));
+
 @ServiceContract(remote: true)
-class EmailService extends FluxService {
+abstract class EmailService extends FluxService {
   @override
   Future<void> initialize() async {
     onEvent<UserCreatedEvent>((event) async {
@@ -91,7 +101,7 @@ class EmailService extends FluxService {
   }
 }
 
-// Sending with explicit distribution
+// 2. Sending events with explicit distribution
 await sendEvent(
   createEvent(({required eventId, required sourceService, required timestamp})
     => EmailSentEvent(userId: id, eventId: eventId, sourceService: sourceService, timestamp: timestamp)),
@@ -99,62 +109,91 @@ await sendEvent(
 );
 ```
 
+#### Alternative listening patterns
+
+You can consume events in multiple ways depending on your needs.
+
+1) Priority/conditional handlers (deterministic order)
+```dart
+onEvent<UserCreatedEvent>(
+  (event) async {
+    // High-priority processing
+  },
+  priority: 10, // higher runs first
+  condition: (e) => e.userId.startsWith('vip_'),
+);
+```
+
+2) Stream-based consumption with backpressure control
+```dart
+late final StreamSubscription<UserCreatedEvent> _userCreatedSub;
+
+@override
+Future<void> initialize() async {
+  _userCreatedSub = listenToEvents<UserCreatedEvent>(
+    (event) {
+      // Stream-friendly processing
+    },
+    where: (e) => DateTime.now().difference(e.timestamp).inMinutes < 5,
+  );
+  await super.initialize();
+}
+
+@override
+Future<void> destroy() async {
+  await _userCreatedSub.cancel();
+  await super.destroy();
+}
+```
+
+3) Subscribe to events from remote isolates explicitly
+```dart
+late String _remoteSubId;
+
+@override
+Future<void> initialize() async {
+  // Ensure event types are registered in this isolate
+  EventTypeRegistry.register<UserCreatedEvent>(UserCreatedEvent.fromJson);
+
+  _remoteSubId = await subscribeToRemoteEvents<UserCreatedEvent>(
+    (event) async {
+      // Handle events originating from other isolates
+      return const EventProcessingResponse(result: EventProcessingResult.success);
+    },
+  );
+  await super.initialize();
+}
+
+@override
+Future<void> destroy() async {
+  await unsubscribeFromRemoteEvents(_remoteSubId);
+  await super.destroy();
+}
+```
+
+Note: Event factories must be registered (via `EventTypeRegistry.register`) in every isolate that needs to reconstruct those events (e.g., call this early in `main()` and at the start of each worker service's `initialize()`).
+
 ### Code Generation
 Add to `pubspec.yaml` and run:
 ```yaml
+dependencies:
+  flux:
 dev_dependencies:
+  flux_method_generator:
   build_runner: ^2.4.0
 ```
 ```bash
+# Generate service implementations and client proxies
 dart run build_runner build
+
+# Or watch for changes
+dart run build_runner watch
 ```
 
-## 5. Best Practices & Pitfalls
-1) Broadcasting to self
-- Broadcast excludes the source by default. Use `EventDistribution.broadcast(includeSource: true)` when a service must observe its own events.
-
-2) Registration & DI
-- Do not call `runtime.get<T>()` inside `register(...)`. Use zero‑arg factories and declare `dependencies` in the service. Resolve after `super.initialize()`.
-
-3) Async event assertions
-- When testing event outcomes, either assert on `sendEvent` responses or allow a brief delay to process handlers before assertions.
-
-## 6. Testing Guide
-Isolate tests; create/destroy a runtime per test.
-```dart
-late FluxRuntime runtime;
-
-setUp(() {
-  runtime = FluxRuntime();
-});
-
-tearDown(() async {
-  if (runtime.isInitialized) await runtime.destroyAll();
-});
-```
-- Avoid global/static mutable state in services unless reset in `tearDown`.
-- Ensure services that must observe their own events set `includeSource: true`.
-
-## 7. Architecture
-```
-Main Isolate                Worker Isolate 1              Worker Isolate 2
-┌─────────────┐            ┌──────────────┐              ┌──────────────┐
-│ Service A   │◄──events──►│ Service B    │◄──events────►│ Service C    │
-│ + EventDisp │            │ + EventDisp  │              │ + EventDisp  │
-│ + EventBridge│            │ + EventBridge│              │ + EventBridge│
-└─────────────┘            └──────────────┘              └──────────────┘
-       ▲                           ▲                             ▲
-       │                           │                             │
-   FluxRuntime ◄──────────────────┼─────────────────────────────┘
-   (Automatic routing & infrastructure)
-```
-
-## 8. Why Flux
-- Zero configuration and boilerplate
-- Local/remote transparency for services and events
-- Strong typing and generated proxies
-- True parallelism with worker isolates
-- Seamless scalability (move services between isolates without code changes)
+This generates:
+- `ServiceNameImpl` classes for service registration
+- Client proxy classes for transparent remote calls
+- Method ID mappings for efficient communication
 
 ---
 
