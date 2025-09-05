@@ -18,6 +18,9 @@ class NotificationService extends FluxService {
 
   @override
   Future<void> initialize() async {
+    // Ensure event types are registered in worker isolate
+    registerExampleEventTypes();
+
     // 📡 EVENT SYSTEM: Listen to task events from any service
     onEvent<TaskCreatedEvent>((event) async {
       await _sendTaskAssignmentNotification(

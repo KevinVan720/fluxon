@@ -163,3 +163,19 @@ class AnalyticsEvent extends ServiceEvent {
     );
   }
 }
+
+/// Register all example app event types in the current isolate
+void registerExampleEventTypes() {
+  EventTypeRegistry.register<TaskCreatedEvent>(
+    (json) => TaskCreatedEvent.fromJson(json),
+  );
+  EventTypeRegistry.register<TaskStatusChangedEvent>(
+    (json) => TaskStatusChangedEvent.fromJson(json),
+  );
+  EventTypeRegistry.register<NotificationEvent>(
+    (json) => NotificationEvent.fromJson(json),
+  );
+  EventTypeRegistry.register<AnalyticsEvent>(
+    (json) => AnalyticsEvent.fromJson(json),
+  );
+}

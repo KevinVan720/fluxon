@@ -14,6 +14,9 @@ class AnalyticsService extends FluxService {
 
   @override
   Future<void> initialize() async {
+    // Ensure event types are registered in worker isolate
+    registerExampleEventTypes();
+
     // 📡 EVENT SYSTEM: Listen to all task-related events
     onEvent<TaskCreatedEvent>((event) async {
       await _trackEvent('task_created', 'task', {

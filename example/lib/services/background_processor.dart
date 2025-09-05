@@ -20,6 +20,9 @@ class BackgroundProcessor extends FluxService {
 
   @override
   Future<void> initialize() async {
+    // Ensure event types are registered in worker isolate
+    registerExampleEventTypes();
+
     // 📡 EVENT SYSTEM: Listen for tasks that need processing
     onEvent<TaskCreatedEvent>((event) async {
       // Automatically analyze new tasks

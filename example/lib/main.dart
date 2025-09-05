@@ -15,18 +15,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 📡 Register event types for cross-isolate communication
-  EventTypeRegistry.register<TaskCreatedEvent>(
-    (json) => TaskCreatedEvent.fromJson(json),
-  );
-  EventTypeRegistry.register<TaskStatusChangedEvent>(
-    (json) => TaskStatusChangedEvent.fromJson(json),
-  );
-  EventTypeRegistry.register<NotificationEvent>(
-    (json) => NotificationEvent.fromJson(json),
-  );
-  EventTypeRegistry.register<AnalyticsEvent>(
-    (json) => AnalyticsEvent.fromJson(json),
-  );
+  registerExampleEventTypes();
 
   // 🚀 Create FluxRuntime and register all services
   final runtime = FluxRuntime();
