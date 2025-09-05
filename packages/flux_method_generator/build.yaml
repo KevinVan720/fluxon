@@ -1,14 +1,14 @@
 targets:
   $default:
     builders:
-      squadron_method_generator|service_generator:
+      flux_method_generator|service_generator:
         enabled: true
 
 builders:
   service_generator:
-    import: 'package:squadron_method_generator/squadron_method_generator.dart'
+    import: 'package:flux_method_generator/flux_method_generator.dart'
     builder_factories: ['serviceBuilder']
-    build_extensions: {'.dart': ['.g.dart']}
+    build_extensions: {'.dart': ['.g.part']}
     auto_apply: dependents
     build_to: cache
     applies_builders: ['source_gen|combining_builder']
