@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'exceptions/service_exceptions.dart';
 import 'service_logger.dart';
 import 'types/service_types.dart';
+part 'base_service_mixins.dart';
 
 /// Abstract base class for all services in the framework.
 ///
@@ -268,7 +269,8 @@ abstract class BaseService {
   }
 
   /// Creates a child logger with additional metadata.
-  ServiceLogger createChildLogger(Map<String, dynamic> metadata) => _logger.child(metadata);
+  ServiceLogger createChildLogger(Map<String, dynamic> metadata) =>
+      _logger.child(metadata);
 
   /// Executes an operation with retry logic.
   Future<T> withRetry<T>(
@@ -308,17 +310,17 @@ abstract class BaseService {
 
   /// Gets information about this service.
   ServiceInfo getServiceInfo() => ServiceInfo(
-      name: serviceName,
-      type: runtimeType,
-      dependencies: dependencies,
-      state: _state,
-      config: _config,
-      instance: this,
-      error: _error,
-      registeredAt: _registeredAt,
-      initializedAt: _initializedAt,
-      destroyedAt: _destroyedAt,
-    );
+        name: serviceName,
+        type: runtimeType,
+        dependencies: dependencies,
+        state: _state,
+        config: _config,
+        instance: this,
+        error: _error,
+        registeredAt: _registeredAt,
+        initializedAt: _initializedAt,
+        destroyedAt: _destroyedAt,
+      );
 
   void _setState(ServiceState newState) {
     final oldState = _state;
@@ -348,110 +350,4 @@ abstract class BaseService {
   String toString() => '$serviceName(state: $_state)';
 }
 
-/// Mixin for services that need periodic tasks.
-mixin PeriodicServiceMixin on BaseService {
-  Timer? _periodicTimer;
-
-  /// The interval for periodic tasks.
-  Duration get periodicInterval => const Duration(minutes: 1);
-
-  /// Whether periodic tasks are enabled.
-  bool get periodicTasksEnabled => true;
-
-  /// Performs periodic tasks.
-  Future<void> performPeriodicTask() async {
-    // Override in subclasses
-  }
-
-  @override
-  Future<void> initialize() async {
-    await super.initialize();
-
-    if (periodicTasksEnabled) {
-      _startPeriodicTasks();
-    }
-  }
-
-  @override
-  Future<void> destroy() async {
-    _stopPeriodicTasks();
-    await super.destroy();
-  }
-
-  void _startPeriodicTasks() {
-    _periodicTimer = Timer.periodic(periodicInterval, (_) async {
-      try {
-        await performPeriodicTask();
-      } catch (error, stackTrace) {
-        logger.error('Periodic task failed',
-            error: error, stackTrace: stackTrace);
-      }
-    });
-
-    logger.debug('Started periodic tasks with interval: $periodicInterval');
-  }
-
-  void _stopPeriodicTasks() {
-    _periodicTimer?.cancel();
-    _periodicTimer = null;
-    logger.debug('Stopped periodic tasks');
-  }
-}
-
-/// Mixin for services that need configuration validation.
-mixin ConfigurableServiceMixin on BaseService {
-  /// Validates the service configuration.
-  ///
-  /// Override this method to implement configuration validation.
-  /// Throw a [ServiceConfigurationException] if the configuration is invalid.
-  void validateConfiguration() {
-    // Override in subclasses
-  }
-
-  @override
-  Future<void> initialize() async {
-    try {
-      validateConfiguration();
-    } catch (error) {
-      throw ServiceConfigurationException(
-        'Configuration validation failed for $serviceName: $error',
-        error,
-      );
-    }
-
-    await super.initialize();
-  }
-}
-
-/// Mixin for services that need resource management.
-mixin ResourceManagedServiceMixin on BaseService {
-  final List<StreamSubscription> _subscriptions = [];
-  final List<Timer> _timers = [];
-
-  /// Registers a stream subscription for automatic cleanup.
-  void registerSubscription(StreamSubscription subscription) {
-    _subscriptions.add(subscription);
-  }
-
-  /// Registers a timer for automatic cleanup.
-  void registerTimer(Timer timer) {
-    _timers.add(timer);
-  }
-
-  @override
-  Future<void> destroy() async {
-    // Cancel all subscriptions
-    for (final subscription in _subscriptions) {
-      await subscription.cancel();
-    }
-    _subscriptions.clear();
-
-    // Cancel all timers
-    for (final timer in _timers) {
-      timer.cancel();
-    }
-    _timers.clear();
-
-    await super.destroy();
-  }
-}
+// Mixins moved to part file: base_service_mixins.dart
