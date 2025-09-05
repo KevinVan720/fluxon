@@ -70,22 +70,25 @@ mixin ServiceEventMixin on BaseService {
   Future<EventDistributionResult> sendEventTo(
     ServiceEvent event,
     List<EventTarget> targets,
-  ) async => sendEvent(
-      event,
-      distribution: EventDistribution.targeted(targets),
-    );
+  ) async =>
+      sendEvent(
+        event,
+        distribution: EventDistribution.targeted(targets),
+      );
 
   /// Broadcast an event to all services
   Future<EventDistributionResult> broadcastEvent(
     ServiceEvent event, {
     List<Type> excludeServices = const [],
     bool includeSource = false,
-  }) async => sendEvent(
-      event,
-      distribution: EventDistribution.broadcast(
-        excludeServices: [...excludeServices, if (!includeSource) runtimeType],
-      ),
-    );
+  }) async =>
+      sendEvent(
+        event,
+        distribution: EventDistribution.broadcast(
+          excludeServices: excludeServices,
+          includeSource: includeSource,
+        ),
+      );
 
   /// Send an event to specific services first, then broadcast to others
   Future<EventDistributionResult> sendEventTargetedThenBroadcast(
@@ -93,13 +96,15 @@ mixin ServiceEventMixin on BaseService {
     List<EventTarget> targets, {
     List<Type> excludeServices = const [],
     bool includeSource = false,
-  }) async => sendEvent(
-      event,
-      distribution: EventDistribution.targetedThenBroadcast(
-        targets,
-        excludeServices: [...excludeServices, if (!includeSource) runtimeType],
-      ),
-    );
+  }) async =>
+      sendEvent(
+        event,
+        distribution: EventDistribution.targetedThenBroadcast(
+          targets,
+          excludeServices: excludeServices,
+          includeSource: includeSource,
+        ),
+      );
 
   /// Send an event to a specific remote isolate
   Future<void> sendEventToRemote(
@@ -333,10 +338,11 @@ extension ServiceEventExtensions on ServiceEventMixin {
   Future<EventDistributionResult> sendNotification(
     ServiceEvent event, {
     List<Type> excludeServices = const [],
-  }) async => broadcastEvent(
-      event,
-      excludeServices: excludeServices,
-    );
+  }) async =>
+      broadcastEvent(
+        event,
+        excludeServices: excludeServices,
+      );
 
   /// Send an event with custom distribution logic
   Future<EventDistributionResult> sendEventWithCustomDistribution(

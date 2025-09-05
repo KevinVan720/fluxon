@@ -31,16 +31,16 @@ class EventMessage {
   });
 
   factory EventMessage.fromJson(Map<String, dynamic> json) => EventMessage(
-      type: EventMessageType.values.byName(json['type'] as String),
-      requestId: json['requestId'] as String,
-      eventData: json['eventData'] as Map<String, dynamic>?,
-      eventType: json['eventType'] as String?,
-      sourceIsolate: json['sourceIsolate'] as String?,
-      targetIsolate: json['targetIsolate'] as String?,
-      subscriptionId: json['subscriptionId'] as String?,
-      success: json['success'] as bool?,
-      error: json['error'] as String?,
-    );
+        type: EventMessageType.values.byName(json['type'] as String),
+        requestId: json['requestId'] as String,
+        eventData: json['eventData'] as Map<String, dynamic>?,
+        eventType: json['eventType'] as String?,
+        sourceIsolate: json['sourceIsolate'] as String?,
+        targetIsolate: json['targetIsolate'] as String?,
+        subscriptionId: json['subscriptionId'] as String?,
+        success: json['success'] as bool?,
+        error: json['error'] as String?,
+      );
 
   final EventMessageType type;
   final String requestId;
@@ -53,16 +53,16 @@ class EventMessage {
   final String? error;
 
   Map<String, dynamic> toJson() => {
-      'type': type.name,
-      'requestId': requestId,
-      'eventData': eventData,
-      'eventType': eventType,
-      'sourceIsolate': sourceIsolate,
-      'targetIsolate': targetIsolate,
-      'subscriptionId': subscriptionId,
-      'success': success,
-      'error': error,
-    };
+        'type': type.name,
+        'requestId': requestId,
+        'eventData': eventData,
+        'eventType': eventType,
+        'sourceIsolate': sourceIsolate,
+        'targetIsolate': targetIsolate,
+        'subscriptionId': subscriptionId,
+        'success': success,
+        'error': error,
+      };
 }
 
 /// Bridge for sending events across isolate boundaries
@@ -80,6 +80,7 @@ class EventBridge {
   final Map<String, EventSubscription> _remoteSubscriptions = {};
   final Map<String, Completer<bool>> _pendingSubscriptions = {};
   final Set<String> _knownIsolates = {};
+  final Map<String, _RemoteSubscriptionRecord> _activeRemoteSubs = {};
 
   SendPort? _hostPort;
   ReceivePort? _isolatePort;
@@ -225,6 +226,11 @@ class EventBridge {
       'subscriptionId': subscriptionId,
     });
 
+    // Track active subscription metadata
+    _activeRemoteSubs[subscriptionId] = _RemoteSubscriptionRecord(
+      eventType: eventType.toString(),
+    );
+
     return subscriptionId;
   }
 
@@ -243,6 +249,7 @@ class EventBridge {
 
     _hostPort!.send(message.toJson());
     _remoteSubscriptions.remove(subscriptionId);
+    _activeRemoteSubs.remove(subscriptionId);
 
     _logger.debug('Unsubscribed from remote events', metadata: {
       'subscriptionId': subscriptionId,
@@ -303,12 +310,13 @@ class EventBridge {
 
   /// Handle subscription request from remote isolate
   Future<void> _handleSubscriptionRequest(EventMessage message) async {
-    // TODO: Implement subscription management
-    // For now, just acknowledge all subscriptions
+    // Record basic subscription and acknowledge
+    final subId = message.requestId;
+    _subscriptionPorts[subId] = ReceivePort();
     final response = EventMessage(
       type: EventMessageType.eventSubscriptionResponse,
       requestId: message.requestId,
-      subscriptionId: message.requestId,
+      subscriptionId: subId,
       success: true,
     );
 
@@ -317,10 +325,14 @@ class EventBridge {
 
   /// Handle unsubscription request from remote isolate
   Future<void> _handleUnsubscriptionRequest(EventMessage message) async {
-    // TODO: Implement unsubscription management
-    _logger.debug('Remote unsubscription', metadata: {
-      'subscriptionId': message.subscriptionId,
-    });
+    final subId = message.subscriptionId;
+    if (subId != null) {
+      final port = _subscriptionPorts.remove(subId);
+      port?.close();
+      _logger.debug('Remote unsubscription', metadata: {
+        'subscriptionId': subId,
+      });
+    }
   }
 
   /// Handle subscription response
@@ -340,7 +352,8 @@ class EventBridge {
   }
 
   /// Generate a unique request ID
-  String _generateRequestId() => '${_isolateName}_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
+  String _generateRequestId() =>
+      '${_isolateName}_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecond}';
 
   /// Clean up the event bridge
   void dispose() {
@@ -385,4 +398,9 @@ class GenericServiceEvent extends ServiceEvent {
 
   @override
   Map<String, dynamic> eventDataToJson() => data;
+}
+
+class _RemoteSubscriptionRecord {
+  _RemoteSubscriptionRecord({required this.eventType});
+  final String eventType;
 }

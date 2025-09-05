@@ -2,6 +2,7 @@
 library service_logger;
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'types/service_types.dart';
 
@@ -13,10 +14,10 @@ class ServiceLogger {
     ServiceLogLevel level = ServiceLogLevel.info,
     Map<String, dynamic>? metadata,
     ServiceLogWriter? writer,
-  }) : _serviceName = serviceName,
-       _level = level,
-       _metadata = Map<String, dynamic>.from(metadata ?? {}),
-       _writer = writer ?? ConsoleLogWriter();
+  })  : _serviceName = serviceName,
+        _level = level,
+        _metadata = Map<String, dynamic>.from(metadata ?? {}),
+        _writer = writer ?? ConsoleLogWriter();
 
   final String _serviceName;
   ServiceLogLevel _level;
@@ -69,8 +70,8 @@ class ServiceLogger {
   }
 
   /// Logs an error message.
-  void error(String message, {Object? error, StackTrace? stackTrace, 
-      Map<String, dynamic>? metadata}) {
+  void error(String message,
+      {Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata}) {
     final combinedMetadata = <String, dynamic>{
       if (metadata != null) ...metadata,
       if (error != null) 'error': error.toString(),
@@ -80,8 +81,8 @@ class ServiceLogger {
   }
 
   /// Logs a critical message.
-  void critical(String message, {Object? error, StackTrace? stackTrace,
-      Map<String, dynamic>? metadata}) {
+  void critical(String message,
+      {Object? error, StackTrace? stackTrace, Map<String, dynamic>? metadata}) {
     final combinedMetadata = <String, dynamic>{
       if (metadata != null) ...metadata,
       if (error != null) 'error': error.toString(),
@@ -91,7 +92,7 @@ class ServiceLogger {
   }
 
   /// Logs a message with timing information.
-  void timed(String operation, Duration duration, 
+  void timed(String operation, Duration duration,
       {ServiceLogLevel level = ServiceLogLevel.info,
       Map<String, dynamic>? metadata}) {
     final timedMetadata = <String, dynamic>{
@@ -99,8 +100,10 @@ class ServiceLogger {
       'duration_ms': duration.inMilliseconds,
       if (metadata != null) ...metadata,
     };
-    _log(level, 'Operation completed: $operation (${duration.inMilliseconds}ms)', 
-         timedMetadata);
+    _log(
+        level,
+        'Operation completed: $operation (${duration.inMilliseconds}ms)',
+        timedMetadata);
   }
 
   /// Creates a child logger with additional metadata.
@@ -129,8 +132,11 @@ class ServiceLogger {
       return result;
     } catch (error, stackTrace) {
       stopwatch.stop();
-      this.error('Operation failed: $operation (${stopwatch.elapsed.inMilliseconds}ms)',
-          error: error, stackTrace: stackTrace, metadata: metadata);
+      this.error(
+          'Operation failed: $operation (${stopwatch.elapsed.inMilliseconds}ms)',
+          error: error,
+          stackTrace: stackTrace,
+          metadata: metadata);
       rethrow;
     }
   }
@@ -147,13 +153,16 @@ class ServiceLogger {
       return result;
     } catch (error, stackTrace) {
       stopwatch.stop();
-      this.error('Operation failed: $operation (${stopwatch.elapsed.inMilliseconds}ms)',
-          error: error, stackTrace: stackTrace, metadata: metadata);
+      this.error(
+          'Operation failed: $operation (${stopwatch.elapsed.inMilliseconds}ms)',
+          error: error,
+          stackTrace: stackTrace,
+          metadata: metadata);
       rethrow;
     }
   }
 
-  void _log(ServiceLogLevel logLevel, String message, 
+  void _log(ServiceLogLevel logLevel, String message,
       Map<String, dynamic>? metadata) {
     if (!_shouldLog(logLevel)) return;
 
@@ -187,55 +196,55 @@ class ServiceLogEntry {
 
   /// When the log entry was created.
   final DateTime timestamp;
-  
+
   /// The log level.
   final ServiceLogLevel level;
-  
+
   /// The name of the service that created this entry.
   final String serviceName;
-  
+
   /// The log message.
   final String message;
-  
+
   /// Additional metadata.
   final Map<String, dynamic> metadata;
 
   /// Converts the log entry to a formatted string.
   String format({bool includeMetadata = true}) {
     final buffer = StringBuffer();
-    
+
     // Timestamp
     buffer.write(timestamp.toIso8601String());
     buffer.write(' ');
-    
+
     // Level
     buffer.write('[${level.name.toUpperCase()}]');
     buffer.write(' ');
-    
+
     // Service name
     buffer.write('[$serviceName]');
     buffer.write(' ');
-    
+
     // Message
     buffer.write(message);
-    
+
     // Metadata
     if (includeMetadata && metadata.isNotEmpty) {
       buffer.write(' ');
       buffer.write(jsonEncode(metadata));
     }
-    
+
     return buffer.toString();
   }
 
   /// Converts the log entry to JSON.
   Map<String, dynamic> toJson() => {
-      'timestamp': timestamp.toIso8601String(),
-      'level': level.name,
-      'serviceName': serviceName,
-      'message': message,
-      'metadata': metadata,
-    };
+        'timestamp': timestamp.toIso8601String(),
+        'level': level.name,
+        'serviceName': serviceName,
+        'message': message,
+        'metadata': metadata,
+      };
 
   @override
   String toString() => format();
@@ -245,10 +254,10 @@ class ServiceLogEntry {
 abstract class ServiceLogWriter {
   /// Writes a log entry.
   void write(ServiceLogEntry entry);
-  
+
   /// Flushes any buffered log entries.
   void flush() {}
-  
+
   /// Closes the log writer.
   void close() {}
 }
@@ -256,24 +265,37 @@ abstract class ServiceLogWriter {
 /// A log writer that outputs to the console.
 class ConsoleLogWriter extends ServiceLogWriter {
   /// Creates a console log writer.
-  ConsoleLogWriter({this.colorize = true});
+  ConsoleLogWriter({this.colorize = true, IOSink? sink}) : _sink = sink;
 
   /// Whether to colorize output.
   final bool colorize;
 
+  /// Optional sink for output; if null, defaults to stdout for <= warning and stderr for error/critical
+  final IOSink? _sink;
+
   @override
   void write(ServiceLogEntry entry) {
     final formatted = entry.format();
-    if (colorize) {
-      print(_colorize(formatted, entry.level));
-    } else {
-      print(formatted);
-    }
+    final output = colorize ? _colorize(formatted, entry.level) : formatted;
+
+    final IOSink chosen = _sink ??
+        ((entry.level.index >= ServiceLogLevel.error.index) ? stderr : stdout);
+    chosen.writeln(output);
+  }
+
+  @override
+  void flush() {
+    _sink?.flush();
+  }
+
+  @override
+  void close() {
+    _sink?.close();
   }
 
   String _colorize(String message, ServiceLogLevel level) {
     const reset = '\x1B[0m';
-    
+
     switch (level) {
       case ServiceLogLevel.debug:
         return '\x1B[90m$message$reset'; // Gray
@@ -321,21 +343,22 @@ class MemoryLogWriter extends ServiceLogWriter {
     String? serviceName,
     DateTime? since,
     DateTime? until,
-  }) => _entries.where((entry) {
-      if (minLevel != null && entry.level.index < minLevel.index) {
-        return false;
-      }
-      if (serviceName != null && entry.serviceName != serviceName) {
-        return false;
-      }
-      if (since != null && entry.timestamp.isBefore(since)) {
-        return false;
-      }
-      if (until != null && entry.timestamp.isAfter(until)) {
-        return false;
-      }
-      return true;
-    }).toList();
+  }) =>
+      _entries.where((entry) {
+        if (minLevel != null && entry.level.index < minLevel.index) {
+          return false;
+        }
+        if (serviceName != null && entry.serviceName != serviceName) {
+          return false;
+        }
+        if (since != null && entry.timestamp.isBefore(since)) {
+          return false;
+        }
+        if (until != null && entry.timestamp.isAfter(until)) {
+          return false;
+        }
+        return true;
+      }).toList();
 }
 
 /// A log writer that writes to multiple other writers.
@@ -380,20 +403,20 @@ class FilteredLogWriter extends ServiceLogWriter {
 
   /// The underlying writer.
   final ServiceLogWriter writer;
-  
+
   /// Minimum log level to write.
   final ServiceLogLevel? minLevel;
-  
+
   /// Service name filter (regex pattern).
   final String? serviceNameFilter;
-  
+
   /// Message filter (regex pattern).
   final String? messageFilter;
 
-  late final RegExp? _serviceNameRegex = serviceNameFilter != null 
-      ? RegExp(serviceNameFilter!) : null;
-  late final RegExp? _messageRegex = messageFilter != null 
-      ? RegExp(messageFilter!) : null;
+  late final RegExp? _serviceNameRegex =
+      serviceNameFilter != null ? RegExp(serviceNameFilter!) : null;
+  late final RegExp? _messageRegex =
+      messageFilter != null ? RegExp(messageFilter!) : null;
 
   @override
   void write(ServiceLogEntry entry) {
@@ -411,17 +434,16 @@ class FilteredLogWriter extends ServiceLogWriter {
     if (minLevel != null && entry.level.index < minLevel!.index) {
       return false;
     }
-    
-    if (_serviceNameRegex != null && 
+
+    if (_serviceNameRegex != null &&
         !_serviceNameRegex!.hasMatch(entry.serviceName)) {
       return false;
     }
-    
-    if (_messageRegex != null && 
-        !_messageRegex!.hasMatch(entry.message)) {
+
+    if (_messageRegex != null && !_messageRegex!.hasMatch(entry.message)) {
       return false;
     }
-    
+
     return true;
   }
 }
