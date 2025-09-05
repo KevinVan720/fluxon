@@ -254,7 +254,6 @@ class EventBridge {
 
   /// Handle subscription request from remote isolate
   Future<void> _handleSubscriptionRequest(EventMessage message) async {
-    // Record basic subscription and acknowledge
     final subId = message.requestId;
     _subscriptionPorts[subId] = ReceivePort();
     final response = EventMessage(

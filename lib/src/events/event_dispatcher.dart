@@ -9,8 +9,6 @@ import '../service_logger.dart';
 import 'service_event.dart';
 part 'event_dispatcher_routing.dart';
 
-// imports consolidated above
-
 /// Statistics and distribution result moved to models/dispatcher_models.dart
 
 /// Central event dispatcher for the service framework

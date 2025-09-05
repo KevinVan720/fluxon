@@ -137,9 +137,7 @@ abstract class BaseService {
   /// This method is called automatically by the service locator when
   /// all dependencies are satisfied. Override this method to perform
   /// service-specific initialization.
-  Future<void> initialize() async {
-    // Default implementation does nothing
-  }
+  Future<void> initialize() async {}
 
   /// Host-side generated registration hook (client factory + method IDs).
   ///
@@ -151,9 +149,7 @@ abstract class BaseService {
   ///
   /// This method is called automatically by the service locator during
   /// shutdown. Override this method to perform service-specific cleanup.
-  Future<void> destroy() async {
-    // Default implementation does nothing
-  }
+  Future<void> destroy() async {}
 
   /// Performs a health check on the service.
   ///

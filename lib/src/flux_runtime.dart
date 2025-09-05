@@ -118,7 +118,6 @@ class FluxRuntime {
       );
     }
 
-    // Create a temporary instance to get dependency information
     final tempInstance = factory();
 
     // If codegen marks this instance as remote, route to remote registration
@@ -352,7 +351,6 @@ class FluxRuntime {
           'serviceType': type.toString(),
         });
 
-        // Replace the factory to return this configured instance
         _factories[type] = () => service;
       }
     }
@@ -528,7 +526,6 @@ class FluxRuntime {
               if (entry.key.toString() == serviceTypeStr) {
                 targetType = entry.key;
                 localService = entry.value;
-                // Create a temporary local proxy for the call
                 proxy = LocalServiceProxy<BaseService>();
                 await proxy.connect(localService);
                 break;

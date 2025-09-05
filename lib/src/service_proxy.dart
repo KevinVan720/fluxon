@@ -138,7 +138,6 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
     final worker = _worker;
     if (worker != null) {
       try {
-        // Attempt graceful shutdown of the service in the isolate
         await worker.destroyService();
       } catch (e) {
         // Ignore errors during teardown
@@ -435,8 +434,6 @@ mixin ServiceClientMixin on BaseService {
     return registry.hasProxy<T>() && registry.getProxy<T>().isConnected;
   }
 }
-
-// Dynamic client removed: reflection path is no longer supported.
 
 /// Lookup table for generated method IDs (populated by generated code via mixin)
 class ServiceMethodIdRegistry {

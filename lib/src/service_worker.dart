@@ -47,7 +47,6 @@ class ServiceWorker extends Worker {
   }
 
   /// Calls a method on the service.
-  // Name-based worker calls removed; use ID-based calls via send(_ServiceWorkerCommands.callMethodById,...)
 
   /// Performs a health check on the service.
   Future<ServiceHealthCheck> performHealthCheck() async {
@@ -240,8 +239,6 @@ class _ServiceWorkerService implements WorkerService {
     }
   }
 
-  // Name-based call handler removed; ID-based dispatch is required.
-
   Future<dynamic> _handleCallMethodById(WorkerRequest request) async {
     if (_service == null) {
       throw ServiceStateException(
@@ -391,8 +388,6 @@ class _ServiceWorkerService implements WorkerService {
 
   /// Register event types in worker isolate
   void _registerEventTypes() {
-    // Register common event types that can be reconstructed from JSON
-    // In a real implementation, this would be generated code
     try {
       // Register GenericServiceEvent as fallback
       EventTypeRegistry.register<GenericServiceEvent>(
@@ -411,8 +406,6 @@ class _ServiceWorkerService implements WorkerService {
     final event = EventTypeRegistry.createFromJson(json);
     return event ?? GenericServiceEvent.fromJson(json);
   }
-
-  // Reflection path removed.
 }
 
 /// A proxy used inside a worker isolate to call other services through the host isolate.
@@ -583,7 +576,6 @@ class ServiceWorkerPool {
       return worker;
     }
 
-    // Return the worker with the least workload
     workers.sort((a, b) => a.workload.compareTo(b.workload));
     return workers.first;
   }
