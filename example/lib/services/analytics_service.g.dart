@@ -100,6 +100,8 @@ void registerAnalyticsServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class AnalyticsServiceImpl extends AnalyticsService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => AnalyticsService;
   @override
   Future<void> registerHostSide() async {

@@ -71,6 +71,8 @@ void registerFlakyServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class FlakyServiceImpl extends FlakyService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => FlakyService;
   @override
   Future<void> registerHostSide() async {

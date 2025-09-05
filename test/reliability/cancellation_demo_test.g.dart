@@ -71,6 +71,8 @@ void registerSlowServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class SlowServiceImpl extends SlowService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => SlowService;
   @override
   Future<void> registerHostSide() async {

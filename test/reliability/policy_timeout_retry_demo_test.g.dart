@@ -77,6 +77,8 @@ void registerPolicyServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class PolicyServiceImpl extends PolicyService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => PolicyService;
   @override
   Future<void> registerHostSide() async {

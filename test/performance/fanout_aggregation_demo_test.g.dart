@@ -62,6 +62,8 @@ void registerPricingServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class PricingServiceImpl extends PricingService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => PricingService;
   @override
   Future<void> registerHostSide() async {
@@ -146,6 +148,8 @@ void registerInventoryServiceGenerated() {
 
 // Remote service implementation that auto-registers the dispatcher
 class InventoryServiceImpl extends InventoryService {
+  @override
+  bool get isRemote => true;
   @override
   Type get clientBaseType => InventoryService;
   @override

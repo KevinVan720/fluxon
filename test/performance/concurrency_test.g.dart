@@ -90,6 +90,8 @@ void registerConcurrentServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class ConcurrentServiceImpl extends ConcurrentService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => ConcurrentService;
   @override
   Future<void> registerHostSide() async {

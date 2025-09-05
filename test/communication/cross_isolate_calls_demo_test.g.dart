@@ -62,6 +62,8 @@ void registerServiceAGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class ServiceAImpl extends ServiceA {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => ServiceA;
   @override
   Future<void> registerHostSide() async {
@@ -166,6 +168,8 @@ void registerServiceBGenerated() {
 
 // Remote service implementation that auto-registers the dispatcher
 class ServiceBImpl extends ServiceB {
+  @override
+  bool get isRemote => true;
   @override
   Type get clientBaseType => ServiceB;
   @override

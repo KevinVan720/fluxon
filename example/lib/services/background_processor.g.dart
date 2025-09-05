@@ -86,6 +86,8 @@ void registerBackgroundProcessorGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class BackgroundProcessorImpl extends BackgroundProcessor {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => BackgroundProcessor;
   @override
   Future<void> registerHostSide() async {

@@ -106,6 +106,8 @@ void registerNotificationServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class NotificationServiceImpl extends NotificationService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => NotificationService;
   @override
   Future<void> registerHostSide() async {

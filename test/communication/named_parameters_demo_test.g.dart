@@ -65,6 +65,8 @@ void registerReportServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class ReportServiceImpl extends ReportService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => ReportService;
   @override
   Future<void> registerHostSide() async {

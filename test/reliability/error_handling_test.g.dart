@@ -137,6 +137,8 @@ void registerFailingMethodServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class FailingMethodServiceImpl extends FailingMethodService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => FailingMethodService;
   @override
   Future<void> registerHostSide() async {
@@ -391,6 +393,8 @@ void registerSlowServiceGenerated() {
 
 // Remote service implementation that auto-registers the dispatcher
 class SlowServiceImpl extends SlowService {
+  @override
+  bool get isRemote => true;
   @override
   Type get clientBaseType => SlowService;
   @override

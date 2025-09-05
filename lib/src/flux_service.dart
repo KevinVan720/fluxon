@@ -60,6 +60,12 @@ abstract class FluxService extends BaseService
     super.logger,
   });
 
+  /// Indicates whether this service instance represents a remote worker
+  /// implementation. Codegen should override this to `true` for generated
+  /// worker classes so the runtime can register them as remote explicitly.
+  /// Defaults to `false` for local services and interfaces.
+  bool get isRemote => false;
+
   @override
   @mustCallSuper
   Future<void> initialize() async {

@@ -74,6 +74,8 @@ void registerPerformanceServiceGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class PerformanceServiceImpl extends PerformanceService {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => PerformanceService;
   @override
   Future<void> registerHostSide() async {

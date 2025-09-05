@@ -208,6 +208,8 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           '// Remote service implementation that auto-registers the dispatcher');
       buf.writeln('class ${className}Impl extends $className {');
       buf.writeln('  @override');
+      buf.writeln('  bool get isRemote => true;');
+      buf.writeln('  @override');
       buf.writeln('  Type get clientBaseType => $className;');
       buf.writeln('  @override');
       buf.writeln('  Future<void> registerHostSide() async {');

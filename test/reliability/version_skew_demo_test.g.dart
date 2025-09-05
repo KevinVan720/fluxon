@@ -62,6 +62,8 @@ void registerApiV1Generated() {
 // Remote service implementation that auto-registers the dispatcher
 class ApiV1Impl extends ApiV1 {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => ApiV1;
   @override
   Future<void> registerHostSide() async {

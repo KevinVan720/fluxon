@@ -155,6 +155,8 @@ void registerMessageProcessorGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class MessageProcessorImpl extends MessageProcessor {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => MessageProcessor;
   @override
   Future<void> registerHostSide() async {
@@ -272,6 +274,8 @@ void registerMessageLoggerGenerated() {
 
 // Remote service implementation that auto-registers the dispatcher
 class MessageLoggerImpl extends MessageLogger {
+  @override
+  bool get isRemote => true;
   @override
   Type get clientBaseType => MessageLogger;
   @override

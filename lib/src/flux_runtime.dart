@@ -121,11 +121,9 @@ class FluxRuntime {
     // Create a temporary instance to get dependency information
     final tempInstance = factory();
 
-    // If this is a generated Worker class, route to remote registration
+    // If codegen marks this instance as remote, route to remote registration
     if (tempInstance is FluxService) {
-      final typeName = tempInstance.runtimeType.toString();
-      final isRemoteWorker = typeName.endsWith('Worker') ||
-          tempInstance.clientBaseType != tempInstance.runtimeType;
+      final isRemoteWorker = tempInstance.isRemote;
       if (isRemoteWorker) {
         final baseTypeName = tempInstance.clientBaseType.toString();
         // Schedule remote proxy registration and await it in initializeAll
@@ -137,6 +135,7 @@ class FluxRuntime {
         _logger.info('Scheduled remote worker registration', metadata: {
           'service': baseTypeName,
           'workerType': tempInstance.runtimeType.toString(),
+          'marker': tempInstance.isRemote,
         });
         return;
       }

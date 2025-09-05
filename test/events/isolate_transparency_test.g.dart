@@ -154,6 +154,8 @@ void registerTaskProcessorGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class TaskProcessorImpl extends TaskProcessor {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => TaskProcessor;
   @override
   Future<void> registerHostSide() async {
@@ -270,6 +272,8 @@ void registerTaskLoggerGenerated() {
 
 // Remote service implementation that auto-registers the dispatcher
 class TaskLoggerImpl extends TaskLogger {
+  @override
+  bool get isRemote => true;
   @override
   Type get clientBaseType => TaskLogger;
   @override

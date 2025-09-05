@@ -62,6 +62,8 @@ void registerRemoteEmitterGenerated() {
 // Remote service implementation that auto-registers the dispatcher
 class RemoteEmitterImpl extends RemoteEmitter {
   @override
+  bool get isRemote => true;
+  @override
   Type get clientBaseType => RemoteEmitter;
   @override
   Future<void> registerHostSide() async {
@@ -195,6 +197,8 @@ void registerRemoteListenerGenerated() {
 
 // Remote service implementation that auto-registers the dispatcher
 class RemoteListenerImpl extends RemoteListener {
+  @override
+  bool get isRemote => true;
   @override
   Type get clientBaseType => RemoteListener;
   @override
