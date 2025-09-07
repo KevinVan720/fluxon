@@ -415,13 +415,16 @@ void main() {
         // Wait a bit for circuit to potentially reset
         await Future.delayed(const Duration(milliseconds: 100));
 
-        // Try a call - should either succeed or be rejected
+        // Try a call - depending on timing, could be a half-open probe or still open
         final result =
             await protectedService.callProtectedOperation('test-reset');
         expect(
-            result,
-            anyOf(contains('completed successfully'),
-                contains('rejected by circuit breaker')));
+          result,
+          anyOf(
+            contains('completed successfully'),
+            contains('rejected by circuit breaker'),
+          ),
+        );
       });
     });
 

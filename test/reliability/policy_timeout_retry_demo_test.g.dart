@@ -26,6 +26,16 @@ class PolicyServiceClient extends PolicyService {
         options:
             const ServiceCallOptions(timeout: Duration(milliseconds: 100)));
   }
+
+  @override
+  Future<String> slowRetry() async {
+    return await _proxy.callMethod('slowRetry', [],
+        namedArgs: {},
+        options: const ServiceCallOptions(
+            timeout: Duration(milliseconds: 100),
+            retryAttempts: 1,
+            retryDelay: Duration(milliseconds: 50)));
+  }
 }
 
 void $registerPolicyServiceClientFactory() {
@@ -37,6 +47,7 @@ void $registerPolicyServiceClientFactory() {
 class _PolicyServiceMethods {
   static const int flakyId = 1;
   static const int slowId = 2;
+  static const int slowRetryId = 3;
 }
 
 Future<dynamic> _PolicyServiceDispatcher(
@@ -51,6 +62,8 @@ Future<dynamic> _PolicyServiceDispatcher(
       return await s.flaky();
     case _PolicyServiceMethods.slowId:
       return await s.slow();
+    case _PolicyServiceMethods.slowRetryId:
+      return await s.slowRetry();
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -66,6 +79,7 @@ void $registerPolicyServiceMethodIds() {
   ServiceMethodIdRegistry.register<PolicyService>({
     'flaky': _PolicyServiceMethods.flakyId,
     'slow': _PolicyServiceMethods.slowId,
+    'slowRetry': _PolicyServiceMethods.slowRetryId,
   });
 }
 
