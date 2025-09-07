@@ -3,47 +3,121 @@
 Fast, typed, event-driven services for Dart with complete isolate transparency and zero boilerplate.
 
 ## Table of Contents
-1. Overview
-2. Quickstart
-3. Core Concepts
-4. Usage Guide
-   - Service Registration
-   - Transparent Calls
-   - Events
-   - Code Generation
 
-## 1. Overview
-- Same API for local and remote services
-- Automatic runtime infrastructure (dispatcher, bridge, worker wiring)
-- Unified event system (`sendEvent`) with cross‑isolate routing
-- Strong typing and generated proxies
+1. [Overview](#overview)
+2. [Installation](#installation)
+3. [Quickstart](#quickstart)
+4. [Core Concepts](#core-concepts)
+5. [Usage Guide](#usage-guide)
+   - [Service Registration](#service-registration)
+   - [Transparent Calls](#transparent-calls)
+   - [Events](#events)
+   - [Code Generation](#code-generation)
+6. [Advanced Features](#advanced-features)
+   - [Event Distribution Strategies](#event-distribution-strategies)
+   - [Health Checks & Observability](#health-checks--observability)
+   - [Service Configuration & Timeouts](#service-configuration--timeouts)
+7. [Examples](#examples)
 
-## 2. Core Concepts
-- FluxRuntime: orchestrates service lifecycle and event infrastructure
-- FluxService: base for services with client and event capabilities
-- Worker Isolates: remote services run in dedicated isolates transparently
-- Event Distribution: configure routing (broadcast, direct) and include/exclude rules
+## Overview
 
-## 3. Usage Guide
+Flux is a powerful service framework for Dart that enables seamless communication between services running in different isolates. It provides:
+
+- **🔄 Isolate Transparency**: Same API for local and remote services - no need to know where a service runs
+- **🚀 Zero Boilerplate**: Automatic code generation for service implementations and client proxies  
+- **📡 Unified Events**: Cross-isolate event system with flexible routing and distribution
+- **💪 Strong Typing**: Full type safety with generated proxies and method mappings
+- **🏗️ Auto Infrastructure**: Automatic runtime setup for dispatchers, bridges, and worker wiring
+
+## Installation
+
+Add Flux to your `pubspec.yaml`:
+
+```yaml
+dependencies:
+  flux: ^1.0.0
+
+dev_dependencies:
+  flux_method_generator: ^1.0.0
+  build_runner: ^2.4.0
+```
+
+Then run:
+
+```bash
+dart pub get
+```
+
+## Quickstart
+
+Here's a minimal example to get you started:
+
+```dart
+import 'package:flux/flux.dart';
+
+part 'main.g.dart'; // Required for code generation
+
+// 1. Define and implement your service with @ServiceContract
+@ServiceContract(remote: false)
+class GreetingService extends FluxService {
+  Future<String> greet(String name) async {
+    return 'Hello, $name!';
+  }
+}
+
+// 2. Set up and use (after running code generation)
+void main() async {
+  final runtime = FluxRuntime();
+  
+  // Register service - GreetingService is your concrete implementation
+  runtime.register<GreetingService>(() => GreetingService());
+  await runtime.initializeAll();
+  
+  // Use service
+  final greeting = runtime.get<GreetingService>();
+  final message = await greeting.greet('World');
+  print(message); // Hello, World!
+}
+```
+
+Generate the required code:
+
+```bash
+dart run build_runner build
+```
+
+## Core Concepts
+
+- **FluxRuntime**: Orchestrates service lifecycle and event infrastructure across isolates
+- **FluxService**: Base class for services with built-in client and event capabilities  
+- **@ServiceContract**: Annotation that defines service interfaces and generates implementation code
+- **Worker Isolates**: Remote services run in dedicated isolates with complete transparency
+- **Event Distribution**: Configurable routing system (broadcast, targeted, direct) with include/exclude rules
+
+## Usage Guide
 
 ### Service Registration
-Always use `@ServiceContract` annotation. Register with auto-generated `Impl` classes.
+Always use `@ServiceContract` annotation. Define concrete service classes.
 ```dart
 // 1. Define your service with @ServiceContract
 @ServiceContract(remote: false)  // or remote: true for worker isolates
-abstract class OrderService extends FluxService {
-  Future<Order> createOrder(String userId, List<String> productIds);
+class OrderService extends FluxService {
+  Future<Order> createOrder(String userId, List<String> productIds) async {
+    // Your business logic here
+    final order = Order(id: generateId(), userId: userId, productIds: productIds);
+    return order;
+  }
 }
 
-// 2. Register with auto-generated implementation
-runtime.register<OrderService>(() => OrderServiceImpl());
+// 2. Register your service
+runtime.register<OrderService>(() => OrderService());
 await runtime.initializeAll();
 ```
 
 Declare dependencies inside the service and use them after initialization.
 ```dart
 @ServiceContract(remote: false)
-abstract class OrderService extends FluxService {
+class OrderService extends FluxService {
   @override
   List<Type> get dependencies => [UserService, ProductService];
 
@@ -52,6 +126,17 @@ abstract class OrderService extends FluxService {
     await super.initialize();
     // Access dependency clients here using getService<UserService>()
   }
+
+  Future<Order> createOrder(String userId, List<String> productIds) async {
+    final userService = getService<UserService>();
+    final productService = getService<ProductService>();
+    
+    // Use dependencies in your business logic
+    final user = await userService.getUser(userId);
+    final products = await productService.getProducts(productIds);
+    
+    return Order(id: generateId(), userId: userId, productIds: productIds);
+  }
 }
 ```
 
@@ -59,19 +144,29 @@ abstract class OrderService extends FluxService {
 ```dart
 // Define services with @ServiceContract
 @ServiceContract(remote: false)
-abstract class UserService extends FluxService {
-  Future<User> getUser(String id);
+class UserService extends FluxService {
+  Future<User> getUser(String id) async {
+    // Local service implementation
+    return User(id: id, name: 'User $id');
+  }
 }
 
 @ServiceContract(remote: true)
-abstract class EmailService extends FluxService {
-  Future<void> sendWelcomeEmail(String userId);
+class EmailService extends FluxService {
+  Future<void> sendWelcomeEmail(String userId) async {
+    // This runs in a worker isolate
+    final userService = getService<UserService>(); // Transparently calls local service
+    final user = await userService.getUser(userId);
+    
+    // Send email logic here
+    print('Sending welcome email to ${user.name}');
+  }
 }
 
-// Register generated implementations
+// Register services
 final runtime = FluxRuntime();
-runtime.register<UserService>(() => UserServiceImpl());   // local
-runtime.register<EmailService>(() => EmailServiceImpl()); // remote (worker)
+runtime.register<UserService>(() => UserService());   // local
+runtime.register<EmailService>(() => EmailService()); // remote (worker)
 await runtime.initializeAll();
 
 // Use transparently
@@ -88,7 +183,7 @@ EventTypeRegistry.register<UserCreatedEvent>((json) => UserCreatedEvent.fromJson
 EventTypeRegistry.register<EmailSentEvent>((json) => EmailSentEvent.fromJson(json));
 
 @ServiceContract(remote: true)
-abstract class EmailService extends FluxService {
+class EmailService extends FluxService {
   @override
   Future<void> initialize() async {
     onEvent<UserCreatedEvent>((event) async {
@@ -96,6 +191,11 @@ abstract class EmailService extends FluxService {
       return const EventProcessingResponse(result: EventProcessingResult.success);
     });
     await super.initialize();
+  }
+
+  Future<void> sendWelcomeEmail(String userId) async {
+    // Email sending logic
+    print('Sending welcome email to user $userId');
   }
 }
 
@@ -202,60 +302,11 @@ class UserCreatedEvent extends ServiceEvent {
 }
 ```
 
-### Local ↔ Remote Calls (cross-isolate)
-```dart
-// Define two services that call each other
-@ServiceContract(remote: false)
-abstract class UserService extends FluxService {
-  Future<User> getUser(String id);
-}
-
-@ServiceContract(remote: true)
-abstract class EmailService extends FluxService {
-  Future<void> sendWelcomeEmail(String userId);
-}
-
-// EmailServiceImpl (remote): calls local UserService transparently
-class EmailServiceImpl extends EmailService {
-  @override
-  Future<void> sendWelcomeEmail(String userId) async {
-    final userService = getService<UserService>(); // local or remote
-    final user = await userService.getUser(userId);
-    // ... send email using user details
-    await sendEvent(EmailSentEvent(userId: user.id, eventId: 'e', sourceService: serviceName, timestamp: DateTime.now()));
-  }
-}
-
-// Registration
-final runtime = FluxRuntime();
-runtime.register<UserService>(() => UserServiceImpl());   // local
-runtime.register<EmailService>(() => EmailServiceImpl()); // remote (worker)
-await runtime.initializeAll();
-
-// UI or other service
-await runtime.get<EmailService>().sendWelcomeEmail('user_1');
-```
-
-### Orchestrating multiple services (fan-out and events)
-```dart
-@ServiceContract(remote: true)
-abstract class AnalyticsService extends FluxService {
-  Future<void> record(String action, Map<String, dynamic> props);
-}
-
-class OrderServiceImpl extends OrderService {
-  @override
-  Future<Order> createOrder(String userId, List<String> products) async {
-    final analytics = getService<AnalyticsService>(); // remote worker
-    final order = await _create(userId, products);
-    await analytics.record('order_created', {'orderId': order.id});
-    await sendEvent(OrderCreatedEvent(orderId: order.id, eventId: 'e', sourceService: serviceName, timestamp: DateTime.now()));
-    return order;
-  }
-}
-```
 
 ### Code Generation
+
+Generate service implementations and client proxies automatically.
+
 Add to `pubspec.yaml` and run:
 ```yaml
 dependencies:
@@ -273,11 +324,16 @@ dart run build_runner watch
 ```
 
 This generates:
-- `ServiceNameImpl` classes for service registration
 - Client proxy classes for transparent remote calls
+- Method dispatchers for worker isolates
 - Method ID mappings for efficient communication
 
-### Event distribution strategies
+## Advanced Features
+
+### Event Distribution Strategies
+
+Control how events are distributed across your services:
+
 ```dart
 // Target specific services and wait for completion
 await sendEvent(
@@ -302,7 +358,10 @@ await sendEventTargetedThenBroadcast(
 );
 ```
 
-### Health checks & observability
+### Health Checks & Observability
+
+Monitor your services and get insights into system health:
+
 ```dart
 // Service-side: override healthCheck for custom diagnostics
 @override
@@ -316,33 +375,153 @@ Future<ServiceHealthCheck> healthCheck() async => ServiceHealthCheck(
 // Runtime-side: aggregate checks
 final results = await runtime.performHealthChecks();
 
-// Event statistics (per isolate)
-final stats = runtime.dependencyResolver; // see Dependency Graph & Stats below
-```
-
-### Dependency graph & stats
-```dart
 // Visualize the dependency graph
 final dot = runtime.visualizeDependencyGraph();
 // You can render this with Graphviz or tooling of your choice
 
-// Statistics
+// Get dependency statistics
 final depStats = runtime.getDependencyStatistics();
+print('Total services: ${depStats.totalServices}');
+print('Root services: ${depStats.rootServices}');
+print('Average dependencies: ${depStats.averageDependencies}');
 ```
 
-### Service configuration & timeouts
-You can control timeouts/retries via `ServiceConfig` or annotation parameters.
-```dart
-@ServiceContract(remote: true, timeoutMs: 15000, retryAttempts: 2, retryDelayMs: 200)
-abstract class BillingService extends FluxService {}
+### Service Configuration & Timeouts
 
+Control service behavior with configuration options:
+
+```dart
+// Configure per-method timeouts and retries using @ServiceMethod
+@ServiceContract(remote: true)
+class BillingService extends FluxService {
+  @ServiceMethod(timeoutMs: 15000, retryAttempts: 2, retryDelayMs: 200)
+  Future<PaymentResult> processPayment(String orderId, double amount) async {
+    // This method will timeout after 15s and retry up to 2 times with 200ms delay
+    return PaymentResult(success: true);
+  }
+
+  @ServiceMethod(timeoutMs: 5000)
+  Future<bool> validateCard(String cardNumber) async {
+    // This method has a shorter 5s timeout
+    return true;
+  }
+}
+
+// Or configure service-wide defaults via ServiceConfig
 class MyService extends FluxService {
-  MyService(): super(config: const ServiceConfig(timeout: Duration(seconds: 20)));
+  MyService(): super(
+    config: const ServiceConfig(
+      timeout: Duration(seconds: 30),
+      retryAttempts: 3,
+      retryDelay: Duration(seconds: 1),
+      enableLogging: true,
+      logLevel: ServiceLogLevel.info,
+    )
+  );
+}
+
+// You can also override timeouts at runtime using ServiceCallOptions
+final proxy = runtime.proxyRegistry.getProxy<BillingService>();
+await proxy.callMethod<PaymentResult>(
+  'processPayment',
+  ['order_123', 99.99],
+  options: const ServiceCallOptions(
+    timeout: Duration(seconds: 60),
+    retryAttempts: 5,
+    retryDelay: Duration(milliseconds: 100),
+  ),
+);
+```
+
+## Examples
+
+### Cross-Isolate Service Communication
+
+Example showing how local and remote services can call each other transparently:
+
+```dart
+// Define two services that call each other
+@ServiceContract(remote: false)
+class UserService extends FluxService {
+  Future<User> getUser(String id) async {
+    // Local user service implementation
+    return User(id: id, name: 'User $id', email: '$id@example.com');
+  }
+}
+
+@ServiceContract(remote: true)
+class EmailService extends FluxService {
+  Future<void> sendWelcomeEmail(String userId) async {
+    final userService = getService<UserService>(); // Transparently calls local service
+    final user = await userService.getUser(userId);
+    
+    // Send email using user details
+    print('Sending welcome email to ${user.email}');
+    
+    // Broadcast event when done
+    await sendEvent(EmailSentEvent(
+      userId: user.id, 
+      eventId: 'e', 
+      sourceService: serviceName, 
+      timestamp: DateTime.now()
+    ));
+  }
+}
+
+// Registration
+final runtime = FluxRuntime();
+runtime.register<UserService>(() => UserService());   // local
+runtime.register<EmailService>(() => EmailService()); // remote (worker)
+await runtime.initializeAll();
+
+// Use from anywhere
+await runtime.get<EmailService>().sendWelcomeEmail('user_1');
+```
+
+### Service Orchestration with Events
+
+Example showing how to coordinate multiple services using events:
+
+```dart
+@ServiceContract(remote: true)
+class AnalyticsService extends FluxService {
+  Future<void> record(String action, Map<String, dynamic> props) async {
+    // Analytics recording logic (runs in worker isolate)
+    print('Recording analytics: $action with props: $props');
+  }
+}
+
+@ServiceContract(remote: false)
+class OrderService extends FluxService {
+  Future<Order> createOrder(String userId, List<String> products) async {
+    final analytics = getService<AnalyticsService>(); // remote worker
+    
+    // Create the order
+    final order = Order(
+      id: generateId(), 
+      userId: userId, 
+      products: products,
+      createdAt: DateTime.now(),
+    );
+    
+    // Record analytics
+    await analytics.record('order_created', {'orderId': order.id});
+    
+    // Broadcast event for other services to react
+    await sendEvent(OrderCreatedEvent(
+      orderId: order.id, 
+      eventId: 'e', 
+      sourceService: serviceName, 
+      timestamp: DateTime.now()
+    ));
+    
+    return order;
+  }
 }
 ```
 
 ---
 
-Flux — where services flow seamlessly across isolates. 🌊
+**Flux** — where services flow seamlessly across isolates. 🌊
 
 
