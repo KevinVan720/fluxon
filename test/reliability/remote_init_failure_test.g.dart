@@ -3,7 +3,7 @@
 part of 'remote_init_failure_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for ExplodingRemote
@@ -75,6 +75,21 @@ class ExplodingRemoteImpl extends ExplodingRemote {
   Future<void> initialize() async {
     $registerExplodingRemoteDispatcher();
     await super.initialize();
-    // Will throw from base initialize override
   }
 }
+
+void $registerExplodingRemoteLocalSide() {
+  $registerExplodingRemoteDispatcher();
+  $registerExplodingRemoteClientFactory();
+  $registerExplodingRemoteMethodIds();
+}
+
+void $autoRegisterExplodingRemoteLocalSide() {
+  LocalSideRegistry.register<ExplodingRemote>(
+      $registerExplodingRemoteLocalSide);
+}
+
+final $_ExplodingRemoteLocalSideRegistered = (() {
+  $autoRegisterExplodingRemoteLocalSide();
+  return true;
+})();

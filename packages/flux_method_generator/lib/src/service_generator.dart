@@ -69,19 +69,19 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       }
       final methodName = m.displayName;
       methodIds[methodName] = nextId++;
-      final returnType = m.returnType.getDisplayString();
+      final returnType = m.returnType.getDisplayString(withNullability: true);
       // Separate positional and named parameters
       final positionalParams =
           m.parameters.where((p) => p.isPositional).toList();
       final namedParams = m.parameters.where((p) => p.isNamed).toList();
 
       final positionalSig = positionalParams.map((p) {
-        final t = p.type.getDisplayString();
+        final t = p.type.getDisplayString(withNullability: true);
         return '$t ${p.name}';
       }).join(', ');
 
       final namedSig = namedParams.map((p) {
-        final t = p.type.getDisplayString();
+        final t = p.type.getDisplayString(withNullability: true);
         final isRequiredNamed = p.isRequiredNamed;
         final defaultValue =
             p.hasDefaultValue ? ' = ${p.defaultValueCode}' : '';

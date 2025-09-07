@@ -69,8 +69,8 @@ class GreetingService extends FluxService {
 void main() async {
   final runtime = FluxRuntime();
   
-  // Register service - GreetingService is your concrete implementation
-  runtime.register<GreetingService>(() => GreetingService());
+  // Register service using auto-generated Impl class
+  runtime.register<GreetingService>(() => GreetingServiceImpl());
   await runtime.initializeAll();
   
   // Use service
@@ -109,8 +109,8 @@ class OrderService extends FluxService {
   }
 }
 
-// 2. Register your service
-runtime.register<OrderService>(() => OrderService());
+// 2. Register your service using auto-generated Impl class
+runtime.register<OrderService>(() => OrderServiceImpl());
 await runtime.initializeAll();
 ```
 
@@ -163,10 +163,10 @@ class EmailService extends FluxService {
   }
 }
 
-// Register services
+// Register services using auto-generated Impl classes
 final runtime = FluxRuntime();
-runtime.register<UserService>(() => UserService());   // local
-runtime.register<EmailService>(() => EmailService()); // remote (worker)
+runtime.register<UserService>(() => UserServiceImpl());   // local
+runtime.register<EmailService>(() => EmailServiceImpl()); // remote (worker)
 await runtime.initializeAll();
 
 // Use transparently
@@ -324,7 +324,8 @@ dart run build_runner watch
 ```
 
 This generates:
-- Client proxy classes for transparent remote calls
+- `ServiceNameImpl` classes for service registration
+- Client proxy classes for transparent remote calls  
 - Method dispatchers for worker isolates
 - Method ID mappings for efficient communication
 
@@ -468,10 +469,10 @@ class EmailService extends FluxService {
   }
 }
 
-// Registration
+// Registration using auto-generated Impl classes
 final runtime = FluxRuntime();
-runtime.register<UserService>(() => UserService());   // local
-runtime.register<EmailService>(() => EmailService()); // remote (worker)
+runtime.register<UserService>(() => UserServiceImpl());   // local
+runtime.register<EmailService>(() => EmailServiceImpl()); // remote (worker)
 await runtime.initializeAll();
 
 // Use from anywhere

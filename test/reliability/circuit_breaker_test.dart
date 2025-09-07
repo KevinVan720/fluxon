@@ -565,27 +565,40 @@ void main() {
       });
 
       test('should handle multiple circuit breakers', () async {
-        final breaker1 =
-            CircuitBreaker('Service1', const CircuitBreakerConfig());
-        final breaker2 =
-            CircuitBreaker('Service2', const CircuitBreakerConfig());
+        final breaker1 = CircuitBreaker(
+            'Service1',
+            const CircuitBreakerConfig(
+              failureThreshold: 3, // Lower threshold for faster testing
+            ));
+        final breaker2 = CircuitBreaker(
+            'Service2',
+            const CircuitBreakerConfig(
+              failureThreshold: 3,
+            ));
 
         // Both should start closed
         expect(breaker1.isClosed, isTrue);
         expect(breaker2.isClosed, isTrue);
 
-        // Open one breaker
-        for (var i = 0; i < 5; i++) {
+        // Open breaker1 with enough failures to exceed threshold
+        for (var i = 0; i < 4; i++) {
+          // 4 failures > 3 threshold
           try {
             await breaker1.execute(() async {
-              throw Exception('Test failure');
+              throw Exception('Test failure $i');
             });
           } catch (e) {
             // Expected to fail
           }
         }
 
+        // Verify breaker1 is open and breaker2 is still closed
         expect(breaker1.isOpen, isTrue);
+        expect(breaker2.isClosed, isTrue);
+
+        // Verify breaker2 still works
+        final result = await breaker2.execute(() async => 'success');
+        expect(result, equals('success'));
         expect(breaker2.isClosed, isTrue);
       });
     });

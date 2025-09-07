@@ -3,8 +3,99 @@
 part of 'full_stack_comprehensive_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test until build_runner)
+// ServiceGenerator
 // **************************************************************************
+
+// Service client for OrchestratorService
+class OrchestratorServiceClient extends OrchestratorService {
+  OrchestratorServiceClient(this._proxy);
+  final ServiceProxy<OrchestratorService> _proxy;
+
+  @override
+  Future<int> orchestrateComputation(int x) async {
+    return await _proxy
+        .callMethod('orchestrateComputation', [x], namedArgs: {});
+  }
+}
+
+void $registerOrchestratorServiceClientFactory() {
+  GeneratedClientRegistry.register<OrchestratorService>(
+    (proxy) => OrchestratorServiceClient(proxy),
+  );
+}
+
+class _OrchestratorServiceMethods {
+  static const int orchestrateComputationId = 1;
+}
+
+Future<dynamic> _OrchestratorServiceDispatcher(
+  BaseService service,
+  int methodId,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+) async {
+  final s = service as OrchestratorService;
+  switch (methodId) {
+    case _OrchestratorServiceMethods.orchestrateComputationId:
+      return await s.orchestrateComputation(positionalArgs[0]);
+    default:
+      throw ServiceException('Unknown method id: $methodId');
+  }
+}
+
+void $registerOrchestratorServiceDispatcher() {
+  GeneratedDispatcherRegistry.register<OrchestratorService>(
+    _OrchestratorServiceDispatcher,
+  );
+}
+
+void $registerOrchestratorServiceMethodIds() {
+  ServiceMethodIdRegistry.register<OrchestratorService>({
+    'orchestrateComputation':
+        _OrchestratorServiceMethods.orchestrateComputationId,
+  });
+}
+
+void registerOrchestratorServiceGenerated() {
+  $registerOrchestratorServiceClientFactory();
+  $registerOrchestratorServiceMethodIds();
+}
+
+// Local service implementation that auto-registers local side
+class OrchestratorServiceImpl extends OrchestratorService {
+  OrchestratorServiceImpl() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerOrchestratorServiceLocalSide();
+  }
+}
+
+void $registerOrchestratorServiceLocalSide() {
+  $registerOrchestratorServiceDispatcher();
+  $registerOrchestratorServiceClientFactory();
+  $registerOrchestratorServiceMethodIds();
+  try {
+    $registerComputeWorkerClientFactory();
+  } catch (_) {}
+  try {
+    $registerComputeWorkerMethodIds();
+  } catch (_) {}
+  try {
+    $registerStorageWorkerClientFactory();
+  } catch (_) {}
+  try {
+    $registerStorageWorkerMethodIds();
+  } catch (_) {}
+}
+
+void $autoRegisterOrchestratorServiceLocalSide() {
+  LocalSideRegistry.register<OrchestratorService>(
+      $registerOrchestratorServiceLocalSide);
+}
+
+final $_OrchestratorServiceLocalSideRegistered = (() {
+  $autoRegisterOrchestratorServiceLocalSide();
+  return true;
+})();
 
 // Service client for ComputeWorker
 class ComputeWorkerClient extends ComputeWorker {
@@ -69,6 +160,7 @@ class ComputeWorkerImpl extends ComputeWorker {
   Future<void> registerHostSide() async {
     $registerComputeWorkerClientFactory();
     $registerComputeWorkerMethodIds();
+    // Auto-registered from dependencies/optionalDependencies
     try {
       $registerStorageWorkerClientFactory();
     } catch (_) {}
@@ -80,6 +172,7 @@ class ComputeWorkerImpl extends ComputeWorker {
   @override
   Future<void> initialize() async {
     $registerComputeWorkerDispatcher();
+    // Ensure worker isolate can create clients for dependencies
     try {
       $registerStorageWorkerClientFactory();
     } catch (_) {}

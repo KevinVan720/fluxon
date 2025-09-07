@@ -3,7 +3,7 @@
 part of 'worker_crash_recovery_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for CrashyService
@@ -63,6 +63,12 @@ void $registerCrashyServiceMethodIds() {
   });
 }
 
+void registerCrashyServiceGenerated() {
+  $registerCrashyServiceClientFactory();
+  $registerCrashyServiceMethodIds();
+}
+
+// Remote service implementation that auto-registers the dispatcher
 class CrashyServiceImpl extends CrashyService {
   @override
   bool get isRemote => true;
@@ -80,3 +86,18 @@ class CrashyServiceImpl extends CrashyService {
     await super.initialize();
   }
 }
+
+void $registerCrashyServiceLocalSide() {
+  $registerCrashyServiceDispatcher();
+  $registerCrashyServiceClientFactory();
+  $registerCrashyServiceMethodIds();
+}
+
+void $autoRegisterCrashyServiceLocalSide() {
+  LocalSideRegistry.register<CrashyService>($registerCrashyServiceLocalSide);
+}
+
+final $_CrashyServiceLocalSideRegistered = (() {
+  $autoRegisterCrashyServiceLocalSide();
+  return true;
+})();

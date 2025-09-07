@@ -3,7 +3,7 @@
 part of 'per_call_timeout_override_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for SleeperService
@@ -11,17 +11,9 @@ class SleeperServiceClient extends SleeperService {
   SleeperServiceClient(this._proxy);
   final ServiceProxy<SleeperService> _proxy;
 
-  // Default client (no options)
   @override
   Future<String> snooze(Duration d) async {
     return await _proxy.callMethod('snooze', [d], namedArgs: {});
-  }
-
-  // Helper to pass call options
-  Future<String> snoozeWithOptions(
-      Duration d, ServiceCallOptions options) async {
-    return await _proxy.callMethod('snooze', [d],
-        namedArgs: {}, options: options);
   }
 }
 
@@ -62,6 +54,12 @@ void $registerSleeperServiceMethodIds() {
   });
 }
 
+void registerSleeperServiceGenerated() {
+  $registerSleeperServiceClientFactory();
+  $registerSleeperServiceMethodIds();
+}
+
+// Remote service implementation that auto-registers the dispatcher
 class SleeperServiceImpl extends SleeperService {
   @override
   bool get isRemote => true;
@@ -79,3 +77,18 @@ class SleeperServiceImpl extends SleeperService {
     await super.initialize();
   }
 }
+
+void $registerSleeperServiceLocalSide() {
+  $registerSleeperServiceDispatcher();
+  $registerSleeperServiceClientFactory();
+  $registerSleeperServiceMethodIds();
+}
+
+void $autoRegisterSleeperServiceLocalSide() {
+  LocalSideRegistry.register<SleeperService>($registerSleeperServiceLocalSide);
+}
+
+final $_SleeperServiceLocalSideRegistered = (() {
+  $autoRegisterSleeperServiceLocalSide();
+  return true;
+})();

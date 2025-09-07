@@ -3,7 +3,7 @@
 part of 'metadata_fidelity_cross_isolate_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for MetaWorker
@@ -54,6 +54,12 @@ void $registerMetaWorkerMethodIds() {
   });
 }
 
+void registerMetaWorkerGenerated() {
+  $registerMetaWorkerClientFactory();
+  $registerMetaWorkerMethodIds();
+}
+
+// Remote service implementation that auto-registers the dispatcher
 class MetaWorkerImpl extends MetaWorker {
   @override
   bool get isRemote => true;
@@ -71,3 +77,94 @@ class MetaWorkerImpl extends MetaWorker {
     await super.initialize();
   }
 }
+
+void $registerMetaWorkerLocalSide() {
+  $registerMetaWorkerDispatcher();
+  $registerMetaWorkerClientFactory();
+  $registerMetaWorkerMethodIds();
+}
+
+void $autoRegisterMetaWorkerLocalSide() {
+  LocalSideRegistry.register<MetaWorker>($registerMetaWorkerLocalSide);
+}
+
+final $_MetaWorkerLocalSideRegistered = (() {
+  $autoRegisterMetaWorkerLocalSide();
+  return true;
+})();
+
+// Service client for MetaHost
+class MetaHostClient extends MetaHost {
+  MetaHostClient(this._proxy);
+  final ServiceProxy<MetaHost> _proxy;
+
+  @override
+  Future<void> sendWithMeta(Map<String, dynamic> meta) async {
+    return await _proxy.callMethod('sendWithMeta', [meta], namedArgs: {});
+  }
+}
+
+void $registerMetaHostClientFactory() {
+  GeneratedClientRegistry.register<MetaHost>(
+    (proxy) => MetaHostClient(proxy),
+  );
+}
+
+class _MetaHostMethods {
+  static const int sendWithMetaId = 1;
+}
+
+Future<dynamic> _MetaHostDispatcher(
+  BaseService service,
+  int methodId,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+) async {
+  final s = service as MetaHost;
+  switch (methodId) {
+    case _MetaHostMethods.sendWithMetaId:
+      return await s.sendWithMeta(positionalArgs[0]);
+    default:
+      throw ServiceException('Unknown method id: $methodId');
+  }
+}
+
+void $registerMetaHostDispatcher() {
+  GeneratedDispatcherRegistry.register<MetaHost>(
+    _MetaHostDispatcher,
+  );
+}
+
+void $registerMetaHostMethodIds() {
+  ServiceMethodIdRegistry.register<MetaHost>({
+    'sendWithMeta': _MetaHostMethods.sendWithMetaId,
+  });
+}
+
+void registerMetaHostGenerated() {
+  $registerMetaHostClientFactory();
+  $registerMetaHostMethodIds();
+}
+
+// Local service implementation that auto-registers local side
+class MetaHostImpl extends MetaHost {
+  MetaHostImpl() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerMetaHostLocalSide();
+  }
+}
+
+void $registerMetaHostLocalSide() {
+  $registerMetaHostDispatcher();
+  $registerMetaHostClientFactory();
+  $registerMetaHostMethodIds();
+}
+
+void $autoRegisterMetaHostLocalSide() {
+  LocalSideRegistry.register<MetaHost>($registerMetaHostLocalSide);
+}
+
+final $_MetaHostLocalSideRegistered = (() {
+  $autoRegisterMetaHostLocalSide();
+  return true;
+})();

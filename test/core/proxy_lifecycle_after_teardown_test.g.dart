@@ -3,7 +3,7 @@
 part of 'proxy_lifecycle_after_teardown_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for EchoService
@@ -54,6 +54,12 @@ void $registerEchoServiceMethodIds() {
   });
 }
 
+void registerEchoServiceGenerated() {
+  $registerEchoServiceClientFactory();
+  $registerEchoServiceMethodIds();
+}
+
+// Remote service implementation that auto-registers the dispatcher
 class EchoServiceImpl extends EchoService {
   @override
   bool get isRemote => true;
@@ -71,3 +77,18 @@ class EchoServiceImpl extends EchoService {
     await super.initialize();
   }
 }
+
+void $registerEchoServiceLocalSide() {
+  $registerEchoServiceDispatcher();
+  $registerEchoServiceClientFactory();
+  $registerEchoServiceMethodIds();
+}
+
+void $autoRegisterEchoServiceLocalSide() {
+  LocalSideRegistry.register<EchoService>($registerEchoServiceLocalSide);
+}
+
+final $_EchoServiceLocalSideRegistered = (() {
+  $autoRegisterEchoServiceLocalSide();
+  return true;
+})();

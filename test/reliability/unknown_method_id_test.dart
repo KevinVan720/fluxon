@@ -25,6 +25,9 @@ void main() {
       runtime.register<IdMissingService>(IdMissingServiceImpl.new);
       await runtime.initializeAll();
 
+      // Ensure the client-side method IDs are NOT registered to simulate the error path
+      ServiceMethodIdRegistry.register<IdMissingService>({});
+
       final svc = runtime.get<IdMissingService>();
       expect(
         () => svc.doWork('x'),

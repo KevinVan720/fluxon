@@ -3,7 +3,7 @@
 part of 'reregister_after_destroy_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for SimpleWorker
@@ -59,6 +59,7 @@ void registerSimpleWorkerGenerated() {
   $registerSimpleWorkerMethodIds();
 }
 
+// Remote service implementation that auto-registers the dispatcher
 class SimpleWorkerImpl extends SimpleWorker {
   @override
   bool get isRemote => true;
@@ -76,3 +77,18 @@ class SimpleWorkerImpl extends SimpleWorker {
     await super.initialize();
   }
 }
+
+void $registerSimpleWorkerLocalSide() {
+  $registerSimpleWorkerDispatcher();
+  $registerSimpleWorkerClientFactory();
+  $registerSimpleWorkerMethodIds();
+}
+
+void $autoRegisterSimpleWorkerLocalSide() {
+  LocalSideRegistry.register<SimpleWorker>($registerSimpleWorkerLocalSide);
+}
+
+final $_SimpleWorkerLocalSideRegistered = (() {
+  $autoRegisterSimpleWorkerLocalSide();
+  return true;
+})();

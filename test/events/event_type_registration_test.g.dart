@@ -3,7 +3,7 @@
 part of 'event_type_registration_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test until build_runner)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for SenderService
@@ -90,5 +90,71 @@ void $autoRegisterSenderServiceLocalSide() {
 
 final $_SenderServiceLocalSideRegistered = (() {
   $autoRegisterSenderServiceLocalSide();
+  return true;
+})();
+
+// Service client for ReceiverService
+class ReceiverServiceClient extends ReceiverService {
+  ReceiverServiceClient(this._proxy);
+  final ServiceProxy<ReceiverService> _proxy;
+}
+
+void $registerReceiverServiceClientFactory() {
+  GeneratedClientRegistry.register<ReceiverService>(
+    (proxy) => ReceiverServiceClient(proxy),
+  );
+}
+
+class _ReceiverServiceMethods {}
+
+Future<dynamic> _ReceiverServiceDispatcher(
+  BaseService service,
+  int methodId,
+  List<dynamic> positionalArgs,
+  Map<String, dynamic> namedArgs,
+) async {
+  final s = service as ReceiverService;
+  switch (methodId) {
+    default:
+      throw ServiceException('Unknown method id: $methodId');
+  }
+}
+
+void $registerReceiverServiceDispatcher() {
+  GeneratedDispatcherRegistry.register<ReceiverService>(
+    _ReceiverServiceDispatcher,
+  );
+}
+
+void $registerReceiverServiceMethodIds() {
+  ServiceMethodIdRegistry.register<ReceiverService>({});
+}
+
+void registerReceiverServiceGenerated() {
+  $registerReceiverServiceClientFactory();
+  $registerReceiverServiceMethodIds();
+}
+
+// Local service implementation that auto-registers local side
+class ReceiverServiceImpl extends ReceiverService {
+  ReceiverServiceImpl() {
+    // 🚀 AUTO-REGISTRATION: Register local side when instance is created
+    $registerReceiverServiceLocalSide();
+  }
+}
+
+void $registerReceiverServiceLocalSide() {
+  $registerReceiverServiceDispatcher();
+  $registerReceiverServiceClientFactory();
+  $registerReceiverServiceMethodIds();
+}
+
+void $autoRegisterReceiverServiceLocalSide() {
+  LocalSideRegistry.register<ReceiverService>(
+      $registerReceiverServiceLocalSide);
+}
+
+final $_ReceiverServiceLocalSideRegistered = (() {
+  $autoRegisterReceiverServiceLocalSide();
   return true;
 })();

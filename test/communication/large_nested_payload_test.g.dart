@@ -3,7 +3,7 @@
 part of 'large_nested_payload_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for PayloadService
@@ -60,6 +60,7 @@ void registerPayloadServiceGenerated() {
   $registerPayloadServiceMethodIds();
 }
 
+// Remote service implementation that auto-registers the dispatcher
 class PayloadServiceImpl extends PayloadService {
   @override
   bool get isRemote => true;
@@ -77,3 +78,18 @@ class PayloadServiceImpl extends PayloadService {
     await super.initialize();
   }
 }
+
+void $registerPayloadServiceLocalSide() {
+  $registerPayloadServiceDispatcher();
+  $registerPayloadServiceClientFactory();
+  $registerPayloadServiceMethodIds();
+}
+
+void $autoRegisterPayloadServiceLocalSide() {
+  LocalSideRegistry.register<PayloadService>($registerPayloadServiceLocalSide);
+}
+
+final $_PayloadServiceLocalSideRegistered = (() {
+  $autoRegisterPayloadServiceLocalSide();
+  return true;
+})();

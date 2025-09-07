@@ -3,7 +3,7 @@
 part of 'unknown_method_id_test.dart';
 
 // **************************************************************************
-// ServiceGenerator (handwritten for test)
+// ServiceGenerator
 // **************************************************************************
 
 // Service client for IdMissingService
@@ -23,7 +23,9 @@ void $registerIdMissingServiceClientFactory() {
   );
 }
 
-// Intentionally DO NOT register method ids to simulate missing id
+class _IdMissingServiceMethods {
+  static const int doWorkId = 1;
+}
 
 Future<dynamic> _IdMissingServiceDispatcher(
   BaseService service,
@@ -32,9 +34,8 @@ Future<dynamic> _IdMissingServiceDispatcher(
   Map<String, dynamic> namedArgs,
 ) async {
   final s = service as IdMissingService;
-  // We still dispatch by id operationally; only 'doWork' is known as 1
   switch (methodId) {
-    case 1:
+    case _IdMissingServiceMethods.doWorkId:
       return await s.doWork(positionalArgs[0]);
     default:
       throw ServiceException('Unknown method id: $methodId');
@@ -47,6 +48,18 @@ void $registerIdMissingServiceDispatcher() {
   );
 }
 
+void $registerIdMissingServiceMethodIds() {
+  ServiceMethodIdRegistry.register<IdMissingService>({
+    'doWork': _IdMissingServiceMethods.doWorkId,
+  });
+}
+
+void registerIdMissingServiceGenerated() {
+  $registerIdMissingServiceClientFactory();
+  $registerIdMissingServiceMethodIds();
+}
+
+// Remote service implementation that auto-registers the dispatcher
 class IdMissingServiceImpl extends IdMissingService {
   @override
   bool get isRemote => true;
@@ -55,7 +68,7 @@ class IdMissingServiceImpl extends IdMissingService {
   @override
   Future<void> registerHostSide() async {
     $registerIdMissingServiceClientFactory();
-    // Note: no method id registration on purpose
+    $registerIdMissingServiceMethodIds();
   }
 
   @override
@@ -64,3 +77,19 @@ class IdMissingServiceImpl extends IdMissingService {
     await super.initialize();
   }
 }
+
+void $registerIdMissingServiceLocalSide() {
+  $registerIdMissingServiceDispatcher();
+  $registerIdMissingServiceClientFactory();
+  $registerIdMissingServiceMethodIds();
+}
+
+void $autoRegisterIdMissingServiceLocalSide() {
+  LocalSideRegistry.register<IdMissingService>(
+      $registerIdMissingServiceLocalSide);
+}
+
+final $_IdMissingServiceLocalSideRegistered = (() {
+  $autoRegisterIdMissingServiceLocalSide();
+  return true;
+})();
