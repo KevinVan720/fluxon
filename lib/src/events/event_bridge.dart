@@ -7,6 +7,7 @@ import 'dart:isolate';
 import '../service_logger.dart';
 import 'event_dispatcher.dart';
 import 'service_event.dart';
+import 'event_type_registry.dart';
 part 'event_bridge_protocol.dart';
 part 'event_bridge_helpers.dart';
 

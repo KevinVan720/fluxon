@@ -32,9 +32,8 @@ class GenericServiceEvent extends ServiceEvent {
 /// Reconstruct event from JSON data
 ServiceEvent _reconstructEventFromJson(
     Map<String, dynamic> json, String eventType) {
-  // For now, create a generic event. In a real implementation,
-  // we'd need a registry of event types and their fromJson factories
-  return GenericServiceEvent.fromJson(json);
+  final typed = EventTypeRegistry.createFromJson(json);
+  return typed ?? GenericServiceEvent.fromJson(json);
 }
 
 /// Generate a unique request ID

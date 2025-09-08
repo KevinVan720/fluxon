@@ -13,6 +13,7 @@ import 'events/event_bridge.dart';
 import 'events/event_dispatcher.dart';
 import 'events/event_mixin.dart';
 import 'events/service_event.dart';
+import 'events/event_type_registry.dart';
 import 'exceptions/service_exceptions.dart';
 import 'flux_service.dart';
 import 'models/service_models.dart';
@@ -619,8 +620,9 @@ class FluxRuntime {
         'targetWorkers': _workerRegistry.keys.toList(),
       });
 
-      // Send to local services in main isolate
-      final event = GenericServiceEvent.fromJson(eventData);
+      // Send to local services in main isolate (typed if possible)
+      final event = EventTypeRegistry.createFromJson(eventData) ??
+          GenericServiceEvent.fromJson(eventData);
       await _eventDispatcher.sendEvent(event, EventDistribution.broadcast());
 
       // Send to all other worker isolates
