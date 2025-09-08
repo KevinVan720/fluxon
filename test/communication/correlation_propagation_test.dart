@@ -63,8 +63,8 @@ class CorrOrchestrator extends FluxService {
   @override
   Future<void> initialize() async {
     await super.initialize();
-    // Cross-isolate currently reconstructs to GenericServiceEvent
-    onEvent<GenericServiceEvent>((event) async {
+    // Typed reconstruction across isolates
+    onEvent<CorrEvent>((event) async {
       corrSeenAtEvent = event.correlationId;
       return const EventProcessingResponse(
         result: EventProcessingResult.success,
