@@ -1,60 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flux/flux.dart';
-import 'events/task_events.dart';
-import 'services/storage_service.dart';
-import 'services/task_service.dart';
-import 'services/user_service.dart';
-import 'services/notification_service.dart';
-import 'services/analytics_service.dart';
-import 'services/background_processor.dart';
-import 'screens/home_screen.dart';
+import 'services/image_filter_service.dart';
+import 'services/local_image_filter_service.dart';
+import 'screens/image_filters_screen.dart';
 
 // part 'main.g.dart'; // Generated code - not needed for main files
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 📡 Register event types for cross-isolate communication
-  registerExampleEventTypes();
-
   // 🚀 Create FluxRuntime and register all services
   final runtime = FluxRuntime();
 
-  // 🔗 DEPENDENCY SYSTEM: Services automatically resolve dependencies
-  // StorageService (no dependencies, use Impl for automatic registration)
-  runtime.register<StorageService>(() => StorageServiceImpl());
-
-  // UserService depends on StorageService (use Impl for automatic registration)
-  runtime.register<UserService>(() => UserServiceImpl());
-
-  // TaskService depends on StorageService (use Impl for automatic registration)
-  runtime.register<TaskService>(() => TaskServiceImpl());
-
-  // 🔄 SERVICE PROXY SYSTEM: Remote services auto-detected by Worker suffix
-  // NotificationService runs in worker isolate (optional dependency on UserService)
-  runtime.register<NotificationService>(() => NotificationServiceImpl());
-
-  // AnalyticsService runs in worker isolate (no dependencies)
-  runtime.register<AnalyticsService>(() => AnalyticsServiceImpl());
-
-  // BackgroundProcessor runs in worker isolate (optional dependency on TaskService)
-  runtime.register<BackgroundProcessor>(() => BackgroundProcessorImpl());
+  // ImageFilterService runs in worker isolate
+  runtime.register<ImageFilterService>(() => ImageFilterServiceImpl());
+  // Local service for comparison (non-remote)
+  runtime.register<LocalImageFilterService>(() => LocalImageFilterService());
 
   // 🚀 Initialize all services (dependencies resolved automatically)
   await runtime.initializeAll();
 
-  runApp(FluxTasksApp(runtime: runtime));
+  runApp(ImageStudioApp(runtime: runtime));
 }
 
-class FluxTasksApp extends StatelessWidget {
-  const FluxTasksApp({super.key, required this.runtime});
+class ImageStudioApp extends StatelessWidget {
+  const ImageStudioApp({super.key, required this.runtime});
 
   final FluxRuntime runtime;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'FluxTasks - Powered by Flux Framework',
+      title: 'Flux Image Studio — Powered by Flux',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.indigo,
@@ -71,7 +48,7 @@ class FluxTasksApp extends StatelessWidget {
         useMaterial3: true,
         appBarTheme: const AppBarTheme(centerTitle: true, elevation: 2),
       ),
-      home: HomeScreen(runtime: runtime),
+      home: ImageFiltersScreen(runtime: runtime),
       debugShowCheckedModeBanner: false,
     );
   }

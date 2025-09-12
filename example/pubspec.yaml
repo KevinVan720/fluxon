@@ -32,15 +32,12 @@ dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^1.0.8
-  
+
   # Flux framework
   flux:
     path: ../
-  
-  # Additional dependencies for realistic app
-  uuid: ^4.5.1
-  intl: ^0.19.0
-  shared_preferences: ^2.3.2
+  image: ^4.5.4
+  file_picker: ^10.3.3
 
 dev_dependencies:
   flutter_test:
