@@ -1,6 +1,9 @@
 import 'dart:typed_data';
 import 'package:flux/flux.dart';
 import 'package:image/image.dart' as img;
+import 'dart:convert';
+import '../events/image_events.dart';
+import 'filter_ops.dart';
 
 part 'image_filter_service.g.dart';
 
@@ -8,6 +11,8 @@ part 'image_filter_service.g.dart';
 /// Accepts raw image bytes and returns processed PNG bytes.
 @ServiceContract(remote: true)
 class ImageFilterService extends FluxService {
+  String? _currentRequestId; // for cooperative cancellation
+
   /// Apply a filter by name to the provided image bytes.
   ///
   /// The input can be any supported format (PNG/JPEG/WebP). The output is PNG.
@@ -27,7 +32,7 @@ class ImageFilterService extends FluxService {
     // Work on a copy to avoid mutating input
     img.Image output = decoded.clone();
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 20; i++) {
       switch (filter) {
         case 'grayscale':
           output = img.grayscale(output);
@@ -60,5 +65,139 @@ class ImageFilterService extends FluxService {
 
     final pngBytes = img.encodePng(output);
     return Uint8List.fromList(pngBytes);
+  }
+
+  @override
+  Future<void> initialize() async {
+    await super.initialize();
+    // Register typed events in this isolate
+    registerImageEventTypes();
+
+    // Listen for versioned filter requests
+    onEvent<FilterRequestEvent>((event) async {
+      // Only handle events targeted at remote
+      if (event.target != 'remote') {
+        return const EventProcessingResponse(
+          result: EventProcessingResult.ignored,
+          processingTime: Duration(milliseconds: 1),
+        );
+      }
+
+      _currentRequestId = event.requestId;
+
+      // Decode input
+      final input = event.imageBytes;
+      final decoded = img.decodeImage(input);
+      if (decoded == null) {
+        return const EventProcessingResponse(
+          result: EventProcessingResult.failed,
+          processingTime: Duration(milliseconds: 1),
+        );
+      }
+
+      img.Image output = decoded.clone();
+
+      // 10-pass cooperative loop with progress
+      const passes = 10;
+      for (int i = 0; i < passes; i++) {
+        if (_currentRequestId != event.requestId) {
+          // cancelled by a newer request
+          await sendEvent(
+            createEvent<FilterCancelledEvent>(
+              ({
+                required String eventId,
+                required String sourceService,
+                required DateTime timestamp,
+                String? correlationId,
+                Map<String, dynamic> metadata = const {},
+              }) => FilterCancelledEvent(
+                eventId: eventId,
+                sourceService: sourceService,
+                timestamp: timestamp,
+                correlationId: correlationId,
+                metadata: metadata,
+                requestId: event.requestId,
+              ),
+            ),
+          );
+          return const EventProcessingResponse(
+            result: EventProcessingResult.skipped,
+            processingTime: Duration(milliseconds: 1),
+          );
+        }
+
+        if (event.filter == 'motionBlur') {
+          final radius = event.sigma.isNaN
+              ? 1
+              : event.sigma.abs().clamp(1, 64).toInt();
+          final mbPasses = event.amount.clamp(1.0, 10.0).round();
+          for (int k = 0; k < mbPasses; k++) {
+            output = img.gaussianBlur(output, radius: radius);
+          }
+        } else {
+          output = FilterOps.applySinglePass(
+            output,
+            filter: event.filter,
+            amount: event.amount,
+            sigma: event.sigma,
+            brightness: event.brightness,
+            contrast: event.contrast,
+            saturation: event.saturation,
+            hue: event.hue,
+          );
+        }
+
+        // Emit progress
+        final percent = ((i + 1) / passes) * 100.0;
+        await sendEvent(
+          createEvent<FilterProgressEvent>(
+            ({
+              required String eventId,
+              required String sourceService,
+              required DateTime timestamp,
+              String? correlationId,
+              Map<String, dynamic> metadata = const {},
+            }) => FilterProgressEvent(
+              eventId: eventId,
+              sourceService: sourceService,
+              timestamp: timestamp,
+              correlationId: correlationId,
+              metadata: metadata,
+              requestId: event.requestId,
+              percent: percent,
+            ),
+          ),
+        );
+        // Tiny delay to simulate work and allow cancellation checks
+        await Future.delayed(const Duration(milliseconds: 2));
+      }
+
+      final pngBytes = img.encodePng(output);
+      final base64Image = base64Encode(pngBytes);
+      await sendEvent(
+        createEvent<FilterResultEvent>(
+          ({
+            required String eventId,
+            required String sourceService,
+            required DateTime timestamp,
+            String? correlationId,
+            Map<String, dynamic> metadata = const {},
+          }) => FilterResultEvent(
+            eventId: eventId,
+            sourceService: sourceService,
+            timestamp: timestamp,
+            correlationId: correlationId,
+            metadata: metadata,
+            requestId: event.requestId,
+            imageBytesBase64: base64Image,
+          ),
+        ),
+      );
+
+      return const EventProcessingResponse(
+        result: EventProcessingResult.success,
+        processingTime: Duration(milliseconds: 1),
+      );
+    });
   }
 }

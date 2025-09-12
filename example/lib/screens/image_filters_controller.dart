@@ -2,8 +2,9 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:flux/flux.dart';
-import '../services/image_filter_service.dart';
-import '../services/local_image_filter_service.dart';
+
+import '../services/image_filter_coordinator.dart';
+import '../events/image_events.dart';
 
 class ImageFiltersController extends ChangeNotifier {
   ImageFiltersController(this.runtime);
@@ -18,13 +19,16 @@ class ImageFiltersController extends ChangeNotifier {
   bool useRemote = true;
   double amount = 1.0;
   double sigma = 2.0;
-  double brightness = 0.0;
-  double contrast = 0.0;
+  double brightness = 1.0; // 1.0 = unmodified per image package
+  double contrast = 1.0; // 1.0 = unmodified per image package
+  double saturation = 1.0; // 1.0 = original saturation
+  double hue = 0.0; // degrees, -180..180
 
   // Outputs
   Uint8List? previewBytes;
   bool isProcessing = false;
   Object? lastError;
+  String? _latestRequestId;
 
   Timer? _debounce;
 
@@ -71,6 +75,18 @@ class ImageFiltersController extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setSaturation(double value) {
+    saturation = value;
+    _scheduleApply();
+    notifyListeners();
+  }
+
+  void setHue(double value) {
+    hue = value;
+    _scheduleApply();
+    notifyListeners();
+  }
+
   void _scheduleApply() {
     _debounce?.cancel();
     // Short debounce to avoid storming the service during slider drags
@@ -84,31 +100,41 @@ class ImageFiltersController extends ChangeNotifier {
     isProcessing = true;
     lastError = null;
     notifyListeners();
-    try {
-      final result = useRemote
-          ? await runtime.get<ImageFilterService>().applyFilter(
-              originalBytes!,
-              filter: filter,
-              amount: amount,
-              sigma: sigma,
-              brightness: brightness,
-              contrast: contrast,
-            )
-          : await runtime.get<LocalImageFilterService>().applyFilter(
-              originalBytes!,
-              filter: filter,
-              amount: amount,
-              sigma: sigma,
-              brightness: brightness,
-              contrast: contrast,
-            );
-      previewBytes = result;
-    } catch (e) {
-      lastError = e;
-    } finally {
-      isProcessing = false;
-      notifyListeners();
-    }
+
+    // Create a new request id and remember it as the latest
+    final requestId = DateTime.now().microsecondsSinceEpoch.toString();
+    _latestRequestId = requestId;
+
+    // Register event types and listeners on host side
+    registerImageEventTypes();
+
+    // Use coordinator to issue request and await its completion
+    unawaited(() async {
+      try {
+        final bytes = await runtime.get<ImageFilterCoordinator>().requestFilter(
+          imageBytes: originalBytes!,
+          target: useRemote ? 'remote' : 'local',
+          filter: filter,
+          amount: amount,
+          sigma: sigma,
+          brightness: brightness,
+          contrast: contrast,
+          saturation: saturation,
+          hue: hue,
+        );
+        if (_latestRequestId == requestId) {
+          previewBytes = bytes;
+          isProcessing = false;
+          notifyListeners();
+        }
+      } catch (e) {
+        if (_latestRequestId == requestId) {
+          lastError = e;
+          isProcessing = false;
+          notifyListeners();
+        }
+      }
+    }());
   }
 
   @override

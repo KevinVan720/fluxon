@@ -1,151 +1,77 @@
-# FluxTasks - Real-World Flux Framework Demo
+# Flux Image Studio — Flux Framework Demo
 
-A comprehensive Flutter application demonstrating all three core Flux framework systems working together in a real-world scenario.
+An interactive Flutter app demonstrating Flux’s cross‑isolate services and event system with computation‑heavy image filters. The UI remains responsive while a remote worker processes filters; changing any control cancels the in‑flight job and starts the latest one.
 
 ## 🎯 What This Demo Shows
 
-### **Complete Flux Architecture in Action**
-- **🔗 Dependency System** - Services declare dependencies and initialize in correct order
-- **🔄 Service Proxy System** - Transparent local/remote service calls
-- **📡 Event System** - Real-time cross-isolate event communication
+- **📡 Event‑driven, cancelable jobs**: versioned FilterRequest/Progress/Result events; workers cooperatively cancel on newer requests
+- **🔄 Local vs Remote**: toggle runtime (segmented button) to compare latency and UI smoothness
+- **🖼️ Heavy filters**: gaussian blur, motion blur (multi‑pass), pixelate, edge detect, grayscale, sepia, brightness, contrast, saturation, hue
+- **🧭 Material 3 UI**: compact DropdownMenu/SegmentedButton, non‑blocking sliders, upload/save
 
-## 🚀 Running the Demo
+## 🚀 Run
 
 ```bash
 cd example
 flutter pub get
-dart run build_runner build
-flutter run -d chrome  # Or any Flutter target
+dart run build_runner build -d
+flutter run -d macos   # or any Flutter target
 ```
 
-## 🏗️ Architecture Overview
+macOS only: if you see a sandbox error when saving/loading, run `pod install` once in `example/macos` and we already set user‑selected read/write entitlements.
+
+## 🏗️ Architecture (high level)
 
 ```
-Main Isolate (UI)              Worker Isolate 1           Worker Isolate 2
-┌─────────────────┐           ┌─────────────────┐        ┌─────────────────┐
-│ TaskService      │◄─events─►│NotificationService│      │ AnalyticsService│
-│ UserService      │          │                 │◄─────►│                 │
-│ StorageService   │          │                 │ events │                 │
-│ (UI Components)  │          │                 │        │                 │
-└─────────────────┘          └─────────────────┘        └─────────────────┘
-         ▲                            ▲                           ▲
-         │                            │                           │
-    FluxRuntime ◄──────────────────────┼───────────────────────────┘
-    (Automatic orchestration)
+UI (main isolate)                Remote worker (service isolate)
+┌──────────────────────────┐     ┌──────────────────────────┐
+│ ImageFiltersScreen       │     │ ImageFilterService       │
+│ ImageFiltersController   │     │  • listens to FilterRequestEvent
+│ ImageFilterCoordinator   │◄────┤  • emits Progress/Result/Cancelled
+│  • sends FilterRequest   │     └──────────────────────────┘
+└──────────────────────────┘
+            ▲ events
+            │
+        FluxRuntime (automatic event bridge + dispatcher)
 ```
 
-## 🔍 Key Features Demonstrated
+## 🕹️ Controls
 
-### **1. Zero-Boilerplate Service Creation**
-```dart
-// 🚀 Service registration
-runtime.register<StorageService>(() => StorageServiceImpl());
-runtime.register<UserService>(() => UserServiceImpl());
-runtime.register<TaskService>(() => TaskServiceImpl());
-runtime.register<NotificationService>(() => NotificationServiceImpl()); // remote
-runtime.register<AnalyticsService>(() => AnalyticsServiceImpl());       // remote
+- **Runtime**: Remote | Local (AppBar segmented button)
+- **Filter**: Dropdown (Material 3)
+- **Sliders** (contextual ranges)
+  - Gaussian blur: Sigma 1–16
+  - Motion blur: Passes 1–10, Radius 1–16
+  - Pixelate: Block size 2–40
+  - Brightness: 0–2 (1 = original)
+  - Contrast: 0–2 (1 = original)
+  - Saturation: 0–2 (1 = original)
+  - Hue: −180° to 180°
+- **Upload**: choose an image; **Save**: export PNG
 
-await runtime.initializeAll(); // Dependencies resolved automatically
-```
+All sliders are live; moving them emits a new request and cancels the previous one. The AppBar shows a spinner while the latest job runs.
 
-### **2. Transparent Service Calls**
-```dart
-// 🔄 Same API for local and remote services
-final taskService = runtime.get<TaskService>();                 // Local
-final notificationService = runtime.get<NotificationService>(); // Remote (worker isolate)
+## 🧩 Services
 
-// Both calls look identical - complete transparency!
-await taskService.createTask(...);           // Runs locally
-await notificationService.sendNotification(...); // Runs in worker isolate
-```
+- `ImageFilterService` (remote): heavy compute in a worker isolate
+- `LocalImageFilterService` (local): same API to compare performance
+- `ImageFilterCoordinator` (local): issues requests, waits for results, and reconciles by requestId
 
-### **3. Automatic Event Flow**
-```dart
-// 📡 Events automatically flow across isolates
-await sendEvent(TaskCreatedEvent(...)); 
+## 📡 Event Types
 
-// NotificationService (worker isolate) receives event automatically
-// AnalyticsService (worker isolate) receives event automatically
-// No manual routing or serialization needed!
-```
+- `FilterRequestEvent { requestId, target, filter, amount, sigma, brightness, contrast, saturation, hue, image }`
+- `FilterProgressEvent { requestId, percent }`
+- `FilterResultEvent { requestId, image }`
+- `FilterCancelledEvent { requestId }`
 
-## 🎮 Interactive Demo Features
+## ✨ Notes
 
-### **Task Management**
-- ✅ Create tasks with different priorities and assignments
-- ✅ Update task status (triggers cross-isolate events)
-- ✅ View task statistics calculated in real-time
-- ✅ Delete tasks and see immediate updates
+- The demo uses a fixed number of internal passes to showcase progress; you can tune/debounce in `ImageFiltersController`.
+- No tiling is used; artifacts from tile seams are avoided.
 
-### **Real-Time Events**
-- ✅ **TaskCreatedEvent** → Automatic notifications sent via worker isolate
-- ✅ **TaskStatusChangedEvent** → Analytics tracking in separate isolate
-- ✅ **NotificationEvent** → Cross-service communication
-- ✅ **AnalyticsEvent** → Background processing and insights
+## 📦 Tech
 
-### **Cross-Isolate Processing**
-- ✅ **NotificationService** runs in worker isolate (non-blocking)
-- ✅ **AnalyticsService** runs in worker isolate (heavy computation)
-- ✅ **UI remains responsive** during background processing
-- ✅ **Automatic infrastructure** - no manual isolate management
-
-## 🔧 Framework Features Showcased
-
-### **Dependency System** 🔗
-- **Automatic Resolution**: Services declare dependencies, framework resolves order
-- **Optional Dependencies**: Services gracefully handle missing optional dependencies
-- **Initialization Order**: Complex dependency graphs resolved automatically
-
-### **Service Proxy System** 🔄
-- **Local Services**: Fast, direct method calls within main isolate
-- **Remote Services**: Transparent calls to worker isolates via Squadron
-- **Type Safety**: Full type safety maintained across isolate boundaries
-- **Error Propagation**: Exceptions properly propagated from workers to main
-
-### **Event System** 📡
-- **Cross-Isolate Events**: Events automatically route between isolates
-- **Serialization**: Automatic JSON serialization/deserialization
-- **Event Types**: Strongly-typed events with proper reconstruction
-- **Broadcasting**: Events delivered to all interested services automatically
-
-## 🎯 Try These Interactions
-
-1. **Create a Task** (Tap +)
-   - Watch console logs show events flowing to worker isolates
-   - NotificationService processes TaskCreatedEvent in background
-   - AnalyticsService tracks the creation automatically
-
-2. **Update Task Status** (Tap task → Start/Complete)
-   - TaskStatusChangedEvent sent to all services
-   - Background analytics processing doesn't block UI
-   - Real-time updates across the application
-
-3. **Framework Info** (Tap info icon)
-   - See detailed explanation of what's happening under the hood
-   - Understand how the three systems work together
-
-## 💡 Key Insights
-
-### **What Makes This Special**
-- **Zero Configuration** - No manual event dispatcher setup
-- **Complete Transparency** - Local and remote services identical
-- **Automatic Infrastructure** - Worker isolates get full event capabilities
-- **Type Safety** - Strong typing maintained across isolate boundaries
-- **Real-World Ready** - Production-ready patterns and error handling
-
-### **Perfect for Production**
-- **Non-Blocking UI** - Heavy operations run in worker isolates
-- **Scalable Architecture** - Easy to add new services and events
-- **Maintainable Code** - Clean separation of concerns
-- **Robust Error Handling** - Graceful failure and recovery
-
-## 🚀 Next Steps
-
-This demo shows Flux at its core. In a real application, you could extend this with:
-- Database integration (local/remote services)
-- Real-time collaboration (event system)
-- Background sync (worker isolates)
-- Push notifications (cross-isolate events)
-- Analytics and monitoring (transparent service calls)
-
-**Flux makes complex distributed systems feel like simple local code!** 🎉
+- Flutter + Material 3 UI
+- `flux` (services, proxies, events)
+- `image` (pure Dart image processing)
+- `file_picker` + `file_selector` (upload/save)

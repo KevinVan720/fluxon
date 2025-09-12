@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flux/flux.dart';
 import 'services/image_filter_service.dart';
 import 'services/local_image_filter_service.dart';
+import 'services/image_filter_coordinator.dart';
 import 'screens/image_filters_screen.dart';
 
 // part 'main.g.dart'; // Generated code - not needed for main files
@@ -16,6 +17,8 @@ void main() async {
   runtime.register<ImageFilterService>(() => ImageFilterServiceImpl());
   // Local service for comparison (non-remote)
   runtime.register<LocalImageFilterService>(() => LocalImageFilterService());
+  // Coordinator for event-driven requests
+  runtime.register<ImageFilterCoordinator>(() => ImageFilterCoordinatorImpl());
 
   // 🚀 Initialize all services (dependencies resolved automatically)
   await runtime.initializeAll();

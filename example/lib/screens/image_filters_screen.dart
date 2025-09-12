@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flux/flux.dart';
 import 'package:image/image.dart' as img;
 import 'package:file_picker/file_picker.dart';
+import 'package:file_selector/file_selector.dart' as fsel;
 import 'image_filters_controller.dart';
 
 class ImageFiltersScreen extends StatefulWidget {
@@ -26,6 +27,10 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
     // 'sharpen', // removed (not available in image ^4.5 API)
     'brightness',
     'contrast',
+    'saturation',
+    'hue',
+    'motionBlur',
+    'pixelate',
   ];
 
   @override
@@ -72,27 +77,56 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
     }
   }
 
-  Future<void> _apply() async => _controller.apply();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Image Filters Studio'),
         actions: [
-          DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: _controller.useRemote ? 'Remote' : 'Local',
-              items: const [
-                DropdownMenuItem(value: 'Remote', child: Text('Remote')),
-                DropdownMenuItem(value: 'Local', child: Text('Local')),
-              ],
-              onChanged: _controller.isProcessing
-                  ? null
-                  : (v) => _controller.setUseRemote(v == 'Remote'),
-            ),
+          AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              final processing = _controller.isProcessing;
+              return Row(
+                children: [
+                  if (processing)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8),
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4.0),
+                    child: IgnorePointer(
+                      ignoring: processing,
+                      child: SegmentedButton<String>(
+                        segments: const [
+                          ButtonSegment(value: 'Remote', label: Text('Remote')),
+                          ButtonSegment(value: 'Local', label: Text('Local')),
+                        ],
+                        selected: {_controller.useRemote ? 'Remote' : 'Local'},
+                        onSelectionChanged: (Set<String> selection) {
+                          if (selection.isEmpty) return;
+                          final choice = selection.first;
+                          _controller.setUseRemote(choice == 'Remote');
+                        },
+                        style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact,
+                          padding: MaterialStatePropertyAll(
+                            EdgeInsets.symmetric(horizontal: 8),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                ],
+              );
+            },
           ),
-          const SizedBox(width: 8),
         ],
       ),
       body: Padding(
@@ -114,15 +148,15 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
                 Row(
                   children: [
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        value: _selectedFilter,
-                        decoration: const InputDecoration(labelText: 'Filter'),
-                        items: _filters
-                            .map(
-                              (f) => DropdownMenuItem(value: f, child: Text(f)),
-                            )
+                      child: DropdownMenu<String>(
+                        initialSelection: _selectedFilter,
+                        label: const Text('Filter'),
+                        dropdownMenuEntries: _filters
+                            .map((f) => DropdownMenuEntry(value: f, label: f))
                             .toList(),
-                        onChanged: (v) => _controller.setFilter(v ?? 'none'),
+                        onSelected: (v) {
+                          if (v != null) _controller.setFilter(v);
+                        },
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -132,16 +166,29 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
                       label: const Text('Upload'),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton.icon(
-                      onPressed: _processing ? null : _apply,
-                      icon: _processing
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.play_arrow),
-                      label: const Text('Apply'),
+                    OutlinedButton.icon(
+                      onPressed: (_previewBytes == null || _processing)
+                          ? null
+                          : () async {
+                              final location = await fsel.getSaveLocation(
+                                suggestedName: 'processed.png',
+                                acceptedTypeGroups: [
+                                  const fsel.XTypeGroup(
+                                    label: 'PNG',
+                                    extensions: ['png'],
+                                  ),
+                                ],
+                              );
+                              if (location == null) return;
+                              final xfile = fsel.XFile.fromData(
+                                _previewBytes,
+                                name: 'processed.png',
+                                mimeType: 'image/png',
+                              );
+                              await xfile.saveTo(location.path);
+                            },
+                      icon: const Icon(Icons.download),
+                      label: const Text('Save'),
                     ),
                   ],
                 ),
@@ -153,7 +200,6 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
                     0.0,
                     5.0,
                     (v) => _controller.setAmount(v),
-                    disabled: _processing,
                   ),
                 if (_selectedFilter == 'gaussianBlur')
                   _buildSlider(
@@ -162,25 +208,62 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
                     1.0,
                     16.0,
                     (v) => _controller.setSigma(v),
-                    disabled: _processing,
+                  ),
+                if (_selectedFilter == 'motionBlur') ...[
+                  _buildSlider(
+                    'Passes',
+                    _amount,
+                    1.0,
+                    10.0,
+                    (v) => _controller.setAmount(v),
+                  ),
+                  _buildSlider(
+                    'Radius',
+                    _sigma,
+                    1.0,
+                    16.0,
+                    (v) => _controller.setSigma(v),
+                  ),
+                ],
+                if (_selectedFilter == 'pixelate')
+                  _buildSlider(
+                    'Block size',
+                    _amount,
+                    2.0,
+                    40.0,
+                    (v) => _controller.setAmount(v),
                   ),
                 if (_selectedFilter == 'brightness')
                   _buildSlider(
                     'Brightness',
                     _brightness,
-                    -1.0,
-                    1.0,
+                    0.0,
+                    2.0,
                     (v) => _controller.setBrightness(v),
-                    disabled: _processing,
                   ),
                 if (_selectedFilter == 'contrast')
                   _buildSlider(
                     'Contrast',
                     _contrast,
-                    -1.0,
-                    1.0,
+                    0.0,
+                    2.0,
                     (v) => _controller.setContrast(v),
-                    disabled: _processing,
+                  ),
+                if (_selectedFilter == 'saturation')
+                  _buildSlider(
+                    'Saturation',
+                    _controller.saturation,
+                    0.0,
+                    2.0,
+                    (v) => _controller.setSaturation(v),
+                  ),
+                if (_selectedFilter == 'hue')
+                  _buildSlider(
+                    'Hue (deg)',
+                    _controller.hue,
+                    -180.0,
+                    180.0,
+                    (v) => _controller.setHue(v),
                   ),
                 const SizedBox(height: 12),
                 Expanded(
@@ -234,12 +317,17 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
     ValueChanged<double> onChanged, {
     bool disabled = false,
   }) {
+    // Clamp the incoming value to the slider's range to avoid assertion errors
+    double displayValue = value;
+    if (displayValue < min) displayValue = min;
+    if (displayValue > max) displayValue = max;
+
     return Row(
       children: [
         SizedBox(width: 100, child: Text(label)),
         Expanded(
           child: Slider(
-            value: value,
+            value: displayValue,
             min: min,
             max: max,
             onChanged: disabled ? null : onChanged,
@@ -247,7 +335,10 @@ class _ImageFiltersScreenState extends State<ImageFiltersScreen> {
         ),
         SizedBox(
           width: 56,
-          child: Text(value.toStringAsFixed(2), textAlign: TextAlign.right),
+          child: Text(
+            displayValue.toStringAsFixed(2),
+            textAlign: TextAlign.right,
+          ),
         ),
       ],
     );
