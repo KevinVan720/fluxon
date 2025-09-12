@@ -7,11 +7,11 @@ import 'package:source_gen/source_gen.dart';
 
 // Note: we'll detect @ServiceContract by name to avoid a hard dependency loop.
 const _serviceContractChecker = TypeChecker.fromUrl(
-  'package:flux/src/annotations/service_annotations.dart#ServiceContract',
+  'package:fluxon/src/annotations/service_annotations.dart#ServiceContract',
 );
 
 const _serviceMethodChecker = TypeChecker.fromUrl(
-  'package:flux/src/annotations/service_annotations.dart#ServiceMethod',
+  'package:fluxon/src/annotations/service_annotations.dart#ServiceMethod',
 );
 
 class ServiceGenerator extends GeneratorForAnnotation<Object> {

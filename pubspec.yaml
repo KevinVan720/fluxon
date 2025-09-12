@@ -1,4 +1,4 @@
-name: flux
+name: fluxon
 description: A comprehensive service locator and services framework for Dart applications using Squadron worker isolates.
 version: 0.0.1
 homepage: https://github.com/KevinVan720/flux

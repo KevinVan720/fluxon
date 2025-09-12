@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 
 /// Call this in each isolate that needs to reconstruct typed events
 void registerImageEventTypes() {

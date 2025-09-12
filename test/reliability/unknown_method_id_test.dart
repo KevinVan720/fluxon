@@ -1,4 +1,4 @@
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:test/test.dart';
 
 part 'unknown_method_id_test.g.dart';

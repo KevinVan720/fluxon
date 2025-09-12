@@ -1,6 +1,6 @@
-import 'package:flux/src/events/models/event_distribution.dart';
-import 'package:flux/src/events/service_event.dart';
-import 'package:flux/src/flux_service.dart';
+import 'package:fluxon/src/events/models/event_distribution.dart';
+import 'package:fluxon/src/events/service_event.dart';
+import 'package:fluxon/src/flux_service.dart';
 import 'package:test/test.dart';
 
 // Mock service types for testing

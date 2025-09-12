@@ -1,4 +1,4 @@
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:test/test.dart';
 
 part 'version_skew_demo_test.g.dart';

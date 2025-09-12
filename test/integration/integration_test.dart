@@ -1,4 +1,4 @@
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:test/test.dart';
 
 // Example services for integration testing

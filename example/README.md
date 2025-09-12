@@ -1,6 +1,6 @@
-# Flux Image Studio — Flux Framework Demo
+# Flux Image Studio — Fluxon Framework Demo
 
-An interactive Flutter app demonstrating Flux’s cross‑isolate services and event system with computation‑heavy image filters. The UI remains responsive while a remote worker processes filters; changing any control cancels the in‑flight job and starts the latest one.
+An interactive Flutter app demonstrating Fluxon’s cross‑isolate services and event system with computation‑heavy image filters. The UI remains responsive while a remote worker processes filters; changing any control cancels the in‑flight job and starts the latest one.
 
 ## 🎯 What This Demo Shows
 
@@ -72,6 +72,6 @@ All sliders are live; moving them emits a new request and cancels the previous o
 ## 📦 Tech
 
 - Flutter + Material 3 UI
-- `flux` (services, proxies, events)
+- `fluxon` (services, proxies, events)
 - `image` (pure Dart image processing)
 - `file_picker` + `file_selector` (upload/save)

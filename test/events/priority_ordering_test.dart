@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:test/test.dart';
 
 // Event used for priority checks

@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:image/image.dart' as img;
 import 'package:file_picker/file_picker.dart';
 import 'package:file_selector/file_selector.dart' as fsel;

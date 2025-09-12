@@ -8,7 +8,7 @@
 /// - Automatic event-driven communication across isolates
 /// - Zero-configuration dependency injection
 /// - Automatic infrastructure setup
-library flux;
+library fluxon;
 
 export 'src/annotations/service_annotations.dart';
 // 🔧 Service framework core

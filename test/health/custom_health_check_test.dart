@@ -1,7 +1,7 @@
-import 'package:flux/src/base_service.dart';
-import 'package:flux/src/flux_runtime.dart';
-import 'package:flux/src/models/service_models.dart';
-import 'package:flux/src/service_logger.dart';
+import 'package:fluxon/src/base_service.dart';
+import 'package:fluxon/src/flux_runtime.dart';
+import 'package:fluxon/src/models/service_models.dart';
+import 'package:fluxon/src/service_logger.dart';
 import 'package:test/test.dart';
 
 // Service with custom health check that includes uptime

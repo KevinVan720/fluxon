@@ -1,4 +1,4 @@
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:test/test.dart';
 
 part 'event_bridge_demo_test.g.dart';

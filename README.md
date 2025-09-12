@@ -1,4 +1,4 @@
-# Flux
+# Fluxon
 
 Fast, typed, event-driven services for Dart with complete isolate transparency and zero boilerplate.
 
@@ -20,7 +20,7 @@ Fast, typed, event-driven services for Dart with complete isolate transparency a
 
 ## Overview
 
-Flux is a powerful service framework for Dart that enables seamless communication between services running in different isolates. It provides:
+Fluxon is a powerful service framework for Dart that enables seamless communication between services running in different isolates. It provides:
 
 - **🔄 Isolate Transparency**: Same API for local and remote services - no need to know where a service runs
 - **🚀 Zero Boilerplate**: Automatic code generation for service implementations and client proxies  
@@ -30,11 +30,11 @@ Flux is a powerful service framework for Dart that enables seamless communicatio
 
 ## Installation
 
-Add Flux to your `pubspec.yaml`:
+Add Fluxon to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flux: ^0.0.1
+  fluxon: ^0.0.1
 
 dev_dependencies:
   flux_method_generator: ^0.0.1
@@ -52,7 +52,7 @@ dart pub get
 Here's a minimal example to get you started:
 
 ```dart
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 
 part 'main.g.dart'; // Required for code generation
 
@@ -309,7 +309,7 @@ Generate service implementations and client proxies automatically.
 Add to `pubspec.yaml` and run:
 ```yaml
 dependencies:
-  flux:
+  fluxon:
 dev_dependencies:
   flux_method_generator:
   build_runner: ^2.4.0

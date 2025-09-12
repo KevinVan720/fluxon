@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'services/image_filter_service.dart';
 import 'services/local_image_filter_service.dart';
 import 'services/image_filter_coordinator.dart';

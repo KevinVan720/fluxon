@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flux/flux.dart';
+import 'package:fluxon/flux.dart';
 import 'package:test/test.dart';
 
 part 'large_nested_payload_test.g.dart';
