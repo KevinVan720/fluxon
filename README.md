@@ -34,10 +34,10 @@ Add Flux to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flux: ^1.0.0
+  flux: ^0.0.1
 
 dev_dependencies:
-  flux_method_generator: ^1.0.0
+  flux_method_generator: ^0.0.1
   build_runner: ^2.4.0
 ```
 

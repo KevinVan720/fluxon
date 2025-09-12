@@ -1,6 +1,8 @@
 name: flux
 description: A comprehensive service locator and services framework for Dart applications using Squadron worker isolates.
-version: 1.0.0
+version: 0.0.1
+homepage: https://github.com/KevinVan720/flux
+maintainer: Wenkai Fan (@KevinVan720)
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -19,8 +21,12 @@ dev_dependencies:
   flux_method_generator:
     path: packages/flux_method_generator
 
-# Configuration for the package
-publish_to: none # Remove this line if you wish to publish to pub.dev
+# Optional pub.dev metadata
+topics:
+  - isolates
+  - events
+  - services
+  - flux
 
 # Lint rules and analysis options
 analyzer:

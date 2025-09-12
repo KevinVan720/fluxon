@@ -32,7 +32,8 @@ class EventTypeRegistry {
   }
 
   /// Check if an event type is registered
-  static bool isRegistered(String eventType) => _factories.containsKey(eventType);
+  static bool isRegistered(String eventType) =>
+      _factories.containsKey(eventType);
 
   /// Get all registered event types
   static Set<String> get registeredTypes => Set.from(_factories.keys);
