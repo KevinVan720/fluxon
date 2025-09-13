@@ -8,18 +8,18 @@ environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
-  squadron: ^6.0.0
   meta: ^1.9.0
+  squadron: ^6.0.0
 
 dev_dependencies:
-  test: ^1.24.0
-  mockito: ^5.4.0
-  build_runner: ^2.4.0
-  source_gen: ^1.4.0
   analyzer: ^6.4.0
   build: ^2.4.0
+  build_runner: ^2.4.0
   fluxon_method_generator:
     path: packages/fluxon_method_generator
+  mockito: ^5.4.0
+  source_gen: ^1.4.0
+  test: ^1.24.0
 
 # Optional pub.dev metadata
 topics:
@@ -104,7 +104,7 @@ linter:
     file_names: true
     implementation_imports: true
     join_return_with_assignment: true
-    leading_newlines_in_multiline_strings: txrue
+    leading_newlines_in_multiline_strings: true
     library_names: true
     library_prefixes: true
     lines_longer_than_80_chars: true
