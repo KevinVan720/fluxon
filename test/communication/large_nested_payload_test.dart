@@ -20,7 +20,7 @@ Map<String, dynamic> _generateNested(int depth, int breadth) {
 }
 
 @ServiceContract(remote: true)
-class PayloadService extends FluxService {
+class PayloadService extends FluxonService {
   Future<Map<String, dynamic>> getBigPayload(int depth, int breadth) async {
     // generate deterministically
     return _generateNested(max(1, depth), max(1, breadth));
@@ -29,9 +29,9 @@ class PayloadService extends FluxService {
 
 void main() {
   group('Large nested payload across isolates', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
     tearDown(() async {
       await runtime.destroyAll();

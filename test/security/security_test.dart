@@ -71,7 +71,7 @@ class SecurityContext {
 
 // Security service for authentication and authorization
 @ServiceContract(remote: false)
-class SecurityService extends FluxService {
+class SecurityService extends FluxonService {
   SecurityService();
   final Map<String, SecurityContext> _activeSessions = {};
   final Map<String, String> _userPasswords = {};
@@ -266,7 +266,7 @@ class SecurityException implements Exception {
 
 // Secure data service with access control
 @ServiceContract(remote: false)
-class SecureDataService extends FluxService {
+class SecureDataService extends FluxonService {
   SecureDataService(this._securityService);
   final SecurityService _securityService;
   final Map<String, Map<String, dynamic>> _data = {};
@@ -372,7 +372,7 @@ class SecureDataService extends FluxService {
 
 // Secure API service with rate limiting
 @ServiceContract(remote: false)
-class SecureApiService extends FluxService {
+class SecureApiService extends FluxonService {
   SecureApiService(this._securityService);
   final SecurityService _securityService;
   final Map<String, List<DateTime>> _requestHistory = {};
@@ -482,7 +482,7 @@ class SecureApiService extends FluxService {
 
 // Encryption service for sensitive data
 @ServiceContract(remote: false)
-class EncryptionService extends FluxService {
+class EncryptionService extends FluxonService {
   EncryptionService();
   final String _encryptionKey = 'test_encryption_key_12345';
 
@@ -555,14 +555,14 @@ class EncryptionService extends FluxService {
 
 void main() {
   group('Security Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late SecurityService securityService;
     late SecureDataService dataService;
     late SecureApiService apiService;
     late EncryptionService encryptionService;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
 
       runtime.register<SecurityService>(SecurityService.new);
       runtime.register<EncryptionService>(EncryptionService.new);

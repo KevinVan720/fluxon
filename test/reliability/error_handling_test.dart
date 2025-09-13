@@ -35,7 +35,7 @@ class CorruptedEvent extends ServiceEvent {
 
 // Service that fails during initialization
 @ServiceContract(remote: false)
-class FailingInitService extends FluxService {
+class FailingInitService extends FluxonService {
   FailingInitService({this.failureReason = 'Generic failure'});
   final String failureReason;
 
@@ -48,7 +48,7 @@ class FailingInitService extends FluxService {
 
 // Service that fails during method calls
 @ServiceContract(remote: true)
-class FailingMethodService extends FluxService {
+class FailingMethodService extends FluxonService {
   Future<String> alwaysFails() async {
     throw const ServiceException('Method always fails');
   }
@@ -64,7 +64,7 @@ class FailingMethodService extends FluxService {
 
 // Service with missing dependencies (will be tested without registering the dependency)
 @ServiceContract(remote: false)
-class InvalidDependencyService extends FluxService {
+class InvalidDependencyService extends FluxonService {
   @override
   List<Type> get dependencies =>
       [FailingInitService]; // Depends on unregistered service
@@ -74,7 +74,7 @@ class InvalidDependencyService extends FluxService {
 
 // Service that corrupts events
 @ServiceContract(remote: false)
-class CorruptingService extends FluxService {
+class CorruptingService extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -109,7 +109,7 @@ class CorruptingService extends FluxService {
 
 // Service that times out
 @ServiceContract(remote: true)
-class SlowService extends FluxService {
+class SlowService extends FluxonService {
   Future<String> verySlowMethod() async {
     await Future.delayed(const Duration(seconds: 60)); // Intentionally slow
     return 'Finally done';
@@ -123,7 +123,7 @@ class SlowService extends FluxService {
 
 // Service that leaks memory
 @ServiceContract(remote: false)
-class MemoryLeakService extends FluxService {
+class MemoryLeakService extends FluxonService {
   final List<List<int>> _memoryHog = [];
 
   Future<void> consumeMemory() async {
@@ -142,10 +142,10 @@ class MemoryLeakService extends FluxService {
 
 void main() {
   group('Error Handling & Edge Cases', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {

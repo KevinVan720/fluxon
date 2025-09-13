@@ -33,7 +33,7 @@ class CorrEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: true)
-class CorrWorker extends FluxService {
+class CorrWorker extends FluxonService {
   Future<void> bump(String corr) async {
     // Forward an event preserving correlation id
     final event = createEvent<CorrEvent>(({
@@ -56,7 +56,7 @@ class CorrWorker extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class CorrOrchestrator extends FluxService {
+class CorrOrchestrator extends FluxonService {
   String? corrSeenAtOrch;
   String? corrSeenAtEvent;
 
@@ -82,9 +82,9 @@ class CorrOrchestrator extends FluxService {
 
 void main() {
   group('Correlation ID propagation', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       EventTypeRegistry.register<CorrEvent>(CorrEvent.fromJson);
     });
     tearDown(() async {

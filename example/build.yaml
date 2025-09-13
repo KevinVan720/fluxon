@@ -1,5 +1,5 @@
 targets:
   $default:
     builders:
-      flux_method_generator:service_generator:
+      fluxon_method_generator:service_generator:
         enabled: true

@@ -5,7 +5,7 @@ part 'cross_isolate_calls_demo_test.g.dart';
 
 // 🚀 SINGLE CLASS: No interface needed!
 @ServiceContract(remote: true)
-class ServiceA extends FluxService {
+class ServiceA extends FluxonService {
   @override
   List<Type> get optionalDependencies => [ServiceB];
 
@@ -19,7 +19,7 @@ class ServiceA extends FluxService {
 
 // 🚀 SINGLE CLASS: No interface needed!
 @ServiceContract(remote: true)
-class ServiceB extends FluxService {
+class ServiceB extends FluxonService {
   @override
   List<Type> get optionalDependencies => [ServiceA];
 
@@ -27,7 +27,7 @@ class ServiceB extends FluxService {
 }
 
 // 🚀 SINGLE CLASS: Local orchestrator
-class Orchestrator extends FluxService {
+class Orchestrator extends FluxonService {
   @override
   List<Type> get optionalDependencies => [ServiceA, ServiceB];
 
@@ -40,7 +40,7 @@ class Orchestrator extends FluxService {
 }
 
 Future<void> _runCrossisolatecallsdemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
 
   locator.register<Orchestrator>(Orchestrator.new);
 

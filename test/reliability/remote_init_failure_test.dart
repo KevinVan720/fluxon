@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 part 'remote_init_failure_test.g.dart';
 
 @ServiceContract(remote: true)
-class ExplodingRemote extends FluxService {
+class ExplodingRemote extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -16,10 +16,10 @@ class ExplodingRemote extends FluxService {
 
 void main() {
   group('Remote initialization failure', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {
@@ -43,7 +43,7 @@ void main() {
       expect(runtime.isInitialized, isFalse);
 
       // Re-register a healthy service after failure to ensure cleanup worked
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       runtime.register<ExplodingRemote>(ExplodingRemoteImpl.new);
       // Replace impl to not throw this time by subclassing at runtime is not trivial;
       // Just assert that attempting to get before init throws

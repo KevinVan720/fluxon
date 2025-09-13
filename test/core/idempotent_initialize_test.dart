@@ -2,13 +2,13 @@ import 'package:fluxon/fluxon.dart';
 import 'package:test/test.dart';
 
 @ServiceContract(remote: false)
-class Tiny extends FluxService {}
+class Tiny extends FluxonService {}
 
 void main() {
   group('Runtime initialization idempotency', () {
     test('concurrent initializeAll calls result in single successful init',
         () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<Tiny>(Tiny.new);
 
       Object? err1;

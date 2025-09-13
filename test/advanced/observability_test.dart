@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 // Metrics collection service
 @ServiceContract(remote: false)
-class MetricsCollectorService extends FluxService {
+class MetricsCollectorService extends FluxonService {
   MetricsCollectorService();
   final Map<String, int> _counters = {};
   final Map<String, List<double>> _gauges = {};
@@ -86,7 +86,7 @@ class MetricsCollectorService extends FluxService {
 
 // Distributed tracing service
 @ServiceContract(remote: false)
-class TracingService extends FluxService {
+class TracingService extends FluxonService {
   TracingService();
   final List<Map<String, dynamic>> _traces = [];
   final Map<String, String> _activeSpans = {};
@@ -185,7 +185,7 @@ class TracingService extends FluxService {
 
 // Health check service
 @ServiceContract(remote: false)
-class HealthCheckService extends FluxService {
+class HealthCheckService extends FluxonService {
   HealthCheckService();
   final Map<String, ServiceHealthStatus> _serviceHealth = {};
   final Map<String, DateTime> _lastHealthCheck = {};
@@ -234,7 +234,7 @@ class HealthCheckService extends FluxService {
 
 // Log aggregation service
 @ServiceContract(remote: false)
-class LogAggregationService extends FluxService {
+class LogAggregationService extends FluxonService {
   LogAggregationService();
   final List<Map<String, dynamic>> _logs = [];
   final Map<String, int> _logLevels = {};
@@ -290,7 +290,7 @@ class LogAggregationService extends FluxService {
 
 // Performance monitoring service
 @ServiceContract(remote: true)
-class PerformanceMonitoringService extends FluxService {
+class PerformanceMonitoringService extends FluxonService {
   PerformanceMonitoringService();
   final Map<String, List<int>> _responseTimes = {};
 
@@ -365,7 +365,7 @@ class PerformanceMonitoringService extends FluxService {
 
 // Observability integration service
 @ServiceContract(remote: false)
-class ObservabilityIntegrationService extends FluxService {
+class ObservabilityIntegrationService extends FluxonService {
   ObservabilityIntegrationService(
     this._metricsCollector,
     this._tracingService,
@@ -435,7 +435,7 @@ class ObservabilityIntegrationService extends FluxService {
 
 void main() {
   group('Observability Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late MetricsCollectorService metricsCollector;
     late TracingService tracingService;
     late HealthCheckService healthCheckService;
@@ -444,7 +444,7 @@ void main() {
     late ObservabilityIntegrationService observabilityIntegration;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
 
       runtime
         ..register<MetricsCollectorService>(MetricsCollectorService.new)

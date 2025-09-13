@@ -11,7 +11,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // 🚀 Create FluxRuntime and register all services
-  final runtime = FluxRuntime();
+  final runtime = FluxonRuntime();
 
   // ImageFilterService runs in worker isolate
   runtime.register<ImageFilterService>(() => ImageFilterServiceImpl());
@@ -29,7 +29,7 @@ void main() async {
 class ImageStudioApp extends StatelessWidget {
   const ImageStudioApp({super.key, required this.runtime});
 
-  final FluxRuntime runtime;
+  final FluxonRuntime runtime;
 
   @override
   Widget build(BuildContext context) {

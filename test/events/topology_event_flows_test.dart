@@ -36,7 +36,7 @@ class TopoEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: true)
-class RemoteEmitterA extends FluxService {
+class RemoteEmitterA extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -62,7 +62,7 @@ class RemoteEmitterA extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class RemoteListenerB extends FluxService {
+class RemoteListenerB extends FluxonService {
   final List<String> seen = [];
 
   @override
@@ -81,7 +81,7 @@ class RemoteListenerB extends FluxService {
   Future<List<String>> getSeen() async => List.of(seen);
 }
 
-class LocalEmitter extends FluxService {
+class LocalEmitter extends FluxonService {
   Future<void> fire(String payload) async {
     final evt = createEvent<TopoEvent>((
             {required eventId,
@@ -100,7 +100,7 @@ class LocalEmitter extends FluxService {
   }
 }
 
-class LocalListener extends FluxService {
+class LocalListener extends FluxonService {
   final List<String> seen = [];
 
   @override
@@ -124,7 +124,7 @@ void main() {
     });
 
     test('local → remote', () async {
-      final rt = FluxRuntime();
+      final rt = FluxonRuntime();
       rt.register<LocalEmitter>(LocalEmitter.new);
       rt.register<RemoteListenerB>(RemoteListenerBImpl.new);
       await rt.initializeAll();
@@ -141,7 +141,7 @@ void main() {
     });
 
     test('remote → local', () async {
-      final rt = FluxRuntime();
+      final rt = FluxonRuntime();
       rt.register<RemoteEmitterA>(RemoteEmitterAImpl.new);
       rt.register<LocalListener>(LocalListener.new);
       await rt.initializeAll();
@@ -158,7 +158,7 @@ void main() {
     });
 
     test('remote → remote', () async {
-      final rt = FluxRuntime();
+      final rt = FluxonRuntime();
       rt.register<RemoteEmitterA>(RemoteEmitterAImpl.new);
       rt.register<RemoteListenerB>(RemoteListenerBImpl.new);
       await rt.initializeAll();
@@ -175,7 +175,7 @@ void main() {
     });
 
     test('local → local', () async {
-      final rt = FluxRuntime();
+      final rt = FluxonRuntime();
       rt.register<LocalEmitter>(LocalEmitter.new);
       rt.register<LocalListener>(LocalListener.new);
       await rt.initializeAll();

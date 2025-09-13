@@ -35,7 +35,7 @@ class SelfEchoEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class SourceOnlyService extends FluxService {
+class SourceOnlyService extends FluxonService {
   int typedCount = 0;
   int genericCount = 0;
 
@@ -86,10 +86,10 @@ class SourceOnlyService extends FluxService {
 
 void main() {
   group('Include-source semantics for broadcast', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       // Register type so local typed handler is used
       EventTypeRegistry.register<SelfEchoEvent>(SelfEchoEvent.fromJson);
     });

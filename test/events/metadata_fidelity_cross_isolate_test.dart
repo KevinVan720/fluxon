@@ -32,7 +32,7 @@ class MetaEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: true)
-class MetaWorker extends FluxService {
+class MetaWorker extends FluxonService {
   Map<String, dynamic>? lastMeta;
 
   @override
@@ -52,7 +52,7 @@ class MetaWorker extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class MetaHost extends FluxService {
+class MetaHost extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -80,7 +80,7 @@ class MetaHost extends FluxService {
 void main() {
   group('Event metadata fidelity across isolates', () {
     test('nested maps/lists and DateTime string ISO preserved', () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<MetaHost>(MetaHost.new);
       runtime.register<MetaWorker>(MetaWorkerImpl.new);
       await runtime.initializeAll();

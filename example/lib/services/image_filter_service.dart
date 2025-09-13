@@ -10,7 +10,7 @@ part 'image_filter_service.g.dart';
 /// Image filtering service that runs in a worker isolate.
 /// Accepts raw image bytes and returns processed PNG bytes.
 @ServiceContract(remote: true)
-class ImageFilterService extends FluxService {
+class ImageFilterService extends FluxonService {
   String? _currentRequestId; // for cooperative cancellation
 
   /// Apply a filter by name to the provided image bytes.

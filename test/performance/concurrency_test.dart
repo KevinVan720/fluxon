@@ -42,7 +42,7 @@ class ConcurrentEvent extends ServiceEvent {
 
 // Service for testing concurrent access
 @ServiceContract(remote: true)
-class ConcurrentService extends FluxService {
+class ConcurrentService extends FluxonService {
   int _counter = 0;
   final List<String> _operations = [];
 
@@ -72,7 +72,7 @@ class ConcurrentService extends FluxService {
 
 // Service for testing race conditions
 @ServiceContract(remote: false)
-class RaceConditionService extends FluxService {
+class RaceConditionService extends FluxonService {
   final Map<int, String> _results = {};
   int _eventCount = 0;
 
@@ -128,10 +128,10 @@ class RaceConditionService extends FluxService {
 
 void main() {
   group('Concurrency & Race Conditions', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       EventTypeRegistry.register<ConcurrentEvent>(ConcurrentEvent.fromJson);
     });
 

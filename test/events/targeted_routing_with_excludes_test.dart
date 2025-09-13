@@ -23,7 +23,7 @@ class TEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class S1 extends FluxService {
+class S1 extends FluxonService {
   int count = 0;
   @override
   Future<void> initialize() async {
@@ -40,7 +40,7 @@ class S1 extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class S2 extends FluxService {
+class S2 extends FluxonService {
   int count = 0;
   @override
   Future<void> initialize() async {
@@ -57,7 +57,7 @@ class S2 extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class Orchestrator extends FluxService {
+class Orchestrator extends FluxonService {
   late final S1 s1;
   late final S2 s2;
   @override
@@ -98,7 +98,7 @@ class Orchestrator extends FluxService {
 void main() {
   group('Targeted routing with excludes', () {
     test('targets receive, excludes override broadcast and block', () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<S1>(S1.new);
       runtime.register<S2>(S2.new);
       runtime.register<Orchestrator>(Orchestrator.new);

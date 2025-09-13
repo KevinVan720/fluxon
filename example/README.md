@@ -1,4 +1,4 @@
-# Flux Image Studio — Fluxon Framework Demo
+# Fluxon Image Studio — Fluxon Framework Demo
 
 An interactive Flutter app demonstrating Fluxon’s cross‑isolate services and event system with computation‑heavy image filters. The UI remains responsive while a remote worker processes filters; changing any control cancels the in‑flight job and starts the latest one.
 
@@ -32,7 +32,7 @@ UI (main isolate)                Remote worker (service isolate)
 └──────────────────────────┘
             ▲ events
             │
-        FluxRuntime (automatic event bridge + dispatcher)
+        FluxonRuntime (automatic event bridge + dispatcher)
 ```
 
 ## 🕹️ Controls

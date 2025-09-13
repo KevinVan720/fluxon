@@ -47,7 +47,7 @@ class MessageEvent extends ServiceEvent {
 
 // 🚀 SINGLE CLASS: Local message coordinator
 @ServiceContract(remote: false)
-class MessageCoordinator extends FluxService {
+class MessageCoordinator extends FluxonService {
   final List<MessageEvent> receivedEvents = [];
 
   @override
@@ -109,7 +109,7 @@ class MessageCoordinator extends FluxService {
 
 // 🚀 SINGLE CLASS: Remote message processor
 @ServiceContract(remote: true)
-class MessageProcessor extends FluxService {
+class MessageProcessor extends FluxonService {
   final List<MessageEvent> processedMessages = [];
 
   @override
@@ -176,7 +176,7 @@ class MessageProcessor extends FluxService {
 
 // 🚀 SINGLE CLASS: Remote message logger
 @ServiceContract(remote: true)
-class MessageLogger extends FluxService {
+class MessageLogger extends FluxonService {
   final List<Map<String, dynamic>> logs = [];
 
   @override
@@ -228,7 +228,7 @@ Future<Map<String, dynamic>> _runCompleteCrossIsolateDemo() async {
   EventTypeRegistry.register<MessageEvent>(MessageEvent.fromJson);
 
   // 🚀 COMPLETE CROSS-ISOLATE EVENT SYSTEM
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
 
   // Register all services
   locator.register<MessageCoordinator>(MessageCoordinator.new);

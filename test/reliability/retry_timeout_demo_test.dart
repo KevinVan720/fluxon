@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 part 'retry_timeout_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-class FlakyService extends FluxService {
+class FlakyService extends FluxonService {
   int _counter = 0;
 
   Future<String> succeedAfter(int attempts) async {
@@ -24,7 +24,7 @@ class FlakyService extends FluxService {
 }
 
 Future<void> _runRetrytimeoutdemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
   try {
     locator.register<FlakyService>(FlakyServiceImpl.new);
 

@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 part 'policy_timeout_retry_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-class PolicyService extends FluxService {
+class PolicyService extends FluxonService {
   int _n = 0;
 
   @ServiceMethod(retryAttempts: 2, retryDelayMs: 50)
@@ -28,7 +28,7 @@ class PolicyService extends FluxService {
 }
 
 Future<void> _runPolicytimeoutretrydemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
   try {
     locator.register<PolicyService>(PolicyServiceImpl.new);
 
@@ -57,7 +57,7 @@ void main() {
     }, timeout: const Timeout(Duration(seconds: 30)));
 
     test('flaky respects retryAttempts and retryDelayMs', () async {
-      final locator = FluxRuntime();
+      final locator = FluxonRuntime();
       try {
         locator.register<PolicyService>(PolicyServiceImpl.new);
         await locator.initializeAll();
@@ -79,7 +79,7 @@ void main() {
     });
 
     test('slow() times out per method policy', () async {
-      final locator = FluxRuntime();
+      final locator = FluxonRuntime();
       try {
         locator.register<PolicyService>(PolicyServiceImpl.new);
         await locator.initializeAll();
@@ -95,7 +95,7 @@ void main() {
     });
 
     test('runtime override can relax timeout to succeed', () async {
-      final locator = FluxRuntime();
+      final locator = FluxonRuntime();
       try {
         locator.register<PolicyService>(PolicyServiceImpl.new);
         await locator.initializeAll();
@@ -115,7 +115,7 @@ void main() {
     });
 
     test('slowRetry() times out after retryAttempts and delay', () async {
-      final locator = FluxRuntime();
+      final locator = FluxonRuntime();
       try {
         locator.register<PolicyService>(PolicyServiceImpl.new);
         await locator.initializeAll();

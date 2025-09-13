@@ -12,34 +12,29 @@ class ImageFilterCoordinatorClient extends ImageFilterCoordinator {
   final ServiceProxy<ImageFilterCoordinator> _proxy;
 
   @override
-  Future<Uint8List> requestFilter({
-    required Uint8List imageBytes,
-    required String target,
-    required String filter,
-    required double amount,
-    required double sigma,
-    required double brightness,
-    required double contrast,
-    required double saturation,
-    required double hue,
-    Duration timeout = const Duration(seconds: 30),
-  }) async {
-    return await _proxy.callMethod(
-      'requestFilter',
-      [],
-      namedArgs: {
-        'imageBytes': imageBytes,
-        'target': target,
-        'filter': filter,
-        'amount': amount,
-        'sigma': sigma,
-        'brightness': brightness,
-        'contrast': contrast,
-        'saturation': saturation,
-        'hue': hue,
-        'timeout': timeout,
-      },
-    );
+  Future<Uint8List> requestFilter(
+      {required Uint8List imageBytes,
+      required String target,
+      required String filter,
+      required double amount,
+      required double sigma,
+      required double brightness,
+      required double contrast,
+      required double saturation,
+      required double hue,
+      Duration timeout = const Duration(seconds: 30)}) async {
+    return await _proxy.callMethod('requestFilter', [], namedArgs: {
+      'imageBytes': imageBytes,
+      'target': target,
+      'filter': filter,
+      'amount': amount,
+      'sigma': sigma,
+      'brightness': brightness,
+      'contrast': contrast,
+      'saturation': saturation,
+      'hue': hue,
+      'timeout': timeout
+    });
   }
 }
 
@@ -63,17 +58,16 @@ Future<dynamic> _ImageFilterCoordinatorDispatcher(
   switch (methodId) {
     case _ImageFilterCoordinatorMethods.requestFilterId:
       return await s.requestFilter(
-        imageBytes: namedArgs['imageBytes'],
-        target: namedArgs['target'],
-        filter: namedArgs['filter'],
-        amount: namedArgs['amount'],
-        sigma: namedArgs['sigma'],
-        brightness: namedArgs['brightness'],
-        contrast: namedArgs['contrast'],
-        saturation: namedArgs['saturation'],
-        hue: namedArgs['hue'],
-        timeout: namedArgs['timeout'],
-      );
+          imageBytes: namedArgs['imageBytes'],
+          target: namedArgs['target'],
+          filter: namedArgs['filter'],
+          amount: namedArgs['amount'],
+          sigma: namedArgs['sigma'],
+          brightness: namedArgs['brightness'],
+          contrast: namedArgs['contrast'],
+          saturation: namedArgs['saturation'],
+          hue: namedArgs['hue'],
+          timeout: namedArgs['timeout']);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -112,8 +106,7 @@ void $registerImageFilterCoordinatorLocalSide() {
 
 void $autoRegisterImageFilterCoordinatorLocalSide() {
   LocalSideRegistry.register<ImageFilterCoordinator>(
-    $registerImageFilterCoordinatorLocalSide,
-  );
+      $registerImageFilterCoordinatorLocalSide);
 }
 
 final $_ImageFilterCoordinatorLocalSideRegistered = (() {

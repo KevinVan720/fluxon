@@ -9,7 +9,7 @@ import '../events/image_events.dart';
 class ImageFiltersController extends ChangeNotifier {
   ImageFiltersController(this.runtime);
 
-  final FluxRuntime runtime;
+  final FluxonRuntime runtime;
 
   // Inputs
   Uint8List? originalBytes;

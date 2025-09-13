@@ -148,7 +148,7 @@ class CircuitBreakerOpenException implements Exception {
 
 // Flaky service that fails intermittently
 @ServiceContract(remote: true)
-class FlakyService extends FluxService {
+class FlakyService extends FluxonService {
   FlakyService();
   final Random _random = Random();
   double _failureRate = 0.3; // 30% failure rate
@@ -219,7 +219,7 @@ class FlakyService extends FluxService {
 
 // Service with circuit breaker protection
 @ServiceContract(remote: false)
-class ProtectedService extends FluxService {
+class ProtectedService extends FluxonService {
   ProtectedService(this._flakyService) {
     _circuitBreaker = CircuitBreaker(
       'FlakyService',
@@ -295,7 +295,7 @@ class ProtectedService extends FluxService {
 
 // Service that monitors circuit breaker health
 @ServiceContract(remote: false)
-class CircuitBreakerMonitorService extends FluxService {
+class CircuitBreakerMonitorService extends FluxonService {
   CircuitBreakerMonitorService();
   final Map<String, CircuitBreaker> _monitoredBreakers = {};
   final List<Map<String, dynamic>> _healthEvents = [];
@@ -339,13 +339,13 @@ class CircuitBreakerMonitorService extends FluxService {
 
 void main() {
   group('Circuit Breaker Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late FlakyService flakyService;
     late ProtectedService protectedService;
     late CircuitBreakerMonitorService monitorService;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
 
       runtime.register<FlakyService>(FlakyService.new);
       runtime.register<CircuitBreakerMonitorService>(

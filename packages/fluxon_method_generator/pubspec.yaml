@@ -1,5 +1,5 @@
-name: flux_method_generator
-description: Code generator for flux service contracts (clients/dispatchers)
+name: fluxon_method_generator
+description: Code generator for fluxon service contracts (clients/dispatchers)
 version: 0.1.0
 
 environment:

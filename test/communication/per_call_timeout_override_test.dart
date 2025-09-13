@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 part 'per_call_timeout_override_test.g.dart';
 
 @ServiceContract(remote: true)
-class SleeperService extends FluxService {
+class SleeperService extends FluxonService {
   Future<String> snooze(Duration d) async {
     await Future.delayed(d);
     return 'done';
@@ -14,7 +14,7 @@ class SleeperService extends FluxService {
 void main() {
   group('Per-call timeout override', () {
     test('tight timeout fails; relaxed timeout succeeds', () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<SleeperService>(SleeperServiceImpl.new);
       await runtime.initializeAll();
 

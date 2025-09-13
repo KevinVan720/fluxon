@@ -1,6 +1,6 @@
 import 'package:fluxon/src/base_service.dart';
 import 'package:fluxon/src/exceptions/service_exceptions.dart';
-import 'package:fluxon/src/flux_runtime.dart';
+import 'package:fluxon/src/fluxon_runtime.dart';
 import 'package:fluxon/src/models/service_models.dart';
 import 'package:fluxon/src/service_logger.dart';
 import 'package:test/test.dart';
@@ -85,12 +85,12 @@ class OptionalDependencyService extends BaseService {
 
 void main() {
   group('FluxRuntime', () {
-    late FluxRuntime locator;
+    late FluxonRuntime locator;
     late MemoryLogWriter logWriter;
 
     setUp(() {
       logWriter = MemoryLogWriter();
-      locator = FluxRuntime(
+      locator = FluxonRuntime(
         logger: ServiceLogger(serviceName: 'TestLocator', writer: logWriter),
       );
     });

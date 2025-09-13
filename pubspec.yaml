@@ -18,15 +18,15 @@ dev_dependencies:
   source_gen: ^1.4.0
   analyzer: ^6.4.0
   build: ^2.4.0
-  flux_method_generator:
-    path: packages/flux_method_generator
+  fluxon_method_generator:
+    path: packages/fluxon_method_generator
 
 # Optional pub.dev metadata
 topics:
   - isolates
   - events
   - services
-  - flux
+  - fluxon
 
 # Lint rules and analysis options
 analyzer:
@@ -104,7 +104,7 @@ linter:
     file_names: true
     implementation_imports: true
     join_return_with_assignment: true
-    leading_newlines_in_multiline_strings: true
+    leading_newlines_in_multiline_strings: txrue
     library_names: true
     library_prefixes: true
     lines_longer_than_80_chars: true

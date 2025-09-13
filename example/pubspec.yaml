@@ -46,8 +46,8 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^5.0.0
   build_runner: ^2.4.0
-  flux_method_generator:
-    path: ../packages/flux_method_generator
+  fluxon_method_generator:
+    path: ../packages/fluxon_method_generator
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

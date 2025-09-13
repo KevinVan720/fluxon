@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 // Memory-intensive service for testing
 @ServiceContract(remote: true)
-class MemoryIntensiveService extends FluxService {
+class MemoryIntensiveService extends FluxonService {
   final List<List<int>> _memoryChunks = [];
   final List<Timer> _timers = [];
   final List<StreamSubscription> _subscriptions = [];
@@ -102,7 +102,7 @@ class MemoryIntensiveService extends FluxService {
 
 // Service that properly manages resources
 @ServiceContract(remote: false)
-class ResourceManagedService extends FluxService
+class ResourceManagedService extends FluxonService
     with ResourceManagedServiceMixin {
   final List<Timer> _timers = [];
   final List<StreamSubscription> _subscriptions = [];
@@ -160,7 +160,7 @@ class ResourceManagedService extends FluxService
 
 // Service that creates circular references
 @ServiceContract(remote: false)
-class CircularReferenceService extends FluxService {
+class CircularReferenceService extends FluxonService {
   CircularReferenceService? _selfReference;
   final List<Map<String, dynamic>> _data = [];
 
@@ -213,10 +213,10 @@ class CircularReferenceService extends FluxService {
 
 void main() {
   group('Memory Management Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {

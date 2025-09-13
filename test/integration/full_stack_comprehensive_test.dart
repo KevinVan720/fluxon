@@ -79,7 +79,7 @@ class PongEvent extends ServiceEvent {
 
 // Local orchestrator depends on both workers via optional dependencies.
 @ServiceContract(remote: false)
-class OrchestratorService extends FluxService {
+class OrchestratorService extends FluxonService {
   int initOrder = 0;
   int destroyOrder = 0;
   int _nextCounter = 0;
@@ -152,7 +152,7 @@ class OrchestratorService extends FluxService {
 
 // Remote compute worker calls remote storage worker and also emits events back.
 @ServiceContract(remote: true)
-class ComputeWorker extends FluxService {
+class ComputeWorker extends FluxonService {
   int initOrder = 0;
   int destroyOrder = 0;
   int _nextCounter = 0;
@@ -217,7 +217,7 @@ class ComputeWorker extends FluxService {
 
 // Remote storage worker keeps simple in-memory map in its isolate.
 @ServiceContract(remote: true)
-class StorageWorker extends FluxService {
+class StorageWorker extends FluxonService {
   final Map<String, dynamic> _data = {};
 
   @override
@@ -245,7 +245,7 @@ Future<Map<String, dynamic>> _runFullStackDemo() async {
   EventTypeRegistry.register<PingEvent>(PingEvent.fromJson);
   EventTypeRegistry.register<PongEvent>(PongEvent.fromJson);
 
-  final runtime = FluxRuntime();
+  final runtime = FluxonRuntime();
 
   runtime.register<OrchestratorService>(OrchestratorService.new);
   runtime.register<ComputeWorker>(ComputeWorkerImpl.new);

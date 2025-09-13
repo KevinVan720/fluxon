@@ -40,7 +40,7 @@ class TickEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: true)
-class StreamerService extends FluxService {
+class StreamerService extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -74,7 +74,7 @@ class StreamerService extends FluxService {
   }
 }
 
-class StreamAggregator extends FluxService {
+class StreamAggregator extends FluxonService {
   final List<TickEvent> received = [];
 
   Future<List<TickEvent>> collect(String streamId, int expectedCount) async {
@@ -99,7 +99,7 @@ class StreamAggregator extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class RemoteStreamAggregator extends FluxService {
+class RemoteStreamAggregator extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -124,7 +124,7 @@ class RemoteStreamAggregator extends FluxService {
   }
 }
 
-class LocalStreamer extends FluxService {
+class LocalStreamer extends FluxonService {
   Future<void> emit(String streamId, int count) async {
     for (var i = 0; i < count; i++) {
       final ev = createEvent<TickEvent>(({
@@ -150,7 +150,7 @@ class LocalStreamer extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class RemoteEmitter extends FluxService {
+class RemoteEmitter extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -182,7 +182,7 @@ class RemoteEmitter extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class RemoteCollector extends FluxService {
+class RemoteCollector extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -207,7 +207,7 @@ class RemoteCollector extends FluxService {
   }
 }
 
-class LocalCollector extends FluxService {
+class LocalCollector extends FluxonService {
   final List<TickEvent> received = [];
   Future<List<int>> waitFor(String streamId, int count) async {
     final completer = Completer<void>();
@@ -226,7 +226,7 @@ class LocalCollector extends FluxService {
   }
 }
 
-class LocalEmitter2 extends FluxService {
+class LocalEmitter2 extends FluxonService {
   Future<void> emit(String streamId, int count) async {
     for (var i = 0; i < count; i++) {
       final ev = createEvent<TickEvent>(({
@@ -257,7 +257,7 @@ void main() {
       // Register event type on host side for cross-isolate reconstruction
       EventTypeRegistry.register<TickEvent>(TickEvent.fromJson);
 
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<StreamerService>(StreamerServiceImpl.new);
       runtime.register<StreamAggregator>(StreamAggregator.new);
       await runtime.initializeAll();
@@ -274,7 +274,7 @@ void main() {
 
     test('local emitter → remote aggregator receives ordered events', () async {
       EventTypeRegistry.register<TickEvent>(TickEvent.fromJson);
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<RemoteStreamAggregator>(RemoteStreamAggregatorImpl.new);
       runtime.register<LocalStreamer>(LocalStreamer.new);
       await runtime.initializeAll();
@@ -293,7 +293,7 @@ void main() {
 
     test('remote → remote stream-like flow', () async {
       EventTypeRegistry.register<TickEvent>(TickEvent.fromJson);
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<RemoteEmitter>(RemoteEmitterImpl.new);
       runtime.register<RemoteCollector>(RemoteCollectorImpl.new);
       await runtime.initializeAll();
@@ -311,7 +311,7 @@ void main() {
 
     test('local → local stream-like flow', () async {
       EventTypeRegistry.register<TickEvent>(TickEvent.fromJson);
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<LocalCollector>(LocalCollector.new);
       runtime.register<LocalEmitter2>(LocalEmitter2.new);
       await runtime.initializeAll();

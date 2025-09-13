@@ -4,16 +4,16 @@ import 'package:test/test.dart';
 part 'unknown_method_id_test.g.dart';
 
 @ServiceContract(remote: true)
-class IdMissingService extends FluxService {
+class IdMissingService extends FluxonService {
   Future<String> doWork(String x) async => 'ok:$x';
 }
 
 void main() {
   group('Unknown method id / dispatcher path', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {

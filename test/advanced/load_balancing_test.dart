@@ -49,7 +49,7 @@ class ServiceInstance {
 
 // Load balancer service
 @ServiceContract(remote: false)
-class LoadBalancerService extends FluxService {
+class LoadBalancerService extends FluxonService {
   LoadBalancerService();
   final Map<String, List<ServiceInstance>> _serviceInstances = {};
   final Map<String, int> _roundRobinCounters = {};
@@ -267,7 +267,7 @@ class LoadBalancerService extends FluxService {
 
 // Scalable service that can be load balanced
 @ServiceContract(remote: true)
-class ScalableService extends FluxService {
+class ScalableService extends FluxonService {
   ScalableService(this._instanceId, this._maxConcurrentRequests);
   final String _instanceId;
   final int _maxConcurrentRequests;
@@ -337,7 +337,7 @@ class ScalableService extends FluxService {
 
 // Auto-scaling service
 @ServiceContract(remote: false)
-class AutoScalingService extends FluxService {
+class AutoScalingService extends FluxonService {
   AutoScalingService(this._loadBalancer);
   final LoadBalancerService _loadBalancer;
   final Map<String, List<ServiceInstance>> _serviceInstances = {};
@@ -511,12 +511,12 @@ class AutoScalingService extends FluxService {
 
 void main() {
   group('Load Balancing Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late LoadBalancerService loadBalancer;
     late AutoScalingService autoScaling;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
 
       runtime.register<LoadBalancerService>(LoadBalancerService.new);
 

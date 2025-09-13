@@ -9,7 +9,7 @@ import 'image_filters_controller.dart';
 class ImageFiltersScreen extends StatefulWidget {
   const ImageFiltersScreen({super.key, required this.runtime});
 
-  final FluxRuntime runtime;
+  final FluxonRuntime runtime;
 
   @override
   State<ImageFiltersScreen> createState() => _ImageFiltersScreenState();

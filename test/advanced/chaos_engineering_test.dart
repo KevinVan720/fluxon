@@ -26,7 +26,7 @@ class ChaosConfig {
 
 // Chaos monkey service for fault injection
 @ServiceContract(remote: false)
-class ChaosMonkeyService extends FluxService {
+class ChaosMonkeyService extends FluxonService {
   ChaosMonkeyService(this._config);
   final Random _random = Random();
   final ChaosConfig _config;
@@ -165,7 +165,7 @@ class ChaosException implements Exception {
 
 // Resilient service that handles chaos
 @ServiceContract(remote: true)
-class ResilientService extends FluxService {
+class ResilientService extends FluxonService {
   ResilientService(this._chaosMonkey);
   final ChaosMonkeyService _chaosMonkey;
   int _operationCount = 0;
@@ -274,7 +274,7 @@ class ResilientService extends FluxService {
 
 // Service that simulates network partitions
 @ServiceContract(remote: false)
-class NetworkPartitionService extends FluxService {
+class NetworkPartitionService extends FluxonService {
   NetworkPartitionService();
   final Map<String, bool> _partitionedServices = {};
   final List<Map<String, dynamic>> _partitionEvents = [];
@@ -326,7 +326,7 @@ class NetworkPartitionService extends FluxService {
 
 // Service that simulates resource exhaustion
 @ServiceContract(remote: false)
-class ResourceExhaustionService extends FluxService {
+class ResourceExhaustionService extends FluxonService {
   ResourceExhaustionService() {
     // Set default resource limits
     _resourceLimits['memory'] = 1000; // MB
@@ -392,7 +392,7 @@ class ResourceExhaustionService extends FluxService {
 
 // Chaos engineering test orchestrator
 @ServiceContract(remote: false)
-class ChaosTestOrchestrator extends FluxService {
+class ChaosTestOrchestrator extends FluxonService {
   ChaosTestOrchestrator(
     this._chaosMonkey,
     this._resilientService,
@@ -560,7 +560,7 @@ class ChaosTestOrchestrator extends FluxService {
 
 void main() {
   group('Chaos Engineering Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late ChaosMonkeyService chaosMonkey;
     late ResilientService resilientService;
     late NetworkPartitionService partitionService;
@@ -568,7 +568,7 @@ void main() {
     late ChaosTestOrchestrator orchestrator;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
 
       const chaosConfig = ChaosConfig(
         failureRate: 0.3,

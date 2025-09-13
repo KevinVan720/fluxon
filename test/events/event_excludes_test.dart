@@ -20,7 +20,7 @@ class TestEvt extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class AService extends FluxService {
+class AService extends FluxonService {
   int received = 0;
   @override
   Future<void> initialize() async {
@@ -36,7 +36,7 @@ class AService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class BService extends FluxService {
+class BService extends FluxonService {
   int received = 0;
   @override
   Future<void> initialize() async {
@@ -52,7 +52,7 @@ class BService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class Sender extends FluxService {
+class Sender extends FluxonService {
   Future<EventDistributionResult> fire(EventDistribution d) async {
     final evt = createEvent<TestEvt>(({
       required eventId,
@@ -71,14 +71,14 @@ class Sender extends FluxService {
 
 void main() {
   group('Event excludes', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late AService a;
     late BService b;
     late Sender s;
 
     setUp(() async {
       EventTypeRegistry.register<TestEvt>(TestEvt.fromJson);
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       runtime.register<AService>(() => AServiceImpl());
       runtime.register<BService>(() => BServiceImpl());
       runtime.register<Sender>(() => SenderImpl());

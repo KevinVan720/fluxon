@@ -1,14 +1,14 @@
 import 'package:fluxon/src/events/models/event_distribution.dart';
 import 'package:fluxon/src/events/service_event.dart';
-import 'package:fluxon/src/flux_service.dart';
+import 'package:fluxon/src/fluxon_service.dart';
 import 'package:test/test.dart';
 
 // Mock service types for testing
-class TestServiceA extends FluxService {}
+class TestServiceA extends FluxonService {}
 
-class TestServiceB extends FluxService {}
+class TestServiceB extends FluxonService {}
 
-class TestServiceC extends FluxService {}
+class TestServiceC extends FluxonService {}
 
 void main() {
   group('EventDistribution Factory Methods', () {

@@ -37,7 +37,7 @@ class CustomTypedEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: true)
-class SenderService extends FluxService {
+class SenderService extends FluxonService {
   Future<void> sendTyped(String text) async {
     await sendEvent(createEvent<CustomTypedEvent>(({
       required String eventId,
@@ -58,7 +58,7 @@ class SenderService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class ReceiverService extends FluxService {
+class ReceiverService extends FluxonService {
   final List<ServiceEvent> received = [];
   int typedCount = 0;
   int genericCount = 0;
@@ -91,10 +91,10 @@ class ReceiverService extends FluxService {
 
 void main() {
   group('Event type registration across isolates', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {

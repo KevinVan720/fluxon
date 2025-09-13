@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 
 // E-commerce system integration test
 @ServiceContract(remote: false)
-class ECommerceIntegrationService extends FluxService {
+class ECommerceIntegrationService extends FluxonService {
   ECommerceIntegrationService();
   final Map<String, Map<String, dynamic>> _orders = {};
   final Map<String, Map<String, dynamic>> _users = {};
@@ -367,7 +367,7 @@ class InventoryUpdatedEvent extends ServiceEvent {
 
 // Microservices architecture integration test
 @ServiceContract(remote: true)
-class UserService extends FluxService {
+class UserService extends FluxonService {
   UserService();
   final Map<String, Map<String, dynamic>> _users = {};
 
@@ -397,7 +397,7 @@ class UserService extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class ProductService extends FluxService {
+class ProductService extends FluxonService {
   ProductService();
   final Map<String, Map<String, dynamic>> _products = {};
 
@@ -428,7 +428,7 @@ class ProductService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class OrderService extends FluxService {
+class OrderService extends FluxonService {
   OrderService();
   final Map<String, Map<String, dynamic>> _orders = {};
 
@@ -483,7 +483,7 @@ class OrderService extends FluxService {
 
 // Real-time collaboration system integration test
 @ServiceContract(remote: false)
-class CollaborationService extends FluxService {
+class CollaborationService extends FluxonService {
   CollaborationService();
   final Map<String, Map<String, dynamic>> _documents = {};
   final Map<String, Set<String>> _collaborators = {};
@@ -626,11 +626,11 @@ class DocumentChangeEvent extends ServiceEvent {
 
 void main() {
   group('Integration Scenarios', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() async {
       // Ensure clean state before each test
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {

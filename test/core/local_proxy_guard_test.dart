@@ -4,16 +4,16 @@ import 'package:test/test.dart';
 part 'local_proxy_guard_test.g.dart';
 
 @ServiceContract(remote: false)
-class GuardTestService extends FluxService {
+class GuardTestService extends FluxonService {
   Future<String> greet() async => 'hello';
 }
 
 void main() {
   group('LocalServiceProxy name-based guard', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       runtime.register<GuardTestService>(() => GuardTestServiceImpl());
       await runtime.initializeAll();
     });

@@ -4,16 +4,16 @@ import 'package:test/test.dart';
 part 'proxy_registry_test.g.dart';
 
 @ServiceContract(remote: false)
-class StatsService extends FluxService {
+class StatsService extends FluxonService {
   Future<String> ping() async => 'pong';
 }
 
 void main() {
   group('ServiceProxyRegistry lifecycle', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       runtime.register<StatsService>(() => StatsServiceImpl());
       await runtime.initializeAll();
     });

@@ -5,7 +5,7 @@ part 'fanout_aggregation_demo_test.g.dart';
 
 // 🚀 SINGLE CLASS: Pricing service
 @ServiceContract(remote: true)
-class PricingService extends FluxService {
+class PricingService extends FluxonService {
   @override
   Future<void> initialize() async {
     // 🚀 FLUX: Worker class will register dispatcher automatically
@@ -20,7 +20,7 @@ class PricingService extends FluxService {
 
 // 🚀 SINGLE CLASS: Inventory service
 @ServiceContract(remote: true)
-class InventoryService extends FluxService {
+class InventoryService extends FluxonService {
   @override
   Future<void> initialize() async {
     // 🚀 FLUX: Worker class will register dispatcher automatically
@@ -34,7 +34,7 @@ class InventoryService extends FluxService {
 }
 
 // 🚀 SINGLE CLASS: Local aggregator
-class Aggregator extends FluxService {
+class Aggregator extends FluxonService {
   @override
   List<Type> get optionalDependencies => [PricingService, InventoryService];
 
@@ -54,7 +54,7 @@ class Aggregator extends FluxService {
 // 🚀 SINGLE CLASS: Implementation moved into main classes above
 
 Future<void> _runFanoutaggregationdemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
 
   locator.register<Aggregator>(Aggregator.new);
 

@@ -1,5 +1,5 @@
 import 'package:fluxon/src/base_service.dart';
-import 'package:fluxon/src/flux_runtime.dart';
+import 'package:fluxon/src/fluxon_runtime.dart';
 import 'package:fluxon/src/models/service_models.dart';
 import 'package:fluxon/src/service_logger.dart';
 import 'package:test/test.dart';
@@ -411,10 +411,10 @@ void main() {
     });
 
     group('Runtime Health Checks', () {
-      late FluxRuntime runtime;
+      late FluxonRuntime runtime;
 
       setUp(() {
-        runtime = FluxRuntime();
+        runtime = FluxonRuntime();
       });
 
       tearDown(() async {

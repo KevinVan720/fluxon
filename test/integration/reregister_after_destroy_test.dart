@@ -4,14 +4,14 @@ import 'package:test/test.dart';
 part 'reregister_after_destroy_test.g.dart';
 
 @ServiceContract(remote: true)
-class SimpleWorker extends FluxService {
+class SimpleWorker extends FluxonService {
   Future<int> add(int a, int b) async => a + b;
 }
 
 void main() {
   group('Re-register after destroy', () {
     test('runtime can re-initialize remote services cleanly', () async {
-      var runtime = FluxRuntime();
+      var runtime = FluxonRuntime();
       runtime.register<SimpleWorker>(SimpleWorkerImpl.new);
       await runtime.initializeAll();
       final w1 = runtime.get<SimpleWorker>();
@@ -21,7 +21,7 @@ void main() {
       expect(runtime.isInitialized, isFalse);
 
       // Rebuild fresh runtime and re-register
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       runtime.register<SimpleWorker>(SimpleWorkerImpl.new);
       await runtime.initializeAll();
       final w2 = runtime.get<SimpleWorker>();

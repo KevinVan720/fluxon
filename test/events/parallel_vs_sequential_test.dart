@@ -34,7 +34,7 @@ class ProcessingTestEvent extends ServiceEvent {
 
 // Service A - processes with delay
 @ServiceContract(remote: false)
-class ProcessingServiceA extends FluxService {
+class ProcessingServiceA extends FluxonService {
   final List<String> processedMessages = [];
   final List<DateTime> processingTimes = [];
   int delayMs = 100;
@@ -58,7 +58,7 @@ class ProcessingServiceA extends FluxService {
 
 // Service B - processes with delay
 @ServiceContract(remote: false)
-class ProcessingServiceB extends FluxService {
+class ProcessingServiceB extends FluxonService {
   final List<String> processedMessages = [];
   final List<DateTime> processingTimes = [];
   int delayMs = 100;
@@ -82,7 +82,7 @@ class ProcessingServiceB extends FluxService {
 
 // Event sender service
 @ServiceContract(remote: false)
-class EventSender extends FluxService {
+class EventSender extends FluxonService {
   @override
   Future<void> initialize() async {
     await super.initialize();
@@ -115,7 +115,7 @@ class EventSender extends FluxService {
 
 void main() {
   group('Parallel vs Sequential Event Processing', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     late EventSender sender;
     late ProcessingServiceA serviceA;
     late ProcessingServiceB serviceB;
@@ -126,7 +126,7 @@ void main() {
         ProcessingTestEvent.fromJson,
       );
 
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
 
       runtime.register<EventSender>(() => EventSenderImpl());
       runtime.register<ProcessingServiceA>(() => ProcessingServiceAImpl());

@@ -1,4 +1,4 @@
-/// FluxService - The simplified public API for the Dart Service Framework
+/// FluxonService - The simplified public API for the Dart Service Framework
 library flux_service;
 
 import 'dart:async';
@@ -9,9 +9,9 @@ import 'base_service.dart';
 import 'events/event_mixin.dart';
 import 'service_proxy.dart';
 
-/// 🚀 FLUX: The ultimate simplified service class!
+/// 🚀 FLUXON: The ultimate simplified service class!
 ///
-/// Just extend FluxService and focus on your business logic.
+/// Just extend FluxonService and focus on your business logic.
 /// All event and proxy infrastructure is included automatically.
 ///
 /// Features included out-of-the-box:
@@ -27,7 +27,7 @@ import 'service_proxy.dart';
 /// ```dart
 /// // Define your service interface
 /// @ServiceContract(remote: true)
-/// abstract class PaymentService extends FluxService {
+/// abstract class PaymentService extends FluxonService {
 ///   Future<bool> processPayment(String userId, double amount);
 /// }
 ///
@@ -52,10 +52,10 @@ import 'service_proxy.dart';
 /// - No dispatcher registration calls
 /// - No event infrastructure setup
 /// - Just pure business logic!
-abstract class FluxService extends BaseService
+abstract class FluxonService extends BaseService
     with ServiceEventMixin, ServiceClientMixin {
-  /// Creates a Flux service with all capabilities enabled
-  FluxService({
+  /// Creates a Fluxon service with all capabilities enabled
+  FluxonService({
     super.config,
     super.logger,
   });
@@ -77,7 +77,7 @@ abstract class FluxService extends BaseService
 
     await super.initialize();
 
-    logger.info('FluxService initialized with full capabilities', metadata: {
+    logger.info('FluxonService initialized with full capabilities', metadata: {
       'serviceName': serviceName,
       'hasEventCapabilities': true,
       'hasClientCapabilities': true,
@@ -88,12 +88,12 @@ abstract class FluxService extends BaseService
   @override
   @mustCallSuper
   Future<void> destroy() async {
-    logger.info('FluxService destroying', metadata: {
+    logger.info('FluxonService destroying', metadata: {
       'serviceName': serviceName,
     });
 
     await super.destroy();
 
-    logger.info('FluxService destroyed successfully');
+    logger.info('FluxonService destroyed successfully');
   }
 }

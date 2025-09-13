@@ -7,7 +7,7 @@ import '../events/image_events.dart';
 
 /// Local (non-remote) image filtering service for comparison.
 /// Implements the same API as ImageFilterService but runs on the main isolate.
-class LocalImageFilterService extends FluxService {
+class LocalImageFilterService extends FluxonService {
   String? _currentRequestId;
   Future<Uint8List> applyFilter(
     Uint8List inputBytes, {

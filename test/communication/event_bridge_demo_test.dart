@@ -5,7 +5,7 @@ part 'event_bridge_demo_test.g.dart';
 
 // 🚀 SINGLE CLASS: Remote emitter service
 @ServiceContract(remote: true)
-class RemoteEmitter extends FluxService {
+class RemoteEmitter extends FluxonService {
   @override
   List<Type> get optionalDependencies => [LocalHub, RemoteListener];
 
@@ -22,7 +22,7 @@ class RemoteEmitter extends FluxService {
 
 // 🚀 SINGLE CLASS: Remote listener service
 @ServiceContract(remote: true)
-class RemoteListener extends FluxService {
+class RemoteListener extends FluxonService {
   int _count = 0;
 
   @override
@@ -41,7 +41,7 @@ class RemoteListener extends FluxService {
 
 // 🚀 SINGLE CLASS: Local hub service (stays in main isolate)
 @ServiceContract(remote: false)
-class LocalHub extends FluxService {
+class LocalHub extends FluxonService {
   int _ticks = 0;
 
   @override
@@ -60,7 +60,7 @@ class LocalHub extends FluxService {
 // 🚀 SINGLE CLASS: Implementation moved into main classes above
 
 // 🚀 SINGLE CLASS: Local orchestrator
-class Orchestrator extends FluxService {
+class Orchestrator extends FluxonService {
   @override
   List<Type> get optionalDependencies => [RemoteEmitter, RemoteListener];
 
@@ -75,7 +75,7 @@ class Orchestrator extends FluxService {
 }
 
 Future<void> _runEventbridgedemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
 
   // 🚀 WORKER-TO-MAIN: LocalHub stays local, workers call it via bridge
   // 🚀 AUTO-REGISTRATION: Use LocalHubImpl for automatic registration!

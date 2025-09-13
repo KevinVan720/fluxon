@@ -4,14 +4,14 @@ import 'package:test/test.dart';
 part 'proxy_lifecycle_after_teardown_test.g.dart';
 
 @ServiceContract(remote: true)
-class EchoService extends FluxService {
+class EchoService extends FluxonService {
   Future<String> echo(String v) async => v;
 }
 
 void main() {
   group('Proxy lifecycle after teardown', () {
     test('proxy errors after destroy and works after re-init', () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<EchoService>(EchoServiceImpl.new);
       await runtime.initializeAll();
 
@@ -28,7 +28,7 @@ void main() {
       );
 
       // New runtime and service should work
-      final runtime2 = FluxRuntime();
+      final runtime2 = FluxonRuntime();
       runtime2.register<EchoService>(EchoServiceImpl.new);
       await runtime2.initializeAll();
       final svc2 = runtime2.get<EchoService>();

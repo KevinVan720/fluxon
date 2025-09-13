@@ -25,7 +25,7 @@ class SubEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class SubService extends FluxService {
+class SubService extends FluxonService {
   Future<void> publish() async {
     final e = createEvent<SubEvent>(({
       required String eventId,
@@ -47,9 +47,9 @@ class SubService extends FluxService {
 
 void main() {
   group('Event subscription lifecycle', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       EventTypeRegistry.register<SubEvent>(SubEvent.fromJson);
     });
     tearDown(() async {

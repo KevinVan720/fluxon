@@ -37,7 +37,7 @@ dependencies:
   fluxon: ^0.0.1
 
 dev_dependencies:
-  flux_method_generator: ^0.0.1
+  fluxon_method_generator: ^0.0.1
   build_runner: ^2.4.0
 ```
 
@@ -58,7 +58,7 @@ part 'main.g.dart'; // Required for code generation
 
 // 1. Define and implement your service with @ServiceContract
 @ServiceContract(remote: false)
-class GreetingService extends FluxService {
+class GreetingService extends FluxonService {
   Future<String> greet(String name) async {
     return 'Hello, $name!';
   }
@@ -66,7 +66,7 @@ class GreetingService extends FluxService {
 
 // 2. Set up and use (after running code generation)
 void main() async {
-  final runtime = FluxRuntime();
+  final runtime = FluxonRuntime();
   
   // Register service using auto-generated Impl class
   runtime.register<GreetingService>(() => GreetingServiceImpl());
@@ -87,8 +87,8 @@ dart run build_runner build
 
 ## Core Concepts
 
-- **FluxRuntime**: Orchestrates service lifecycle and event infrastructure across isolates
-- **FluxService**: Base class for services with built-in client and event capabilities  
+- **FluxonRuntime**: Orchestrates service lifecycle and event infrastructure across isolates
+- **FluxonService**: Base class for services with built-in client and event capabilities  
 - **@ServiceContract**: Annotation that defines service interfaces and generates implementation code
 - **Worker Isolates**: Remote services run in dedicated isolates with complete transparency
 - **Event Distribution**: Configurable routing system (broadcast, targeted, direct) with include/exclude rules
@@ -100,7 +100,7 @@ Always use `@ServiceContract` annotation. Define concrete service classes.
 ```dart
 // 1. Define your service with @ServiceContract
 @ServiceContract(remote: false)  // or remote: true for worker isolates
-class OrderService extends FluxService {
+class OrderService extends FluxonService {
   Future<Order> createOrder(String userId, List<String> productIds) async {
     // Your business logic here
     final order = Order(id: generateId(), userId: userId, productIds: productIds);
@@ -116,7 +116,7 @@ await runtime.initializeAll();
 Declare dependencies inside the service and use them after initialization.
 ```dart
 @ServiceContract(remote: false)
-class OrderService extends FluxService {
+class OrderService extends FluxonService {
   @override
   List<Type> get dependencies => [UserService, ProductService];
 
@@ -143,7 +143,7 @@ class OrderService extends FluxService {
 ```dart
 // Define services with @ServiceContract
 @ServiceContract(remote: false)
-class UserService extends FluxService {
+class UserService extends FluxonService {
   Future<User> getUser(String id) async {
     // Local service implementation
     return User(id: id, name: 'User $id');
@@ -151,7 +151,7 @@ class UserService extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class EmailService extends FluxService {
+class EmailService extends FluxonService {
   Future<void> sendWelcomeEmail(String userId) async {
     // This runs in a worker isolate
     final userService = getService<UserService>(); // Transparently calls local service
@@ -163,7 +163,7 @@ class EmailService extends FluxService {
 }
 
 // Register services using auto-generated Impl classes
-final runtime = FluxRuntime();
+final runtime = FluxonRuntime();
 runtime.register<UserService>(() => UserServiceImpl());   // local
 runtime.register<EmailService>(() => EmailServiceImpl()); // remote (worker)
 await runtime.initializeAll();
@@ -182,7 +182,7 @@ EventTypeRegistry.register<UserCreatedEvent>((json) => UserCreatedEvent.fromJson
 EventTypeRegistry.register<EmailSentEvent>((json) => EmailSentEvent.fromJson(json));
 
 @ServiceContract(remote: true)
-class EmailService extends FluxService {
+class EmailService extends FluxonService {
   @override
   Future<void> initialize() async {
     onEvent<UserCreatedEvent>((event) async {
@@ -311,7 +311,7 @@ Add to `pubspec.yaml` and run:
 dependencies:
   fluxon:
 dev_dependencies:
-  flux_method_generator:
+  fluxon_method_generator:
   build_runner: ^2.4.0
 ```
 ```bash
@@ -393,7 +393,7 @@ Control service behavior with configuration options:
 ```dart
 // Configure per-method timeouts and retries using @ServiceMethod
 @ServiceContract(remote: true)
-class BillingService extends FluxService {
+class BillingService extends FluxonService {
   @ServiceMethod(timeoutMs: 15000, retryAttempts: 2, retryDelayMs: 200)
   Future<PaymentResult> processPayment(String orderId, double amount) async {
     // This method will timeout after 15s and retry up to 2 times with 200ms delay
@@ -408,7 +408,7 @@ class BillingService extends FluxService {
 }
 
 // Or configure service-wide defaults via ServiceConfig
-class MyService extends FluxService {
+class MyService extends FluxonService {
   MyService(): super(
     config: const ServiceConfig(
       timeout: Duration(seconds: 30),

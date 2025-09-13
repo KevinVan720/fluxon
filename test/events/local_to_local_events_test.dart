@@ -129,7 +129,7 @@ class SystemAlertEvent extends ServiceEvent {
 
 // Local test services with event communication
 @ServiceContract(remote: false)
-class UserService extends FluxService {
+class UserService extends FluxonService {
   final List<Map<String, dynamic>> users = [];
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -230,7 +230,7 @@ class UserService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class OrderService extends FluxService {
+class OrderService extends FluxonService {
   final List<Map<String, dynamic>> orders = [];
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -310,7 +310,7 @@ class OrderService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class NotificationService extends FluxService {
+class NotificationService extends FluxonService {
   final List<String> notifications = [];
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -369,7 +369,7 @@ class NotificationService extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class AnalyticsService extends FluxService {
+class AnalyticsService extends FluxonService {
   final Map<String, int> eventCounts = {};
   final List<ServiceEvent> receivedEvents = [];
   final List<String> processedMessages = [];
@@ -424,14 +424,14 @@ class AnalyticsService extends FluxService {
 
 void main() {
   group('Local-to-Local Event Communication Tests', () {
-    late FluxRuntime locator;
+    late FluxonRuntime locator;
     late UserService userService;
     late OrderService orderService;
     late NotificationService notificationService;
     late AnalyticsService analyticsService;
 
     setUp(() async {
-      locator = FluxRuntime();
+      locator = FluxonRuntime();
 
       // 🚀 FLUX: Simple registration with automatic infrastructure
       locator.register<UserService>(UserService.new);

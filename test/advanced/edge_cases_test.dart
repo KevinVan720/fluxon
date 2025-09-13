@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 
 // Service that tests extreme values and boundary conditions
 @ServiceContract(remote: false)
-class BoundaryTestService extends FluxService {
+class BoundaryTestService extends FluxonService {
   BoundaryTestService();
   final List<String> _operations = [];
   int _maxOperations = 1000000;
@@ -63,7 +63,7 @@ class BoundaryTestService extends FluxService {
 
 // Service that tests extreme dependency scenarios
 @ServiceContract(remote: false)
-class DependencyTestService extends FluxService {
+class DependencyTestService extends FluxonService {
   DependencyTestService(this._dependencies, this._optionalDependencies);
   final List<Type> _dependencies;
   final List<Type> _optionalDependencies;
@@ -92,7 +92,7 @@ class DependencyTestService extends FluxService {
 
 // Service that tests extreme event scenarios
 @ServiceContract(remote: false)
-class EventTestService extends FluxService {
+class EventTestService extends FluxonService {
   EventTestService();
   final List<ServiceEvent> _receivedEvents = [];
   final Map<String, int> _eventCounts = {};
@@ -202,7 +202,7 @@ class TestEvent extends ServiceEvent {
 
 // Service that tests extreme timeout scenarios
 @ServiceContract(remote: true)
-class TimeoutTestService extends FluxService {
+class TimeoutTestService extends FluxonService {
   TimeoutTestService();
   final Map<String, Duration> _operationDelays = {};
 
@@ -237,7 +237,7 @@ class TimeoutTestService extends FluxService {
 
 // Service that tests extreme memory scenarios
 @ServiceContract(remote: false)
-class MemoryTestService extends FluxService {
+class MemoryTestService extends FluxonService {
   MemoryTestService();
   final List<List<int>> _memoryChunks = [];
   int _maxMemoryChunks = 1000;
@@ -288,7 +288,7 @@ class MemoryTestService extends FluxService {
 
 // Service that tests extreme concurrency scenarios
 @ServiceContract(remote: false)
-class ConcurrencyTestService extends FluxService {
+class ConcurrencyTestService extends FluxonService {
   ConcurrencyTestService();
   final Map<String, int> _operationCounts = {};
   final Map<String, List<String>> _operationHistory = {};
@@ -349,10 +349,10 @@ class ConcurrencyTestService extends FluxService {
 
 void main() {
   group('Edge Cases and Boundary Conditions', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
     });
 
     tearDown(() async {
@@ -444,7 +444,7 @@ void main() {
 
       test('should handle circular dependencies gracefully', () async {
         // Create a new runtime for this test to avoid conflicts
-        final testRuntime = FluxRuntime();
+        final testRuntime = FluxonRuntime();
 
         // This should be handled by the dependency resolver
         testRuntime.register<DependencyTestService>(

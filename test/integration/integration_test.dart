@@ -200,12 +200,12 @@ class NotificationService extends BaseService with PeriodicServiceMixin {
 
 void main() {
   group('Service Framework Integration', () {
-    late FluxRuntime locator;
+    late FluxonRuntime locator;
     late MemoryLogWriter logWriter;
 
     setUp(() {
       logWriter = MemoryLogWriter();
-      locator = FluxRuntime(
+      locator = FluxonRuntime(
         logger:
             ServiceLogger(serviceName: 'IntegrationTest', writer: logWriter),
       );

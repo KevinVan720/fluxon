@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 part 'cancellation_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-class SlowService extends FluxService {
+class SlowService extends FluxonService {
   Future<String> sleepMs(int ms) async {
     await Future.delayed(Duration(milliseconds: ms));
     return 'slept ${ms}ms';
@@ -14,7 +14,7 @@ class SlowService extends FluxService {
 }
 
 Future<void> _runCancellationdemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
   try {
     locator.register<SlowService>(SlowServiceImpl.new);
 

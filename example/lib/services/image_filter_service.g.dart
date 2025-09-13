@@ -12,25 +12,21 @@ class ImageFilterServiceClient extends ImageFilterService {
   final ServiceProxy<ImageFilterService> _proxy;
 
   @override
-  Future<Uint8List> applyFilter(
-    Uint8List inputBytes, {
-    required String filter,
-    double amount = 1.0,
-    double sigma = 2.0,
-    double brightness = 0.0,
-    double contrast = 0.0,
-  }) async {
-    return await _proxy.callMethod(
-      'applyFilter',
-      [inputBytes],
-      namedArgs: {
-        'filter': filter,
-        'amount': amount,
-        'sigma': sigma,
-        'brightness': brightness,
-        'contrast': contrast,
-      },
-    );
+  Future<Uint8List> applyFilter(Uint8List inputBytes,
+      {required String filter,
+      double amount = 1.0,
+      double sigma = 2.0,
+      double brightness = 0.0,
+      double contrast = 0.0}) async {
+    return await _proxy.callMethod('applyFilter', [
+      inputBytes
+    ], namedArgs: {
+      'filter': filter,
+      'amount': amount,
+      'sigma': sigma,
+      'brightness': brightness,
+      'contrast': contrast
+    });
   }
 }
 
@@ -53,14 +49,12 @@ Future<dynamic> _ImageFilterServiceDispatcher(
   final s = service as ImageFilterService;
   switch (methodId) {
     case _ImageFilterServiceMethods.applyFilterId:
-      return await s.applyFilter(
-        positionalArgs[0],
-        filter: namedArgs['filter'],
-        amount: namedArgs['amount'],
-        sigma: namedArgs['sigma'],
-        brightness: namedArgs['brightness'],
-        contrast: namedArgs['contrast'],
-      );
+      return await s.applyFilter(positionalArgs[0],
+          filter: namedArgs['filter'],
+          amount: namedArgs['amount'],
+          sigma: namedArgs['sigma'],
+          brightness: namedArgs['brightness'],
+          contrast: namedArgs['contrast']);
     default:
       throw ServiceException('Unknown method id: $methodId');
   }
@@ -110,8 +104,7 @@ void $registerImageFilterServiceLocalSide() {
 
 void $autoRegisterImageFilterServiceLocalSide() {
   LocalSideRegistry.register<ImageFilterService>(
-    $registerImageFilterServiceLocalSide,
-  );
+      $registerImageFilterServiceLocalSide);
 }
 
 final $_ImageFilterServiceLocalSideRegistered = (() {

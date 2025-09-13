@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 part 'service_call_options_test.g.dart';
 
 @ServiceContract(remote: true)
-class TimeoutTestService extends FluxService {
+class TimeoutTestService extends FluxonService {
   Future<String> fastMethod() async {
     return 'fast_result';
   }
@@ -24,10 +24,10 @@ class TimeoutTestService extends FluxService {
 
 void main() {
   group('ServiceCallOptions Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() async {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       runtime.register<TimeoutTestService>(TimeoutTestServiceImpl.new);
       await runtime.initializeAll();
     });

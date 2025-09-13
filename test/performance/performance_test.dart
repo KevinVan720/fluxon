@@ -42,7 +42,7 @@ class PerformanceEvent extends ServiceEvent {
 
 // Service for performance testing
 @ServiceContract(remote: true)
-class PerformanceService extends FluxService {
+class PerformanceService extends FluxonService {
   Future<List<String>> generateLargeDataset(
           int count, int stringLength) async =>
       List.generate(
@@ -65,7 +65,7 @@ class PerformanceService extends FluxService {
 
 // Event receiver service for performance testing
 @ServiceContract(remote: false)
-class EventReceiverService extends FluxService {
+class EventReceiverService extends FluxonService {
   int eventCounter = 0;
   final List<int> processingTimes = [];
 
@@ -104,7 +104,7 @@ class EventReceiverService extends FluxService {
 
 // Load testing service
 @ServiceContract(remote: false)
-class LoadTestService extends FluxService {
+class LoadTestService extends FluxonService {
   int eventCounter = 0;
   final List<int> processingTimes = [];
 
@@ -162,10 +162,10 @@ class LoadTestService extends FluxService {
 
 void main() {
   group('Performance & Stress Tests', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       EventTypeRegistry.register<PerformanceEvent>(PerformanceEvent.fromJson);
     });
 

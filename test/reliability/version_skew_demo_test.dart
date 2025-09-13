@@ -4,12 +4,12 @@ import 'package:test/test.dart';
 part 'version_skew_demo_test.g.dart';
 
 @ServiceContract(remote: true)
-class ApiV1 extends FluxService {
+class ApiV1 extends FluxonService {
   Future<String> greet(String name) async => 'hello $name';
 }
 
 Future<void> _runVersionskewdemoDemo() async {
-  final locator = FluxRuntime();
+  final locator = FluxonRuntime();
   try {
     // Register worker with ApiV1
     locator.register<ApiV1>(ApiV1Impl.new);

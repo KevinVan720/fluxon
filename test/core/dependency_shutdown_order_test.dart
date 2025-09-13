@@ -32,7 +32,7 @@ class DestroyNotice extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class ServiceA extends FluxService {
+class ServiceA extends FluxonService {
   @override
   List<Type> get dependencies => const [ServiceC];
 
@@ -57,7 +57,7 @@ class ServiceA extends FluxService {
 }
 
 @ServiceContract(remote: true)
-class ServiceB extends FluxService {
+class ServiceB extends FluxonService {
   Future<String> id() async => 'B';
   @override
   Future<void> destroy() async {
@@ -80,7 +80,7 @@ class ServiceB extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class ServiceC extends FluxService {
+class ServiceC extends FluxonService {
   // Keep local-only dependency chain for order verification
   @override
   List<Type> get dependencies => const [];
@@ -106,7 +106,7 @@ class ServiceC extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class Collector extends FluxService {
+class Collector extends FluxonService {
   final List<String> destroyed = [];
   @override
   Future<void> initialize() async {
@@ -125,7 +125,7 @@ class Collector extends FluxService {
 void main() {
   group('Dependency-aware shutdown order', () {
     test('destroy order is reverse topological across isolates', () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<Collector>(Collector.new);
       runtime.register<ServiceA>(ServiceA.new);
       runtime.register<ServiceB>(ServiceBImpl.new);

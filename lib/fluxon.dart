@@ -1,9 +1,9 @@
-/// Flux - A comprehensive service framework for Dart applications
+/// Fluxon - A comprehensive service framework for Dart applications
 /// with complete isolate transparency and automatic event communication.
 ///
 /// This library provides:
-/// - FluxRuntime for unified service management
-/// - FluxService for zero-boilerplate service creation
+/// - FluxonRuntime for unified service management
+/// - FluxonService for zero-boilerplate service creation
 /// - Complete isolate transparency (local/remote services identical)
 /// - Automatic event-driven communication across isolates
 /// - Zero-configuration dependency injection
@@ -23,9 +23,9 @@ export 'src/events/event_type_registry.dart';
 // 📡 Event system
 export 'src/events/service_event.dart';
 export 'src/exceptions/service_exceptions.dart';
-// 🚀 Core Flux API
-export 'src/flux_runtime.dart' show FluxRuntime;
-export 'src/flux_service.dart';
+// 🚀 Core Fluxon API
+export 'src/fluxon_runtime.dart' show FluxonRuntime;
+export 'src/fluxon_service.dart';
 export 'src/models/service_models.dart';
 export 'src/service_logger.dart';
 export 'src/service_proxy.dart';

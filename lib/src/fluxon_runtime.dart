@@ -1,5 +1,5 @@
-/// Flux Runtime - Central service management and orchestration.
-library flux_runtime;
+/// Fluxon Runtime - Central service management and orchestration.
+library fluxon_runtime;
 
 import 'dart:async';
 import 'dart:isolate';
@@ -15,25 +15,25 @@ import 'events/event_mixin.dart';
 import 'events/service_event.dart';
 import 'events/event_type_registry.dart';
 import 'exceptions/service_exceptions.dart';
-import 'flux_service.dart';
+import 'fluxon_service.dart';
 import 'models/service_models.dart';
 import 'service_logger.dart';
 import 'service_proxy.dart';
 import 'service_worker.dart';
 
-/// Central runtime for all services in the Flux application.
+/// Central runtime for all services in the Fluxon application.
 ///
-/// FluxRuntime provides:
+/// FluxonRuntime provides:
 /// - Unified registration for local and remote services
 /// - Automatic dependency injection and lifecycle management
 /// - Transparent cross-isolate communication
 /// - Automatic event infrastructure setup
 /// - Zero-configuration service orchestration
-class FluxRuntime {
-  /// Creates a Flux runtime.
-  FluxRuntime({
+class FluxonRuntime {
+  /// Creates a Fluxon runtime.
+  FluxonRuntime({
     ServiceLogger? logger,
-  }) : _logger = logger ?? ServiceLogger(serviceName: 'FluxRuntime') {
+  }) : _logger = logger ?? ServiceLogger(serviceName: 'FluxonRuntime') {
     _dependencyResolver = DependencyResolver();
     _proxyRegistry = ServiceProxyRegistry(logger: _logger);
 
@@ -43,7 +43,7 @@ class FluxRuntime {
     _eventBridge.initialize(_eventDispatcher,
         workerBroadcastCallback: _broadcastEventToAllWorkers);
 
-    _logger.info('FluxRuntime created with automatic event infrastructure');
+    _logger.info('FluxonRuntime created with automatic event infrastructure');
   }
 
   final ServiceLogger _logger;
@@ -113,7 +113,7 @@ class FluxRuntime {
 
     if (_isInitialized) {
       throw const ServiceStateException(
-        'FluxRuntime',
+        'FluxonRuntime',
         'initialized',
         'not initialized',
       );
@@ -122,7 +122,7 @@ class FluxRuntime {
     final tempInstance = factory();
 
     // If codegen marks this instance as remote, route to remote registration
-    if (tempInstance is FluxService) {
+    if (tempInstance is FluxonService) {
       final isRemoteWorker = tempInstance.isRemote;
       if (isRemoteWorker) {
         final baseTypeName = tempInstance.clientBaseType.toString();
@@ -462,7 +462,7 @@ class FluxRuntime {
     try {
       // Call host-side registration hook if available (FluxService override in worker)
       final temp = serviceFactory();
-      if (temp is FluxService) {
+      if (temp is FluxonService) {
         await temp.registerHostSide();
       }
     } catch (e, st) {
@@ -657,13 +657,13 @@ class FluxRuntime {
   /// This must be called before using any services.
   Future<void> initializeAll() async {
     if (_isInitialized) {
-      _logger.warning('Flux runtime is already initialized');
+      _logger.warning('Fluxon runtime is already initialized');
       return;
     }
 
     if (_isInitializing) {
       throw const ServiceStateException(
-        'FluxRuntime',
+        'FluxonRuntime',
         'initializing',
         'not initializing',
       );
@@ -728,12 +728,12 @@ class FluxRuntime {
   /// Destroys all services in reverse dependency order.
   Future<void> destroyAll() async {
     if (!_isInitialized) {
-      _logger.warning('Flux runtime is not initialized');
+      _logger.warning('Fluxon runtime is not initialized');
       return;
     }
 
     if (_isDestroying) {
-      _logger.warning('Flux runtime is already being destroyed');
+      _logger.warning('Fluxon runtime is already being destroyed');
       return;
     }
 
@@ -744,7 +744,7 @@ class FluxRuntime {
       // Call destruction callbacks
       for (final callback in _destructionCallbacks) {
         try {
-          await callback('FluxRuntime');
+          await callback('FluxonRuntime');
         } catch (error, stackTrace) {
           _logger.error('Destruction callback failed',
               error: error, stackTrace: stackTrace);
@@ -860,7 +860,7 @@ class FluxRuntime {
     _initializationCallbacks.clear();
     _destructionCallbacks.clear();
 
-    _logger.info('Flux runtime cleared');
+    _logger.info('Fluxon runtime cleared');
   }
 
   Future<void> _initializeService(Type serviceType) async {

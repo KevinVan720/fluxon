@@ -35,7 +35,7 @@ class PriorityEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class PriorityService extends FluxService {
+class PriorityService extends FluxonService {
   final List<String> handledBy = [];
 
   @override
@@ -92,10 +92,10 @@ class PriorityService extends FluxService {
 
 void main() {
   group('Event handler priority ordering', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
 
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       EventTypeRegistry.register<PriorityEvent>(PriorityEvent.fromJson);
     });
 

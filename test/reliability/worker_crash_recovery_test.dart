@@ -4,7 +4,7 @@ import 'package:test/test.dart';
 part 'worker_crash_recovery_test.g.dart';
 
 @ServiceContract(remote: true)
-class CrashyService extends FluxService {
+class CrashyService extends FluxonService {
   Future<void> boom() async {
     throw StateError('crash');
   }
@@ -15,7 +15,7 @@ class CrashyService extends FluxService {
 void main() {
   group('Worker crash/recovery path', () {
     test('method throws, then runtime can restart cleanly', () async {
-      final runtime = FluxRuntime();
+      final runtime = FluxonRuntime();
       runtime.register<CrashyService>(CrashyServiceImpl.new);
       await runtime.initializeAll();
 
@@ -25,7 +25,7 @@ void main() {
       await runtime.destroyAll();
       expect(runtime.isInitialized, isFalse);
 
-      final runtime2 = FluxRuntime();
+      final runtime2 = FluxonRuntime();
       runtime2.register<CrashyService>(CrashyServiceImpl.new);
       await runtime2.initializeAll();
       final svc2 = runtime2.get<CrashyService>();

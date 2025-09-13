@@ -43,7 +43,7 @@ class TaskEvent extends ServiceEvent {
 
 // 🚀 SINGLE CLASS: Local service with automatic infrastructure
 @ServiceContract(remote: false)
-class TaskOrchestrator extends FluxService {
+class TaskOrchestrator extends FluxonService {
   final List<String> completedTasks = [];
 
   @override
@@ -100,7 +100,7 @@ class TaskOrchestrator extends FluxService {
 
 // 🚀 SINGLE CLASS: Remote service (runs in isolate, but API is identical!)
 @ServiceContract(remote: true)
-class TaskProcessor extends FluxService {
+class TaskProcessor extends FluxonService {
   @override
   List<Type> get optionalDependencies => [TaskLogger];
 
@@ -131,7 +131,7 @@ class TaskProcessor extends FluxService {
 
 // 🚀 SINGLE CLASS: Another remote service
 @ServiceContract(remote: true)
-class TaskLogger extends FluxService {
+class TaskLogger extends FluxonService {
   final List<Map<String, dynamic>> logs = [];
 
   @override
@@ -171,7 +171,7 @@ class TaskLogger extends FluxService {
 Future<Map<String, dynamic>> _runOptimizedTransparencyDemo() async {
   // 🚀 OPTIMIZATION: FluxRuntime automatically sets up ALL event infrastructure!
   final locator =
-      FluxRuntime(); // EventDispatcher and EventBridge created automatically!
+      FluxonRuntime(); // EventDispatcher and EventBridge created automatically!
 
   // Register services - event infrastructure is set up automatically
   registerTaskOrchestratorGenerated();
@@ -235,7 +235,7 @@ void main() {
     });
 
     test('FluxRuntime automatically configures event infrastructure', () async {
-      final locator = FluxRuntime();
+      final locator = FluxonRuntime();
 
       // Verify event infrastructure exists
       expect(locator.proxyRegistry, isNotNull);

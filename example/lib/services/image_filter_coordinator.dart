@@ -7,7 +7,7 @@ import '../events/image_events.dart';
 part 'image_filter_coordinator.g.dart';
 
 @ServiceContract(remote: false)
-class ImageFilterCoordinator extends FluxService {
+class ImageFilterCoordinator extends FluxonService {
   final Map<String, Completer<Uint8List>> _pending = {};
 
   @override

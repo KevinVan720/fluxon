@@ -23,7 +23,7 @@ class EdgeEvent extends ServiceEvent {
 }
 
 @ServiceContract(remote: false)
-class SvcA extends FluxService {
+class SvcA extends FluxonService {
   int count = 0;
   @override
   Future<void> initialize() async {
@@ -39,7 +39,7 @@ class SvcA extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class SvcB extends FluxService {
+class SvcB extends FluxonService {
   int count = 0;
   @override
   Future<void> initialize() async {
@@ -55,7 +55,7 @@ class SvcB extends FluxService {
 }
 
 @ServiceContract(remote: false)
-class SvcC extends FluxService {
+class SvcC extends FluxonService {
   int count = 0;
   @override
   Future<void> initialize() async {
@@ -72,9 +72,9 @@ class SvcC extends FluxService {
 
 void main() {
   group('Broadcast-except edge cases', () {
-    late FluxRuntime runtime;
+    late FluxonRuntime runtime;
     setUp(() {
-      runtime = FluxRuntime();
+      runtime = FluxonRuntime();
       EventTypeRegistry.register<EdgeEvent>(EdgeEvent.fromJson);
     });
     tearDown(() async {
