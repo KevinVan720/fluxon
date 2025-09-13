@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import 'package:test/test.dart';
 
 part 'topology_event_flows_test.g.dart';

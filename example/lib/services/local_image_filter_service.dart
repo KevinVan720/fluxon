@@ -1,6 +1,6 @@
 import 'filter_ops.dart';
 import 'dart:typed_data';
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import 'package:image/image.dart' as img;
 import 'dart:convert';
 import '../events/image_events.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import '../events/image_events.dart';
 
 part 'image_filter_coordinator.g.dart';

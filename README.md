@@ -52,7 +52,7 @@ dart pub get
 Here's a minimal example to get you started:
 
 ```dart
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 
 part 'main.g.dart'; // Required for code generation
 

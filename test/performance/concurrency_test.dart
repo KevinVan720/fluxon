@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import 'package:test/test.dart';
 
 part 'concurrency_test.g.dart';

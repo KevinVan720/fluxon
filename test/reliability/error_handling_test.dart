@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import 'package:test/test.dart';
 
 part 'error_handling_test.g.dart';

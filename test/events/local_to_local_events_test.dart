@@ -3,7 +3,7 @@ library local_to_local_events_test;
 
 import 'dart:async';
 
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import 'package:test/test.dart';
 
 part 'local_to_local_events_test.g.dart';

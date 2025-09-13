@@ -1,4 +1,4 @@
-import 'package:fluxon/flux.dart';
+import 'package:fluxon/fluxon.dart';
 import 'package:test/test.dart';
 
 part 'local_proxy_guard_test.g.dart';
