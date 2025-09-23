@@ -6,4 +6,6 @@
   - Example: Image Studio demonstrating event-driven cancelable jobs
   - Method codegen via `fluxon_method_generator`
 
+## 0.0.2
 
+- Update dependencies

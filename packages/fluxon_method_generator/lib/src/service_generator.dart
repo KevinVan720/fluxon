@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/element2.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
@@ -17,15 +17,17 @@ const _serviceMethodChecker = TypeChecker.fromUrl(
 class ServiceGenerator extends GeneratorForAnnotation<Object> {
   @override
   FutureOr<String> generateForAnnotatedElement(
-    Element element,
+    Element2 element,
     ConstantReader annotation,
     BuildStep buildStep,
   ) async {
-    if (element is! ClassElement) return '';
-    if (!_serviceContractChecker.hasAnnotationOf(element)) return '';
+    if (element is! ClassElement2) return '';
+    // Convert to Element for TypeChecker compatibility
+    final legacyElement = element.firstFragment.element;
+    if (!_serviceContractChecker.hasAnnotationOf(legacyElement)) return '';
 
     final classEl = element;
-    final className = classEl.name;
+    final className = classEl.displayName;
     final isRemote = annotation.peek('remote')?.boolValue ?? false;
 
     final buf = StringBuffer();
@@ -56,12 +58,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       'onDependencyAvailable',
       'onDependencyUnavailable'
     };
-    for (final m in classEl.methods.where((m) =>
+    for (final m in classEl.methods2.where((m) =>
             !m.isStatic &&
             !m.isPrivate &&
             !m.isOperator &&
-            !inheritedMethods.contains(m.name) &&
-            m.enclosingElement == classEl // Only methods declared in this class
+            !inheritedMethods.contains(m.displayName) &&
+            m.enclosingElement2 ==
+                classEl // Only methods declared in this class
         )) {
       if (m.returnType is! InterfaceType && !m.returnType.isDartAsyncFuture) {
         // Only generate for Future-returning methods in MVP
@@ -72,12 +75,12 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       final returnType = m.returnType.getDisplayString(withNullability: true);
       // Separate positional and named parameters
       final positionalParams =
-          m.parameters.where((p) => p.isPositional).toList();
-      final namedParams = m.parameters.where((p) => p.isNamed).toList();
+          m.formalParameters.where((p) => p.isPositional).toList();
+      final namedParams = m.formalParameters.where((p) => p.isNamed).toList();
 
       final positionalSig = positionalParams.map((p) {
         final t = p.type.getDisplayString(withNullability: true);
-        return '$t ${p.name}';
+        return '$t ${p.displayName}';
       }).join(', ');
 
       final namedSig = namedParams.map((p) {
@@ -86,8 +89,8 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
         final defaultValue =
             p.hasDefaultValue ? ' = ${p.defaultValueCode}' : '';
         return isRequiredNamed
-            ? 'required $t ${p.name}'
-            : '$t ${p.name}$defaultValue';
+            ? 'required $t ${p.displayName}'
+            : '$t ${p.displayName}$defaultValue';
       }).join(', ');
 
       final paramsSig = [
@@ -95,13 +98,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
         if (namedSig.isNotEmpty) '{$namedSig}',
       ].join(', ');
       final positionalNames =
-          m.parameters.where((p) => p.isPositional).map((p) => p.name).toList();
-      final namedNames = m.parameters
-          .where((p) => p.isNamed)
-          .map((p) => "'${p.name}': ${p.name}")
+          positionalParams.map((p) => p.displayName).toList();
+      final namedNames = namedParams
+          .map((p) => "'${p.displayName}': ${p.displayName}")
           .join(', ');
       // Build optional ServiceCallOptions from @ServiceMethod annotation
-      final methodAnno = _serviceMethodChecker.firstAnnotationOf(m);
+      final methodAnno =
+          _serviceMethodChecker.firstAnnotationOf(m.firstFragment.element);
       var optionsArg = '';
       if (methodAnno != null) {
         final reader = ConstantReader(methodAnno);
@@ -157,15 +160,15 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln('  switch (methodId) {');
     for (final entry in methodIds.entries) {
       final method =
-          classEl.methods.firstWhere((m) => m.displayName == entry.key);
+          classEl.methods2.firstWhere((m) => m.displayName == entry.key);
       final argList = () {
         final parts = <String>[];
         var positionalIndex = 0;
-        for (final p in method.parameters) {
+        for (final p in method.formalParameters) {
           if (p.isPositional) {
             parts.add('positionalArgs[${positionalIndex++}]');
           } else if (p.isNamed) {
-            parts.add("${p.name}: namedArgs['${p.name}']");
+            parts.add("${p.displayName}: namedArgs['${p.displayName}']");
           }
         }
         return parts.join(', ');
