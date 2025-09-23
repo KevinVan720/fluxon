@@ -69,6 +69,9 @@ class FluxonRuntime {
   // Enhanced features
   final List<ReceivePort> _bridgePorts = [];
   final List<StreamSubscription> _bridgeSubscriptions = [];
+  // Runtime-level event subscriptions (main isolate listeners)
+  final List<EventSubscription> _runtimeEventSubscriptions = [];
+  final List<StreamSubscription> _runtimeStreamSubscriptions = [];
 
   // Event bridging for cross-isolate communication
   final Map<String, ServiceWorker> _workerRegistry = {};
@@ -779,6 +782,8 @@ class FluxonRuntime {
         } catch (_) {}
       }
       _bridgePorts.clear();
+      // Cleanup runtime-level event subscriptions
+      await cancelAllRuntimeEventSubscriptions();
     } catch (error, stackTrace) {
       _logger.error('Service destruction failed',
           error: error, stackTrace: stackTrace);
@@ -861,6 +866,44 @@ class FluxonRuntime {
     _destructionCallbacks.clear();
 
     _logger.info('Fluxon runtime cleared');
+  }
+
+  /// Subscribe to events of a specific type from the main isolate (no service).
+  /// Returns an EventSubscription which you must cancel or call [cancelAllRuntimeEventSubscriptions].
+  EventSubscription subscribeToEvents<T extends ServiceEvent>() {
+    final subscription = _eventDispatcher.subscribe<T>(FluxonRuntime, T);
+    _runtimeEventSubscriptions.add(subscription);
+    return subscription;
+  }
+
+  /// Listen to events of a specific type with a callback from the main isolate.
+  /// The returned StreamSubscription is tracked and cleaned up by [destroyAll] and [clear].
+  StreamSubscription<T> listenToEvents<T extends ServiceEvent>(
+    void Function(T event) callback, {
+    bool Function(T event)? where,
+  }) {
+    final sub = subscribeToEvents<T>();
+    final streamSub = sub.stream
+        .where((e) => e is T)
+        .cast<T>()
+        .where(where ?? (e) => true)
+        .listen(callback);
+    _runtimeStreamSubscriptions.add(streamSub);
+    return streamSub;
+  }
+
+  /// Cancel all runtime-level event subscriptions created via this runtime.
+  Future<void> cancelAllRuntimeEventSubscriptions() async {
+    for (final s in _runtimeEventSubscriptions) {
+      s.cancel();
+    }
+    _runtimeEventSubscriptions.clear();
+    for (final ss in _runtimeStreamSubscriptions) {
+      try {
+        await ss.cancel();
+      } catch (_) {}
+    }
+    _runtimeStreamSubscriptions.clear();
   }
 
   Future<void> _initializeService(Type serviceType) async {
