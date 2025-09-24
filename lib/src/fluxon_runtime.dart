@@ -15,6 +15,7 @@ import 'events/event_mixin.dart';
 import 'events/service_event.dart';
 import 'events/event_type_registry.dart';
 import 'exceptions/service_exceptions.dart';
+import 'exceptions/fluxon_exception_manager.dart';
 import 'fluxon_service.dart';
 import 'models/service_models.dart';
 import 'service_logger.dart';
@@ -33,7 +34,9 @@ class FluxonRuntime {
   /// Creates a Fluxon runtime.
   FluxonRuntime({
     ServiceLogger? logger,
-  }) : _logger = logger ?? ServiceLogger(serviceName: 'FluxonRuntime') {
+    ExceptionManager? exceptionManager,
+  })  : _logger = logger ?? ServiceLogger(serviceName: 'FluxonRuntime'),
+        _exceptionManager = exceptionManager {
     _dependencyResolver = DependencyResolver();
     _proxyRegistry = ServiceProxyRegistry(logger: _logger);
 
@@ -46,7 +49,20 @@ class FluxonRuntime {
     _logger.info('FluxonRuntime created with automatic event infrastructure');
   }
 
+  /// Creates a Fluxon runtime with enhanced exception handling
+  factory FluxonRuntime.withExceptionHandling({
+    ServiceLogger? logger,
+  }) {
+    final exceptionLogger =
+        logger ?? ServiceLogger(serviceName: 'FluxonExceptionManager');
+    return FluxonRuntime(
+      logger: logger,
+      exceptionManager: FluxonExceptionManager(logger: exceptionLogger),
+    );
+  }
+
   final ServiceLogger _logger;
+  final ExceptionManager? _exceptionManager;
   late final DependencyResolver _dependencyResolver;
   late final ServiceProxyRegistry _proxyRegistry;
 
@@ -477,7 +493,7 @@ class FluxonRuntime {
       serviceName: serviceName,
       serviceFactory: serviceFactory,
       args: [...args, bridge.sendPort],
-      exceptionManager: exceptionManager,
+      exceptionManager: exceptionManager ?? _exceptionManager,
     );
     await worker.start();
     await worker.initializeService();

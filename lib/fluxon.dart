@@ -23,6 +23,7 @@ export 'src/events/event_type_registry.dart';
 // 📡 Event system
 export 'src/events/service_event.dart';
 export 'src/exceptions/service_exceptions.dart';
+export 'src/exceptions/fluxon_exception_manager.dart';
 // 🚀 Core Fluxon API
 export 'src/fluxon_runtime.dart' show FluxonRuntime;
 export 'src/fluxon_service.dart';

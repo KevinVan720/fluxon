@@ -26,12 +26,17 @@ class ServiceWorker extends Worker {
     required ServiceFactory serviceFactory,
     List args = const [],
     ExceptionManager? exceptionManager,
+    PlatformThreadHook? threadHook,
   })  : _serviceName = serviceName,
+        _startArgs = [serviceName, serviceFactory, ...args],
         super(_serviceWorkerEntryPoint,
-            args: [serviceName, serviceFactory, ...args],
-            exceptionManager: exceptionManager);
+            threadHook: threadHook, exceptionManager: exceptionManager);
 
   final String _serviceName;
+  final List _startArgs;
+
+  @override
+  List? getStartArgs() => _startArgs;
 
   /// Gets the service name.
   String get serviceName => _serviceName;
@@ -158,7 +163,7 @@ class _ServiceWorkerService implements WorkerService {
   }
 
   @override
-  Map<int, CommandHandler> get operations => {
+  OperationsMap get operations => OperationsMap({
         _ServiceWorkerCommands.initialize: _handleInitialize,
         _ServiceWorkerCommands.destroy: _handleDestroy,
         _ServiceWorkerCommands.callMethodById: _handleCallMethodById,
@@ -167,7 +172,7 @@ class _ServiceWorkerService implements WorkerService {
         _ServiceWorkerCommands.getInfo: _handleGetInfo,
         _ServiceWorkerCommands.sendEvent: _handleSendEvent,
         _ServiceWorkerCommands.broadcastEvent: _handleBroadcastEvent,
-      };
+      });
 
   Future<void> _handleInitialize(WorkerRequest request) async {
     if (_service != null) {
@@ -556,7 +561,7 @@ class ServiceWorkerPool {
 
     // Find an available worker
     for (final worker in workers) {
-      if (!worker.isStopped && worker.workload == 0) {
+      if (!worker.isStopped) {
         return worker;
       }
     }
@@ -576,13 +581,13 @@ class ServiceWorkerPool {
       return worker;
     }
 
-    workers.sort((a, b) => a.workload.compareTo(b.workload));
+    // Return first available worker
     return workers.first;
   }
 
   /// Releases a worker back to the pool.
   void releaseWorker(ServiceWorker worker) {
-    // Workers are automatically available when their workload drops to 0
+    // Workers are automatically available
     // No explicit action needed
   }
 
@@ -613,10 +618,7 @@ class ServiceWorkerPool {
       stats[serviceName] = {
         'totalWorkers': workers.length,
         'activeWorkers': workers.where((w) => !w.isStopped).length,
-        'idleWorkers':
-            workers.where((w) => !w.isStopped && w.workload == 0).length,
-        'totalWorkload': workers.fold<int>(0, (sum, w) => sum + w.workload),
-        'totalErrors': workers.fold<int>(0, (sum, w) => sum + w.totalErrors),
+        'idleWorkers': workers.where((w) => !w.isStopped).length,
       };
     }
 
