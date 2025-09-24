@@ -1,6 +1,6 @@
 name: fluxon
 description: A comprehensive service locator and services framework for Dart applications using Squadron worker isolates.
-version: 0.0.3
+version: 0.0.2
 homepage: https://github.com/KevinVan720/flux
 maintainer: Wenkai Fan (@KevinVan720)
 
@@ -12,13 +12,13 @@ dependencies:
   squadron: ^7.1.1
 
 dev_dependencies:
-  analyzer: ^8.0.0
-  build: ^4.0.0
-  build_runner: ^2.8.0
+  analyzer: ^7.2.0
+  build: ^3.0.0
+  build_runner: ^2.4.0
   fluxon_method_generator:
     path: packages/fluxon_method_generator
   mockito: ^5.4.0
-  source_gen: ^4.0.0
+  source_gen: ^3.0.0
   test: ^1.24.0
 
 # Optional pub.dev metadata
