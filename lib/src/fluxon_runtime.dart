@@ -15,6 +15,7 @@ import 'events/event_mixin.dart';
 import 'events/service_event.dart';
 import 'events/event_type_registry.dart';
 import 'exceptions/service_exceptions.dart';
+import 'exceptions/fluxon_exception_manager.dart';
 import 'fluxon_service.dart';
 import 'models/service_models.dart';
 import 'service_logger.dart';
@@ -33,7 +34,9 @@ class FluxonRuntime {
   /// Creates a Fluxon runtime.
   FluxonRuntime({
     ServiceLogger? logger,
-  }) : _logger = logger ?? ServiceLogger(serviceName: 'FluxonRuntime') {
+    ExceptionManager? exceptionManager,
+  })  : _logger = logger ?? ServiceLogger(serviceName: 'FluxonRuntime'),
+        _exceptionManager = exceptionManager {
     _dependencyResolver = DependencyResolver();
     _proxyRegistry = ServiceProxyRegistry(logger: _logger);
 
@@ -46,7 +49,20 @@ class FluxonRuntime {
     _logger.info('FluxonRuntime created with automatic event infrastructure');
   }
 
+  /// Creates a Fluxon runtime with enhanced exception handling
+  factory FluxonRuntime.withExceptionHandling({
+    ServiceLogger? logger,
+  }) {
+    final exceptionLogger =
+        logger ?? ServiceLogger(serviceName: 'FluxonExceptionManager');
+    return FluxonRuntime(
+      logger: logger,
+      exceptionManager: FluxonExceptionManager(logger: exceptionLogger),
+    );
+  }
+
   final ServiceLogger _logger;
+  final ExceptionManager? _exceptionManager;
   late final DependencyResolver _dependencyResolver;
   late final ServiceProxyRegistry _proxyRegistry;
 
@@ -69,6 +85,9 @@ class FluxonRuntime {
   // Enhanced features
   final List<ReceivePort> _bridgePorts = [];
   final List<StreamSubscription> _bridgeSubscriptions = [];
+  // Runtime-level event subscriptions (main isolate listeners)
+  final List<EventSubscription> _runtimeEventSubscriptions = [];
+  final List<StreamSubscription> _runtimeStreamSubscriptions = [];
 
   // Event bridging for cross-isolate communication
   final Map<String, ServiceWorker> _workerRegistry = {};
@@ -474,7 +493,7 @@ class FluxonRuntime {
       serviceName: serviceName,
       serviceFactory: serviceFactory,
       args: [...args, bridge.sendPort],
-      exceptionManager: exceptionManager,
+      exceptionManager: exceptionManager ?? _exceptionManager,
     );
     await worker.start();
     await worker.initializeService();
@@ -779,6 +798,8 @@ class FluxonRuntime {
         } catch (_) {}
       }
       _bridgePorts.clear();
+      // Cleanup runtime-level event subscriptions
+      await cancelAllRuntimeEventSubscriptions();
     } catch (error, stackTrace) {
       _logger.error('Service destruction failed',
           error: error, stackTrace: stackTrace);
@@ -861,6 +882,44 @@ class FluxonRuntime {
     _destructionCallbacks.clear();
 
     _logger.info('Fluxon runtime cleared');
+  }
+
+  /// Subscribe to events of a specific type from the main isolate (no service).
+  /// Returns an EventSubscription which you must cancel or call [cancelAllRuntimeEventSubscriptions].
+  EventSubscription subscribeToEvents<T extends ServiceEvent>() {
+    final subscription = _eventDispatcher.subscribe<T>(FluxonRuntime, T);
+    _runtimeEventSubscriptions.add(subscription);
+    return subscription;
+  }
+
+  /// Listen to events of a specific type with a callback from the main isolate.
+  /// The returned StreamSubscription is tracked and cleaned up by [destroyAll] and [clear].
+  StreamSubscription<T> listenToEvents<T extends ServiceEvent>(
+    void Function(T event) callback, {
+    bool Function(T event)? where,
+  }) {
+    final sub = subscribeToEvents<T>();
+    final streamSub = sub.stream
+        .where((e) => e is T)
+        .cast<T>()
+        .where(where ?? (e) => true)
+        .listen(callback);
+    _runtimeStreamSubscriptions.add(streamSub);
+    return streamSub;
+  }
+
+  /// Cancel all runtime-level event subscriptions created via this runtime.
+  Future<void> cancelAllRuntimeEventSubscriptions() async {
+    for (final s in _runtimeEventSubscriptions) {
+      s.cancel();
+    }
+    _runtimeEventSubscriptions.clear();
+    for (final ss in _runtimeStreamSubscriptions) {
+      try {
+        await ss.cancel();
+      } catch (_) {}
+    }
+    _runtimeStreamSubscriptions.clear();
   }
 
   Future<void> _initializeService(Type serviceType) async {

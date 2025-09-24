@@ -234,10 +234,8 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
       } catch (error) {
         attempt++;
         if (attempt >= maxAttempts) {
-          throw ServiceRetryExceededException(
-            'Method call by id: $methodId',
-            options.retryAttempts,
-          );
+          // Preserve the original exception instead of wrapping in ServiceRetryExceededException
+          rethrow;
         }
         _logger.warning(
           'Method call by id failed (attempt $attempt/$maxAttempts), retrying...',
@@ -251,6 +249,7 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
         }
       }
     }
+    // This should never be reached due to rethrow above
     throw ServiceRetryExceededException(
         'Method call by id: $methodId', maxAttempts);
   }

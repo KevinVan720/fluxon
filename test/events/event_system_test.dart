@@ -487,6 +487,83 @@ void main() {
     });
   });
 
+  group('Runtime-level Event Subscriptions', () {
+    late FluxonRuntime runtime;
+    late TestServiceA serviceA;
+
+    setUp(() async {
+      runtime = FluxonRuntime();
+      // Register and initialize a single service to emit events
+      runtime.register<TestServiceA>(() => serviceA = TestServiceA());
+      await runtime.initializeAll();
+    });
+
+    tearDown(() async {
+      await runtime.destroyAll();
+    });
+
+    test(
+        'listenToEvents should receive events on main isolate without a service',
+        () async {
+      final received = <TestEvent>[];
+      final streamSub = runtime.listenToEvents<TestEvent>((e) {
+        received.add(e);
+      });
+
+      // Emit an event from the service via broadcast
+      final event = TestEvent(
+        eventId: 'runtime-listen',
+        sourceService: 'TestServiceA',
+        timestamp: DateTime.now(),
+        message: 'Hello runtime listener',
+        priority: 1,
+      );
+
+      await serviceA.broadcastEvent(event);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(received, hasLength(1));
+      expect(received.first.message, 'Hello runtime listener');
+
+      await streamSub.cancel();
+      await runtime.cancelAllRuntimeEventSubscriptions();
+    });
+
+    test('subscribeToEvents should expose raw stream for manual control',
+        () async {
+      final receivedIds = <String>[];
+      final sub = runtime.subscribeToEvents<TestEvent>();
+      final streamSub = sub.stream.cast<TestEvent>().listen((e) {
+        receivedIds.add(e.eventId);
+      });
+
+      final e1 = TestEvent(
+        eventId: 'e1',
+        sourceService: 'TestServiceA',
+        timestamp: DateTime.now(),
+        message: 'E1',
+        priority: 1,
+      );
+
+      final e2 = TestEvent(
+        eventId: 'e2',
+        sourceService: 'TestServiceA',
+        timestamp: DateTime.now(),
+        message: 'E2',
+        priority: 1,
+      );
+
+      await serviceA.broadcastEvent(e1);
+      await serviceA.broadcastEvent(e2);
+      await Future.delayed(const Duration(milliseconds: 50));
+
+      expect(receivedIds, containsAll(['e1', 'e2']));
+
+      await streamSub.cancel();
+      sub.cancel();
+    });
+  });
+
   group('Event Distribution Strategies', () {
     late EventDispatcher dispatcher;
     late TestServiceA serviceA;
