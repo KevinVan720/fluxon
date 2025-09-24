@@ -20,7 +20,10 @@ void main() {
       await runtime.initializeAll();
 
       final svc = runtime.get<CrashyService>();
-      expect(() => svc.boom(), throwsA(isA<ServiceRetryExceededException>()));
+      expect(
+        () => svc.boom(),
+        throwsA(predicate((e) => e.toString().contains('Bad state: crash'))),
+      );
 
       await runtime.destroyAll();
       expect(runtime.isInitialized, isFalse);

@@ -197,7 +197,8 @@ void main() {
 
         expect(
           service.alwaysFails,
-          throwsA(isA<ServiceException>()),
+          throwsA(
+              predicate((e) => e.toString().contains('Method always fails'))),
         );
       });
 
@@ -324,7 +325,8 @@ void main() {
         // Worker failure should propagate as ServiceException
         expect(
           service.alwaysFails,
-          throwsA(isA<ServiceException>()),
+          throwsA(
+              predicate((e) => e.toString().contains('Method always fails'))),
         );
 
         // Runtime should remain stable after worker error

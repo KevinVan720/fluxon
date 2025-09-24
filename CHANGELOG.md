@@ -9,3 +9,13 @@
 ## 0.0.2
 
 - Update dependencies
+
+## 0.0.3
+
+- Update dependencies
+
+## 0.0.4
+
+- Revert 0.0.3
+- Allow main isolate to listen to events directly
+- Exception manager for remote service

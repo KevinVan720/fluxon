@@ -25,8 +25,8 @@ Future<void> _runVersionskewdemoDemo() async {
     final client = locator.proxyRegistry.getProxy<ApiV1>();
     try {
       await client.callMethod<String>('greet', ['world']);
-    } on ServiceRetryExceededException catch (e) {
-      print('Version skew detected (retry exceeded): ${e.message}');
+    } catch (e) {
+      expect(e.toString(), contains('Unknown method id'));
     }
   } finally {
     await locator.destroyAll();
