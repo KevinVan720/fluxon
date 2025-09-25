@@ -13,7 +13,7 @@ class StreamerServiceClient extends StreamerService {
 
   @override
   Future<void> startStream(String streamId, int count, int intervalMs) async {
-    await _proxy.callMethod('startStream', [streamId, count, intervalMs],
+    await _proxy.callMethod<void>('startStream', [streamId, count, intervalMs],
         namedArgs: {});
   }
 }
@@ -103,9 +103,8 @@ class RemoteStreamAggregatorClient extends RemoteStreamAggregator {
 
   @override
   Future<List<int>> waitFor(String streamId, int count) async {
-    final result =
-        await _proxy.callMethod('waitFor', [streamId, count], namedArgs: {});
-    return result as List<int>;
+    return await _proxy
+        .callMethod<List<int>>('waitFor', [streamId, count], namedArgs: {});
   }
 }
 
@@ -193,7 +192,7 @@ class RemoteEmitterClient extends RemoteEmitter {
 
   @override
   Future<void> emit(String streamId, int count) async {
-    await _proxy.callMethod('emit', [streamId, count], namedArgs: {});
+    await _proxy.callMethod<void>('emit', [streamId, count], namedArgs: {});
   }
 }
 
@@ -280,9 +279,8 @@ class RemoteCollectorClient extends RemoteCollector {
 
   @override
   Future<List<int>> waitFor(String streamId, int count) async {
-    final result =
-        await _proxy.callMethod('waitFor', [streamId, count], namedArgs: {});
-    return result as List<int>;
+    return await _proxy
+        .callMethod<List<int>>('waitFor', [streamId, count], namedArgs: {});
   }
 }
 

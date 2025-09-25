@@ -14,8 +14,8 @@ class MessageCoordinatorClient extends MessageCoordinator {
   @override
   Future<void> sendMessage(
       String content, String sender, String recipient) async {
-    await _proxy
-        .callMethod('sendMessage', [content, sender, recipient], namedArgs: {});
+    await _proxy.callMethod<void>('sendMessage', [content, sender, recipient],
+        namedArgs: {});
   }
 }
 
@@ -105,8 +105,8 @@ class MessageProcessorClient extends MessageProcessor {
 
   @override
   Future<void> processMessage(String messageId, String content) async {
-    await _proxy
-        .callMethod('processMessage', [messageId, content], namedArgs: {});
+    await _proxy.callMethod<void>('processMessage', [messageId, content],
+        namedArgs: {});
   }
 }
 
@@ -215,14 +215,15 @@ class MessageLoggerClient extends MessageLogger {
   @override
   Future<void> logMessage(
       String messageId, String status, String content) async {
-    await _proxy
-        .callMethod('logMessage', [messageId, status, content], namedArgs: {});
+    await _proxy.callMethod<void>('logMessage', [messageId, status, content],
+        namedArgs: {});
   }
 
   @override
   Future<List<Map<String, dynamic>>> getMessageLogs() async {
-    final result = await _proxy.callMethod('getMessageLogs', [], namedArgs: {});
-    return result as List<Map<String, dynamic>>;
+    return await _proxy.callMethod<List<Map<String, dynamic>>>(
+        'getMessageLogs', [],
+        namedArgs: {});
   }
 }
 

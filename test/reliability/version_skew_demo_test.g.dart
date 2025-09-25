@@ -13,8 +13,7 @@ class ApiV1Client extends ApiV1 {
 
   @override
   Future<String> greet(String name) async {
-    final result = await _proxy.callMethod('greet', [name], namedArgs: {});
-    return result as String;
+    return await _proxy.callMethod<String>('greet', [name], namedArgs: {});
   }
 }
 

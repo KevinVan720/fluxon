@@ -4,9 +4,8 @@
 import 'dart:async';
 
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart'
-    show DartType, InterfaceType, TypeParameterType, VoidType;
+    show DartType, InterfaceType, VoidType;
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -78,15 +77,16 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       }
       final methodName = m.displayName;
       methodIds[methodName] = nextId++;
-      final returnType = _typeCode(m.returnType);
+      final returnType = m.returnType.getDisplayString(withNullability: true);
       // Capture method-level type parameters
       final typeParams = m.typeParameters2;
       final typeParamSig = typeParams.isEmpty
           ? ''
           : '<${typeParams.map((tp) {
               final bound = tp.bound;
-              final suffix =
-                  bound == null ? '' : ' extends ${_typeCode(bound)}';
+              final suffix = bound == null
+                  ? ''
+                  : ' extends ${bound.getDisplayString(withNullability: true)}';
               return '${tp.displayName}$suffix';
             }).join(', ')}>';
       // Separate positional and named parameters
@@ -95,11 +95,12 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       final namedParams = m.formalParameters.where((p) => p.isNamed).toList();
 
       final positionalSig = positionalParams
-          .map((p) => '${_typeCode(p.type)} ${p.displayName}')
+          .map((p) =>
+              '${p.type.getDisplayString(withNullability: true)} ${p.displayName}')
           .join(', ');
 
       final namedSig = namedParams.map((p) {
-        final typeDisplay = _typeCode(p.type);
+        final typeDisplay = p.type.getDisplayString(withNullability: true);
         final defaultValue =
             p.hasDefaultValue ? ' = ${p.defaultValueCode}' : '';
         return p.isRequiredNamed
@@ -118,37 +119,22 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           .join(', ');
       final positionalArgsList = positionalNames.join(', ');
       final namedArgsLiteral = '{$namedNames}';
-      DartType? futureValueType;
       var returnsValue = true;
-      var specifyReturnGeneric = false;
       String? callReturnType;
       if (m.returnType.isDartAsyncFuture && m.returnType is InterfaceType) {
         final futureType = m.returnType as InterfaceType;
         if (futureType.typeArguments.isNotEmpty) {
           final innerType = futureType.typeArguments.first;
-          futureValueType = innerType;
           if (innerType is VoidType) {
             returnsValue = false;
-          } else if (innerType is TypeParameterType) {
-            specifyReturnGeneric = true;
-            callReturnType = _typeCode(innerType);
-            if (_typeUsesTypeParameter(innerType)) {
-              specifyReturnGeneric = true;
-              callReturnType = _typeCode(innerType);
-            }
-            if (innerType is InterfaceType) {
-              if (innerType.isDartCoreList ||
-                  innerType.isDartCoreMap ||
-                  innerType.isDartCoreSet) {
-                // Keep conversions for collection casts regardless of generics
-              }
-            }
           }
+          callReturnType = _callReturnType(innerType);
         }
       }
-      final callGenericClause = specifyReturnGeneric && callReturnType != null
-          ? '<$callReturnType>'
-          : '';
+      final callGenericClause =
+          callReturnType == null || callReturnType == 'dynamic'
+              ? ''
+              : '<$callReturnType>';
       // Build optional ServiceCallOptions from @ServiceMethod annotation
       final methodAnno =
           _serviceMethodChecker.firstAnnotationOf(m.firstFragment.element);
@@ -175,12 +161,15 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       }
       final callExpression = (() {
         final callBuf = StringBuffer()
-          ..write("_proxy.callMethod$callGenericClause('$methodName', [")
+          ..write('_proxy.callMethod$callGenericClause(')
+          ..write("'$methodName', [")
           ..write(positionalArgsList)
           ..write('], namedArgs: ')
-          ..write(namedArgsLiteral)
-          ..write(optionsArg)
-          ..write(')');
+          ..write(namedArgsLiteral);
+        if (optionsArg.isNotEmpty) {
+          callBuf.write(optionsArg);
+        }
+        callBuf.write(')');
         return callBuf.toString();
       })();
 
@@ -190,9 +179,7 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
         ..write(paramsSig)
         ..writeln(') async {');
       if (returnsValue) {
-        buf.writeln('    final result = await $callExpression;');
-        final returnExpr = _buildReturnExpression('result', futureValueType);
-        buf.writeln('    return $returnExpr;');
+        buf.writeln('    return await $callExpression;');
       } else {
         buf.writeln('    await $callExpression;');
       }
@@ -402,74 +389,16 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     return result.toList();
   }
 
-  String _buildReturnExpression(String resultVar, DartType? targetType) {
-    if (targetType == null) return resultVar;
-    if (targetType is TypeParameterType) {
-      final typeDisplay = _typeCode(targetType);
-      return '$resultVar as $typeDisplay';
-    }
-    if (targetType is InterfaceType) {
-      bool typeArgsUseParameters =
-          _typeUsesTypeParameterInArgs(targetType.typeArguments);
-      if (targetType.isDartCoreList && targetType.typeArguments.length == 1) {
-        final itemType = _typeCode(targetType.typeArguments.first);
-        if (typeArgsUseParameters) {
-          return '$resultVar.cast<$itemType>()';
-        }
-        return '$resultVar as List<$itemType>';
-      }
-      if (targetType.isDartCoreSet && targetType.typeArguments.length == 1) {
-        final itemType = _typeCode(targetType.typeArguments.first);
-        if (typeArgsUseParameters) {
-          return '$resultVar.cast<$itemType>()';
-        }
-        return '$resultVar as Set<$itemType>';
-      }
-      if (targetType.isDartCoreMap && targetType.typeArguments.length == 2) {
-        final keyType = _typeCode(targetType.typeArguments[0]);
-        final valueType = _typeCode(targetType.typeArguments[1]);
-        if (typeArgsUseParameters) {
-          return '$resultVar.cast<$keyType, $valueType>()';
-        }
-        return '$resultVar as Map<$keyType, $valueType>';
-      }
-    }
-    final typeDisplay = _typeCode(targetType);
-    return '$resultVar as $typeDisplay';
+  String? _callReturnType(DartType type) {
+    if (type is VoidType) return 'void';
+    final display = type.getDisplayString();
+    if (display == 'dynamic') return null;
+    return display;
   }
 
-  bool _typeUsesTypeParameter(DartType type) {
-    if (type is TypeParameterType) return true;
-    if (type is InterfaceType) {
-      for (final t in type.typeArguments) {
-        if (_typeUsesTypeParameter(t)) return true;
-      }
-    }
-    return false;
-  }
-
-  bool _typeUsesTypeParameterInArgs(Iterable<DartType> types) {
-    for (final t in types) {
-      if (_typeUsesTypeParameter(t)) return true;
-    }
-    return false;
-  }
-
-  String _typeCode(DartType type) {
-    final base = type.getDisplayString();
-    final suffix = switch (type.nullabilitySuffix) {
-      NullabilitySuffix.question => base.endsWith('?') ? '' : '?',
-      NullabilitySuffix.star => base.endsWith('*') ? '' : '*',
-      _ => '',
-    };
-    if (type is InterfaceType && type.typeArguments.isNotEmpty) {
-      final args = type.typeArguments.map(_typeCode).join(', ');
-      final name = type.element.name;
-      final typeBase = name + '<$args>';
-      if (suffix.isEmpty) return typeBase;
-      return '$typeBase$suffix';
-    }
-    return '$base$suffix';
+  String _callGenericClause(String? typeDisplay) {
+    if (typeDisplay == null || typeDisplay.isEmpty) return '';
+    return '<$typeDisplay>';
   }
 }
 

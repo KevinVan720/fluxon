@@ -146,9 +146,9 @@ class EventSenderClient extends EventSender {
   @override
   Future<EventDistributionResult> sendTestEvent(
       String message, EventDistribution distribution) async {
-    final result = await _proxy
-        .callMethod('sendTestEvent', [message, distribution], namedArgs: {});
-    return result as EventDistributionResult;
+    return await _proxy.callMethod<EventDistributionResult>(
+        'sendTestEvent', [message, distribution],
+        namedArgs: {});
   }
 }
 

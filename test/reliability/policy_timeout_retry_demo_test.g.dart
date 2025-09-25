@@ -13,31 +13,28 @@ class PolicyServiceClient extends PolicyService {
 
   @override
   Future<String> flaky() async {
-    final result = await _proxy.callMethod('flaky', [],
+    return await _proxy.callMethod<String>('flaky', [],
         namedArgs: {},
         options: const ServiceCallOptions(
             retryAttempts: 2, retryDelay: Duration(milliseconds: 50)));
-    return result as String;
   }
 
   @override
   Future<String> slow() async {
-    final result = await _proxy.callMethod('slow', [],
+    return await _proxy.callMethod<String>('slow', [],
         namedArgs: {},
         options:
             const ServiceCallOptions(timeout: Duration(milliseconds: 100)));
-    return result as String;
   }
 
   @override
   Future<String> slowRetry() async {
-    final result = await _proxy.callMethod('slowRetry', [],
+    return await _proxy.callMethod<String>('slowRetry', [],
         namedArgs: {},
         options: const ServiceCallOptions(
             timeout: Duration(milliseconds: 100),
             retryAttempts: 1,
             retryDelay: Duration(milliseconds: 50)));
-    return result as String;
   }
 }
 

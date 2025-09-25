@@ -23,7 +23,7 @@ class ImageFilterCoordinatorClient extends ImageFilterCoordinator {
       required double saturation,
       required double hue,
       Duration timeout = const Duration(seconds: 30)}) async {
-    final result = await _proxy.callMethod('requestFilter', [], namedArgs: {
+    return await _proxy.callMethod<Uint8List>('requestFilter', [], namedArgs: {
       'imageBytes': imageBytes,
       'target': target,
       'filter': filter,
@@ -35,7 +35,6 @@ class ImageFilterCoordinatorClient extends ImageFilterCoordinator {
       'hue': hue,
       'timeout': timeout
     });
-    return result as Uint8List;
   }
 }
 

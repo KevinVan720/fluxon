@@ -13,32 +13,29 @@ class GenericSvcClient extends GenericSvc {
 
   @override
   Future<T> echo<T extends Object>(T value) async {
-    final result = await _proxy.callMethod<T>('echo', [value], namedArgs: {});
-    return result as T;
+    return await _proxy.callMethod<T>('echo', [value], namedArgs: {});
   }
 
   @override
   Future<List<T>> listify<T>(T value) async {
-    final result = await _proxy.callMethod('listify', [value], namedArgs: {});
-    return result.cast<T>();
+    return await _proxy.callMethod<List<T>>('listify', [value], namedArgs: {});
   }
 
   @override
   Future<Map<String, T>> mapify<T>(String key, T value) async {
-    final result =
-        await _proxy.callMethod('mapify', [key, value], namedArgs: {});
-    return result.cast<String, T>();
+    return await _proxy
+        .callMethod<Map<String, T>>('mapify', [key, value], namedArgs: {});
   }
 
   @override
   Future<void> remember<T>(T value) async {
-    await _proxy.callMethod('remember', [value], namedArgs: {});
+    await _proxy.callMethod<void>('remember', [value], namedArgs: {});
   }
 
   @override
   Future<List<dynamic>> dumpStash() async {
-    final result = await _proxy.callMethod('dumpStash', [], namedArgs: {});
-    return result as List<dynamic>;
+    return await _proxy
+        .callMethod<List<dynamic>>('dumpStash', [], namedArgs: {});
   }
 }
 
@@ -141,8 +138,7 @@ class GenericCallerClient extends GenericCaller {
 
   @override
   Future<(int, String)> run() async {
-    final result = await _proxy.callMethod('run', [], namedArgs: {});
-    return result as (int, String);
+    return await _proxy.callMethod<(int, String)>('run', [], namedArgs: {});
   }
 }
 

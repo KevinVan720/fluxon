@@ -13,7 +13,7 @@ class TaskOrchestratorClient extends TaskOrchestrator {
 
   @override
   Future<void> executeTask(String taskId, Map<String, dynamic> data) async {
-    await _proxy.callMethod('executeTask', [taskId, data], namedArgs: {});
+    await _proxy.callMethod<void>('executeTask', [taskId, data], namedArgs: {});
   }
 }
 
@@ -103,9 +103,9 @@ class TaskProcessorClient extends TaskProcessor {
   @override
   Future<Map<String, dynamic>> processTask(
       String taskId, Map<String, dynamic> data) async {
-    final result =
-        await _proxy.callMethod('processTask', [taskId, data], namedArgs: {});
-    return result as Map<String, dynamic>;
+    return await _proxy.callMethod<Map<String, dynamic>>(
+        'processTask', [taskId, data],
+        namedArgs: {});
   }
 }
 
@@ -213,14 +213,15 @@ class TaskLoggerClient extends TaskLogger {
   @override
   Future<void> logTaskProgress(
       String taskId, String status, Map<String, dynamic> data) async {
-    await _proxy
-        .callMethod('logTaskProgress', [taskId, status, data], namedArgs: {});
+    await _proxy.callMethod<void>('logTaskProgress', [taskId, status, data],
+        namedArgs: {});
   }
 
   @override
   Future<List<Map<String, dynamic>>> getTaskLogs() async {
-    final result = await _proxy.callMethod('getTaskLogs', [], namedArgs: {});
-    return result as List<Map<String, dynamic>>;
+    return await _proxy.callMethod<List<Map<String, dynamic>>>(
+        'getTaskLogs', [],
+        namedArgs: {});
   }
 }
 

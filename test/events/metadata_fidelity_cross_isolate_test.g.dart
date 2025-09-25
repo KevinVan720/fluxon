@@ -12,9 +12,9 @@ class MetaWorkerClient extends MetaWorker {
   final ServiceProxy<MetaWorker> _proxy;
 
   @override
-  Future<Map<String, dynamic>> getLast() async {
-    final result = await _proxy.callMethod('getLast', [], namedArgs: {});
-    return result as Map<String, dynamic>;
+  Future<Map<String, dynamic>?> getLast() async {
+    return await _proxy
+        .callMethod<Map<String, dynamic>?>('getLast', [], namedArgs: {});
   }
 }
 
@@ -101,7 +101,7 @@ class MetaHostClient extends MetaHost {
 
   @override
   Future<void> sendWithMeta(Map<String, dynamic> meta) async {
-    await _proxy.callMethod('sendWithMeta', [meta], namedArgs: {});
+    await _proxy.callMethod<void>('sendWithMeta', [meta], namedArgs: {});
   }
 }
 

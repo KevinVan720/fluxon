@@ -13,21 +13,18 @@ class TimeoutTestServiceClient extends TimeoutTestService {
 
   @override
   Future<String> fastMethod() async {
-    final result = await _proxy.callMethod('fastMethod', [], namedArgs: {});
-    return result as String;
+    return await _proxy.callMethod<String>('fastMethod', [], namedArgs: {});
   }
 
   @override
   Future<String> slowMethod(int delayMs) async {
-    final result =
-        await _proxy.callMethod('slowMethod', [delayMs], namedArgs: {});
-    return result as String;
+    return await _proxy
+        .callMethod<String>('slowMethod', [delayMs], namedArgs: {});
   }
 
   @override
   Future<String> verySlowMethod() async {
-    final result = await _proxy.callMethod('verySlowMethod', [], namedArgs: {});
-    return result as String;
+    return await _proxy.callMethod<String>('verySlowMethod', [], namedArgs: {});
   }
 }
 

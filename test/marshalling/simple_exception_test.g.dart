@@ -13,23 +13,20 @@ class SimpleExceptionServiceClient extends SimpleExceptionService {
 
   @override
   Future<String> throwSimpleException() async {
-    final result =
-        await _proxy.callMethod('throwSimpleException', [], namedArgs: {});
-    return result as String;
+    return await _proxy
+        .callMethod<String>('throwSimpleException', [], namedArgs: {});
   }
 
   @override
   Future<String> conditionalMethod(bool shouldFail) async {
-    final result = await _proxy
-        .callMethod('conditionalMethod', [shouldFail], namedArgs: {});
-    return result as String;
+    return await _proxy
+        .callMethod<String>('conditionalMethod', [shouldFail], namedArgs: {});
   }
 
   @override
   Future<String> throwWithDetails() async {
-    final result =
-        await _proxy.callMethod('throwWithDetails', [], namedArgs: {});
-    return result as String;
+    return await _proxy
+        .callMethod<String>('throwWithDetails', [], namedArgs: {});
   }
 }
 

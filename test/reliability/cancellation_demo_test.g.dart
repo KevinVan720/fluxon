@@ -13,14 +13,12 @@ class SlowServiceClient extends SlowService {
 
   @override
   Future<String> sleepMs(int ms) async {
-    final result = await _proxy.callMethod('sleepMs', [ms], namedArgs: {});
-    return result as String;
+    return await _proxy.callMethod<String>('sleepMs', [ms], namedArgs: {});
   }
 
   @override
   Future<String> quick() async {
-    final result = await _proxy.callMethod('quick', [], namedArgs: {});
-    return result as String;
+    return await _proxy.callMethod<String>('quick', [], namedArgs: {});
   }
 }
 

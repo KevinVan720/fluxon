@@ -78,8 +78,7 @@ class ServiceBClient extends ServiceB {
 
   @override
   Future<String> id() async {
-    final result = await _proxy.callMethod('id', [], namedArgs: {});
-    return result as String;
+    return await _proxy.callMethod<String>('id', [], namedArgs: {});
   }
 }
 
