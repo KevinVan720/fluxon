@@ -13,23 +13,27 @@ class ConcurrentServiceClient extends ConcurrentService {
 
   @override
   Future<int> incrementCounter() async {
-    return await _proxy.callMethod('incrementCounter', [], namedArgs: {});
+    final result =
+        await _proxy.callMethod('incrementCounter', [], namedArgs: {});
+    return result as int;
   }
 
   @override
   Future<String> performOperation(String operationName) async {
-    return await _proxy
+    final result = await _proxy
         .callMethod('performOperation', [operationName], namedArgs: {});
+    return result as String;
   }
 
   @override
   Future<Map<String, dynamic>> getState() async {
-    return await _proxy.callMethod('getState', [], namedArgs: {});
+    final result = await _proxy.callMethod('getState', [], namedArgs: {});
+    return result as Map<String, dynamic>;
   }
 
   @override
   Future<void> reset() async {
-    return await _proxy.callMethod('reset', [], namedArgs: {});
+    await _proxy.callMethod('reset', [], namedArgs: {});
   }
 }
 
@@ -130,14 +134,15 @@ class RaceConditionServiceClient extends RaceConditionService {
   @override
   Future<void> triggerRaceCondition(
       int threadCount, int operationsPerThread) async {
-    return await _proxy.callMethod(
+    await _proxy.callMethod(
         'triggerRaceCondition', [threadCount, operationsPerThread],
         namedArgs: {});
   }
 
   @override
   Future<Map<String, dynamic>> getRaceResults() async {
-    return await _proxy.callMethod('getRaceResults', [], namedArgs: {});
+    final result = await _proxy.callMethod('getRaceResults', [], namedArgs: {});
+    return result as Map<String, dynamic>;
   }
 }
 

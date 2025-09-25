@@ -13,7 +13,8 @@ class ExplodingRemoteClient extends ExplodingRemote {
 
   @override
   Future<String> hello() async {
-    return await _proxy.callMethod('hello', [], namedArgs: {});
+    final result = await _proxy.callMethod('hello', [], namedArgs: {});
+    return result as String;
   }
 }
 

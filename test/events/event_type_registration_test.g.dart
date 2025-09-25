@@ -13,7 +13,7 @@ class SenderServiceClient extends SenderService {
 
   @override
   Future<void> sendTyped(String text) async {
-    return await _proxy.callMethod('sendTyped', [text], namedArgs: {});
+    await _proxy.callMethod('sendTyped', [text], namedArgs: {});
   }
 }
 

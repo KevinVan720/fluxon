@@ -13,25 +13,32 @@ class ComplexMarshallingServiceClient extends ComplexMarshallingService {
 
   @override
   Future<ComplexUser> processUser(ComplexUser user) async {
-    return await _proxy.callMethod('processUser', [user], namedArgs: {});
+    final result =
+        await _proxy.callMethod('processUser', [user], namedArgs: {});
+    return result as ComplexUser;
   }
 
   @override
   Future<Map<Priority, List<ComplexUser>>> groupUsersByPriority(
       List<ComplexUser> users) async {
-    return await _proxy
-        .callMethod('groupUsersByPriority', [users], namedArgs: {});
+    final result =
+        await _proxy.callMethod('groupUsersByPriority', [users], namedArgs: {});
+    return result as Map<Priority, List<ComplexUser>>;
   }
 
   @override
   Future<Map<String, Map<Priority, List<Project>>>> getProjectMatrix(
       List<ComplexUser> users) async {
-    return await _proxy.callMethod('getProjectMatrix', [users], namedArgs: {});
+    final result =
+        await _proxy.callMethod('getProjectMatrix', [users], namedArgs: {});
+    return result as Map<String, Map<Priority, List<Project>>>;
   }
 
   @override
   Future<ComplexUser> createUserWithManager() async {
-    return await _proxy.callMethod('createUserWithManager', [], namedArgs: {});
+    final result =
+        await _proxy.callMethod('createUserWithManager', [], namedArgs: {});
+    return result as ComplexUser;
   }
 }
 

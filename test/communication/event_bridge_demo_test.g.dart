@@ -13,7 +13,7 @@ class RemoteEmitterClient extends RemoteEmitter {
 
   @override
   Future<void> emitTick(String id) async {
-    return await _proxy.callMethod('emitTick', [id], namedArgs: {});
+    await _proxy.callMethod('emitTick', [id], namedArgs: {});
   }
 }
 
@@ -140,12 +140,13 @@ class RemoteListenerClient extends RemoteListener {
 
   @override
   Future<void> onTick(String id) async {
-    return await _proxy.callMethod('onTick', [id], namedArgs: {});
+    await _proxy.callMethod('onTick', [id], namedArgs: {});
   }
 
   @override
   Future<int> count() async {
-    return await _proxy.callMethod('count', [], namedArgs: {});
+    final result = await _proxy.callMethod('count', [], namedArgs: {});
+    return result as int;
   }
 }
 
@@ -236,12 +237,13 @@ class LocalHubClient extends LocalHub {
 
   @override
   Future<void> onTick(String id) async {
-    return await _proxy.callMethod('onTick', [id], namedArgs: {});
+    await _proxy.callMethod('onTick', [id], namedArgs: {});
   }
 
   @override
   Future<int> getTicks() async {
-    return await _proxy.callMethod('getTicks', [], namedArgs: {});
+    final result = await _proxy.callMethod('getTicks', [], namedArgs: {});
+    return result as int;
   }
 }
 

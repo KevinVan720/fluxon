@@ -13,12 +13,13 @@ class CrashyServiceClient extends CrashyService {
 
   @override
   Future<void> boom() async {
-    return await _proxy.callMethod('boom', [], namedArgs: {});
+    await _proxy.callMethod('boom', [], namedArgs: {});
   }
 
   @override
   Future<String> ok() async {
-    return await _proxy.callMethod('ok', [], namedArgs: {});
+    final result = await _proxy.callMethod('ok', [], namedArgs: {});
+    return result as String;
   }
 }
 

@@ -13,8 +13,9 @@ class PayloadServiceClient extends PayloadService {
 
   @override
   Future<Map<String, dynamic>> getBigPayload(int depth, int breadth) async {
-    return await _proxy
+    final result = await _proxy
         .callMethod('getBigPayload', [depth, breadth], namedArgs: {});
+    return result as Map<String, dynamic>;
   }
 }
 

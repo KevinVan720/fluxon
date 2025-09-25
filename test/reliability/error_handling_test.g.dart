@@ -79,12 +79,14 @@ class FailingMethodServiceClient extends FailingMethodService {
 
   @override
   Future<String> alwaysFails() async {
-    return await _proxy.callMethod('alwaysFails', [], namedArgs: {});
+    final result = await _proxy.callMethod('alwaysFails', [], namedArgs: {});
+    return result as String;
   }
 
   @override
   Future<String> failsRandomly() async {
-    return await _proxy.callMethod('failsRandomly', [], namedArgs: {});
+    final result = await _proxy.callMethod('failsRandomly', [], namedArgs: {});
+    return result as String;
   }
 }
 
@@ -176,7 +178,7 @@ class InvalidDependencyServiceClient extends InvalidDependencyService {
 
   @override
   Future<void> doSomething() async {
-    return await _proxy.callMethod('doSomething', [], namedArgs: {});
+    await _proxy.callMethod('doSomething', [], namedArgs: {});
   }
 }
 
@@ -259,7 +261,7 @@ class CorruptingServiceClient extends CorruptingService {
 
   @override
   Future<void> sendCorruptedEvent() async {
-    return await _proxy.callMethod('sendCorruptedEvent', [], namedArgs: {});
+    await _proxy.callMethod('sendCorruptedEvent', [], namedArgs: {});
   }
 }
 
@@ -336,12 +338,14 @@ class SlowServiceClient extends SlowService {
 
   @override
   Future<String> verySlowMethod() async {
-    return await _proxy.callMethod('verySlowMethod', [], namedArgs: {});
+    final result = await _proxy.callMethod('verySlowMethod', [], namedArgs: {});
+    return result as String;
   }
 
   @override
   Future<String> fastMethod() async {
-    return await _proxy.callMethod('fastMethod', [], namedArgs: {});
+    final result = await _proxy.callMethod('fastMethod', [], namedArgs: {});
+    return result as String;
   }
 }
 
@@ -432,7 +436,7 @@ class MemoryLeakServiceClient extends MemoryLeakService {
 
   @override
   Future<void> consumeMemory() async {
-    return await _proxy.callMethod('consumeMemory', [], namedArgs: {});
+    await _proxy.callMethod('consumeMemory', [], namedArgs: {});
   }
 }
 

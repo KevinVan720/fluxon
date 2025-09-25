@@ -13,17 +13,23 @@ class MarshallingTestServiceClient extends MarshallingTestService {
 
   @override
   Future<CustomData> processData(CustomData input) async {
-    return await _proxy.callMethod('processData', [input], namedArgs: {});
+    final result =
+        await _proxy.callMethod('processData', [input], namedArgs: {});
+    return result as CustomData;
   }
 
   @override
   Future<List<CustomData>> processDataList(List<CustomData> inputs) async {
-    return await _proxy.callMethod('processDataList', [inputs], namedArgs: {});
+    final result =
+        await _proxy.callMethod('processDataList', [inputs], namedArgs: {});
+    return result as List<CustomData>;
   }
 
   @override
   Future<Map<String, List<CustomData>>> getNestedData(String key) async {
-    return await _proxy.callMethod('getNestedData', [key], namedArgs: {});
+    final result =
+        await _proxy.callMethod('getNestedData', [key], namedArgs: {});
+    return result as Map<String, List<CustomData>>;
   }
 }
 

@@ -1,7 +1,12 @@
+// ignore_for_file: cascade_invocations, lines_longer_than_80_chars
+// ignore_for_file: cascade_invocations, lines_longer_than_80_chars
+
 import 'dart:async';
 
 import 'package:analyzer/dart/element/element2.dart';
-import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart'
+    show DartType, InterfaceType, TypeParameterType, VoidType;
 import 'package:build/build.dart';
 import 'package:source_gen/source_gen.dart';
 
@@ -41,12 +46,13 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     // NOTE: This content is emitted into a shared part (.g.dart) by
     // SharedPartBuilder. Do not include library/import/part directives here.
     // The surrounding part file provides the library context.
-    buf.writeln('// Service client for $className');
     final clientName = '${className}Client';
-    buf.writeln('class $clientName extends $className {');
-    buf.writeln('  $clientName(this._proxy);');
-    buf.writeln('  final ServiceProxy<$className> _proxy;');
-    buf.writeln();
+    buf
+      ..writeln('// Service client for $className')
+      ..writeln('class $clientName extends $className {')
+      ..writeln('  $clientName(this._proxy);')
+      ..writeln('  final ServiceProxy<$className> _proxy;')
+      ..writeln();
 
     var nextId = 1;
     final methodIds = <String, int>{};
@@ -72,25 +78,33 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       }
       final methodName = m.displayName;
       methodIds[methodName] = nextId++;
-      final returnType = m.returnType.getDisplayString(withNullability: true);
+      final returnType = _typeCode(m.returnType);
+      // Capture method-level type parameters
+      final typeParams = m.typeParameters2;
+      final typeParamSig = typeParams.isEmpty
+          ? ''
+          : '<${typeParams.map((tp) {
+              final bound = tp.bound;
+              final suffix =
+                  bound == null ? '' : ' extends ${_typeCode(bound)}';
+              return '${tp.displayName}$suffix';
+            }).join(', ')}>';
       // Separate positional and named parameters
       final positionalParams =
           m.formalParameters.where((p) => p.isPositional).toList();
       final namedParams = m.formalParameters.where((p) => p.isNamed).toList();
 
-      final positionalSig = positionalParams.map((p) {
-        final t = p.type.getDisplayString(withNullability: true);
-        return '$t ${p.displayName}';
-      }).join(', ');
+      final positionalSig = positionalParams
+          .map((p) => '${_typeCode(p.type)} ${p.displayName}')
+          .join(', ');
 
       final namedSig = namedParams.map((p) {
-        final t = p.type.getDisplayString(withNullability: true);
-        final isRequiredNamed = p.isRequiredNamed;
+        final typeDisplay = _typeCode(p.type);
         final defaultValue =
             p.hasDefaultValue ? ' = ${p.defaultValueCode}' : '';
-        return isRequiredNamed
-            ? 'required $t ${p.displayName}'
-            : '$t ${p.displayName}$defaultValue';
+        return p.isRequiredNamed
+            ? 'required $typeDisplay ${p.displayName}'
+            : '$typeDisplay ${p.displayName}$defaultValue';
       }).join(', ');
 
       final paramsSig = [
@@ -102,6 +116,39 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
       final namedNames = namedParams
           .map((p) => "'${p.displayName}': ${p.displayName}")
           .join(', ');
+      final positionalArgsList = positionalNames.join(', ');
+      final namedArgsLiteral = '{$namedNames}';
+      DartType? futureValueType;
+      var returnsValue = true;
+      var specifyReturnGeneric = false;
+      String? callReturnType;
+      if (m.returnType.isDartAsyncFuture && m.returnType is InterfaceType) {
+        final futureType = m.returnType as InterfaceType;
+        if (futureType.typeArguments.isNotEmpty) {
+          final innerType = futureType.typeArguments.first;
+          futureValueType = innerType;
+          if (innerType is VoidType) {
+            returnsValue = false;
+          } else if (innerType is TypeParameterType) {
+            specifyReturnGeneric = true;
+            callReturnType = _typeCode(innerType);
+            if (_typeUsesTypeParameter(innerType)) {
+              specifyReturnGeneric = true;
+              callReturnType = _typeCode(innerType);
+            }
+            if (innerType is InterfaceType) {
+              if (innerType.isDartCoreList ||
+                  innerType.isDartCoreMap ||
+                  innerType.isDartCoreSet) {
+                // Keep conversions for collection casts regardless of generics
+              }
+            }
+          }
+        }
+      }
+      final callGenericClause = specifyReturnGeneric && callReturnType != null
+          ? '<$callReturnType>'
+          : '';
       // Build optional ServiceCallOptions from @ServiceMethod annotation
       final methodAnno =
           _serviceMethodChecker.firstAnnotationOf(m.firstFragment.element);
@@ -126,22 +173,42 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
               ', options: const ServiceCallOptions(${opts.join(', ')})';
         }
       }
+      final callExpression = (() {
+        final callBuf = StringBuffer()
+          ..write("_proxy.callMethod$callGenericClause('$methodName', [")
+          ..write(positionalArgsList)
+          ..write('], namedArgs: ')
+          ..write(namedArgsLiteral)
+          ..write(optionsArg)
+          ..write(')');
+        return callBuf.toString();
+      })();
 
-      buf.writeln('  @override');
-      buf.writeln('  $returnType $methodName($paramsSig) async {');
-      buf.writeln(
-          "    return await _proxy.callMethod('$methodName', [${positionalNames.join(', ')}], namedArgs: {$namedNames}$optionsArg);");
-      buf.writeln('  }');
-      buf.writeln();
+      buf
+        ..writeln('  @override')
+        ..write('  $returnType $methodName$typeParamSig(')
+        ..write(paramsSig)
+        ..writeln(') async {');
+      if (returnsValue) {
+        buf.writeln('    final result = await $callExpression;');
+        final returnExpr = _buildReturnExpression('result', futureValueType);
+        buf.writeln('    return $returnExpr;');
+      } else {
+        buf.writeln('    await $callExpression;');
+      }
+      buf
+        ..writeln('  }')
+        ..writeln();
     }
 
-    buf.writeln('}');
-    buf.writeln();
-    buf.writeln('void \$register${className}ClientFactory() {');
-    buf.writeln('  GeneratedClientRegistry.register<$className>(');
-    buf.writeln('    (proxy) => $clientName(proxy),');
-    buf.writeln('  );');
-    buf.writeln('}');
+    buf
+      ..writeln('}')
+      ..writeln()
+      ..writeln('void \$register${className}ClientFactory() {')
+      ..writeln('  GeneratedClientRegistry.register<$className>(')
+      ..writeln('    (proxy) => $clientName(proxy),')
+      ..writeln('  );')
+      ..writeln('}');
     buf.writeln();
     // Dispatcher & method IDs
     buf.writeln('class _${className}Methods {');
@@ -207,17 +274,18 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     // Generate a worker-side concrete class that auto-registers the dispatcher.
     // Consumers should use <ClassName>Impl as the serviceFactory for remote services.
     if (isRemote && !classEl.isAbstract) {
-      buf.writeln(
-          '// Remote service implementation that auto-registers the dispatcher');
-      buf.writeln('class ${className}Impl extends $className {');
-      buf.writeln('  @override');
-      buf.writeln('  bool get isRemote => true;');
-      buf.writeln('  @override');
-      buf.writeln('  Type get clientBaseType => $className;');
-      buf.writeln('  @override');
-      buf.writeln('  Future<void> registerHostSide() async {');
-      buf.writeln('    \$register${className}ClientFactory();');
-      buf.writeln('    \$register${className}MethodIds();');
+      buf
+        ..writeln(
+            '// Remote service implementation that auto-registers the dispatcher')
+        ..writeln('class ${className}Impl extends $className {')
+        ..writeln('  @override')
+        ..writeln('  bool get isRemote => true;')
+        ..writeln('  @override')
+        ..writeln('  Type get clientBaseType => $className;')
+        ..writeln('  @override')
+        ..writeln('  Future<void> registerHostSide() async {')
+        ..writeln('    \$register${className}ClientFactory();')
+        ..writeln('    \$register${className}MethodIds();');
       for (final dep in depTypeNames) {
         if (dep != className) {
           buf.writeln(
@@ -227,10 +295,11 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           buf.writeln('    try { \$register${dep}MethodIds(); } catch (_) {}');
         }
       }
-      buf.writeln('  }');
-      buf.writeln('  @override');
-      buf.writeln('  Future<void> initialize() async {');
-      buf.writeln('    \$register${className}Dispatcher();');
+      buf
+        ..writeln('  }')
+        ..writeln('  @override')
+        ..writeln('  Future<void> initialize() async {')
+        ..writeln('    \$register${className}Dispatcher();');
       for (final dep in depTypeNames) {
         if (dep != className) {
           buf.writeln(
@@ -240,31 +309,34 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
           buf.writeln('    try { \$register${dep}MethodIds(); } catch (_) {}');
         }
       }
-      buf.writeln('    await super.initialize();');
-      buf.writeln('  }');
-      buf.writeln('}');
-      buf.writeln();
+      buf
+        ..writeln('    await super.initialize();')
+        ..writeln('  }')
+        ..writeln('}')
+        ..writeln();
     }
 
     // 🚀 LOCAL IMPL: Generate a local implementation class for local services
     if (!isRemote && !classEl.isAbstract) {
-      buf.writeln(
-          '// Local service implementation that auto-registers local side');
-      buf.writeln('class ${className}Impl extends $className {');
-      buf.writeln('  ${className}Impl() {');
-      buf.writeln(
-          '    // 🚀 AUTO-REGISTRATION: Register local side when instance is created');
-      buf.writeln('    \$register${className}LocalSide();');
-      buf.writeln('  }');
-      buf.writeln('}');
-      buf.writeln();
+      buf
+        ..writeln(
+            '// Local service implementation that auto-registers local side')
+        ..writeln('class ${className}Impl extends $className {')
+        ..writeln('  ${className}Impl() {')
+        ..writeln(
+            '    // 🚀 AUTO-REGISTRATION: Register local side when instance is created')
+        ..writeln('    \$register${className}LocalSide();')
+        ..writeln('  }')
+        ..writeln('}')
+        ..writeln();
     }
 
     // 🚀 LOCAL AUTO-REGISTRATION: emit a hidden registrar invoked by ServiceLocator
-    buf.writeln('void \$register${className}LocalSide() {');
-    buf.writeln('  \$register${className}Dispatcher();');
-    buf.writeln('  \$register${className}ClientFactory();');
-    buf.writeln('  \$register${className}MethodIds();');
+    buf
+      ..writeln('void \$register${className}LocalSide() {')
+      ..writeln('  \$register${className}Dispatcher();')
+      ..writeln('  \$register${className}ClientFactory();')
+      ..writeln('  \$register${className}MethodIds();');
     // Also register dependencies to enable local->remote client creation symmetry
     for (final dep in depTypeNames) {
       if (dep != className) {
@@ -276,10 +348,11 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     buf.writeln();
 
     // 🚀 AUTO-REGISTRATION: Register the LocalSide function in the global registry
-    buf.writeln('void \$autoRegister${className}LocalSide() {');
-    buf.writeln(
-        '  LocalSideRegistry.register<$className>(\$register${className}LocalSide);');
-    buf.writeln('}');
+    buf
+      ..writeln('void \$autoRegister${className}LocalSide() {')
+      ..writeln(
+          '  LocalSideRegistry.register<$className>(\$register${className}LocalSide);')
+      ..writeln('}');
     buf.writeln();
 
     // 🚀 AUTOMATIC CALL: Execute registration immediately when this code is loaded
@@ -327,6 +400,76 @@ class ServiceGenerator extends GeneratorForAnnotation<Object> {
     }
 
     return result.toList();
+  }
+
+  String _buildReturnExpression(String resultVar, DartType? targetType) {
+    if (targetType == null) return resultVar;
+    if (targetType is TypeParameterType) {
+      final typeDisplay = _typeCode(targetType);
+      return '$resultVar as $typeDisplay';
+    }
+    if (targetType is InterfaceType) {
+      bool typeArgsUseParameters =
+          _typeUsesTypeParameterInArgs(targetType.typeArguments);
+      if (targetType.isDartCoreList && targetType.typeArguments.length == 1) {
+        final itemType = _typeCode(targetType.typeArguments.first);
+        if (typeArgsUseParameters) {
+          return '$resultVar.cast<$itemType>()';
+        }
+        return '$resultVar as List<$itemType>';
+      }
+      if (targetType.isDartCoreSet && targetType.typeArguments.length == 1) {
+        final itemType = _typeCode(targetType.typeArguments.first);
+        if (typeArgsUseParameters) {
+          return '$resultVar.cast<$itemType>()';
+        }
+        return '$resultVar as Set<$itemType>';
+      }
+      if (targetType.isDartCoreMap && targetType.typeArguments.length == 2) {
+        final keyType = _typeCode(targetType.typeArguments[0]);
+        final valueType = _typeCode(targetType.typeArguments[1]);
+        if (typeArgsUseParameters) {
+          return '$resultVar.cast<$keyType, $valueType>()';
+        }
+        return '$resultVar as Map<$keyType, $valueType>';
+      }
+    }
+    final typeDisplay = _typeCode(targetType);
+    return '$resultVar as $typeDisplay';
+  }
+
+  bool _typeUsesTypeParameter(DartType type) {
+    if (type is TypeParameterType) return true;
+    if (type is InterfaceType) {
+      for (final t in type.typeArguments) {
+        if (_typeUsesTypeParameter(t)) return true;
+      }
+    }
+    return false;
+  }
+
+  bool _typeUsesTypeParameterInArgs(Iterable<DartType> types) {
+    for (final t in types) {
+      if (_typeUsesTypeParameter(t)) return true;
+    }
+    return false;
+  }
+
+  String _typeCode(DartType type) {
+    final base = type.getDisplayString();
+    final suffix = switch (type.nullabilitySuffix) {
+      NullabilitySuffix.question => base.endsWith('?') ? '' : '?',
+      NullabilitySuffix.star => base.endsWith('*') ? '' : '*',
+      _ => '',
+    };
+    if (type is InterfaceType && type.typeArguments.isNotEmpty) {
+      final args = type.typeArguments.map(_typeCode).join(', ');
+      final name = type.element.name;
+      final typeBase = name + '<$args>';
+      if (suffix.isEmpty) return typeBase;
+      return '$typeBase$suffix';
+    }
+    return '$base$suffix';
   }
 }
 

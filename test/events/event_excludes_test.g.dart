@@ -143,7 +143,8 @@ class SenderClient extends Sender {
 
   @override
   Future<EventDistributionResult> fire(EventDistribution d) async {
-    return await _proxy.callMethod('fire', [d], namedArgs: {});
+    final result = await _proxy.callMethod('fire', [d], namedArgs: {});
+    return result as EventDistributionResult;
   }
 }
 

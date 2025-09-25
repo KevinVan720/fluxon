@@ -13,7 +13,8 @@ class ServiceAClient extends ServiceA {
 
   @override
   Future<int> increment(int x) async {
-    return await _proxy.callMethod('increment', [x], namedArgs: {});
+    final result = await _proxy.callMethod('increment', [x], namedArgs: {});
+    return result as int;
   }
 }
 
@@ -120,7 +121,8 @@ class ServiceBClient extends ServiceB {
 
   @override
   Future<int> doubleIt(int x) async {
-    return await _proxy.callMethod('doubleIt', [x], namedArgs: {});
+    final result = await _proxy.callMethod('doubleIt', [x], namedArgs: {});
+    return result as int;
   }
 }
 

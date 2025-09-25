@@ -13,7 +13,7 @@ class CorrWorkerClient extends CorrWorker {
 
   @override
   Future<void> bump(String corr) async {
-    return await _proxy.callMethod('bump', [corr], namedArgs: {});
+    await _proxy.callMethod('bump', [corr], namedArgs: {});
   }
 }
 
@@ -100,7 +100,7 @@ class CorrOrchestratorClient extends CorrOrchestrator {
 
   @override
   Future<void> start(String corr) async {
-    return await _proxy.callMethod('start', [corr], namedArgs: {});
+    await _proxy.callMethod('start', [corr], namedArgs: {});
   }
 }
 

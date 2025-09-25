@@ -13,7 +13,8 @@ class SleeperServiceClient extends SleeperService {
 
   @override
   Future<String> snooze(Duration d) async {
-    return await _proxy.callMethod('snooze', [d], namedArgs: {});
+    final result = await _proxy.callMethod('snooze', [d], namedArgs: {});
+    return result as String;
   }
 }
 

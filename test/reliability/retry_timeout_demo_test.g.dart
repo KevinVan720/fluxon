@@ -13,12 +13,16 @@ class FlakyServiceClient extends FlakyService {
 
   @override
   Future<String> succeedAfter(int attempts) async {
-    return await _proxy.callMethod('succeedAfter', [attempts], namedArgs: {});
+    final result =
+        await _proxy.callMethod('succeedAfter', [attempts], namedArgs: {});
+    return result as String;
   }
 
   @override
   Future<String> slowOperation(Duration delay) async {
-    return await _proxy.callMethod('slowOperation', [delay], namedArgs: {});
+    final result =
+        await _proxy.callMethod('slowOperation', [delay], namedArgs: {});
+    return result as String;
   }
 }
 

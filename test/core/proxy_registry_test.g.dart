@@ -13,7 +13,8 @@ class StatsServiceClient extends StatsService {
 
   @override
   Future<String> ping() async {
-    return await _proxy.callMethod('ping', [], namedArgs: {});
+    final result = await _proxy.callMethod('ping', [], namedArgs: {});
+    return result as String;
   }
 }
 

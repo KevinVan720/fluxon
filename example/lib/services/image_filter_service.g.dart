@@ -18,7 +18,7 @@ class ImageFilterServiceClient extends ImageFilterService {
       double sigma = 2.0,
       double brightness = 0.0,
       double contrast = 0.0}) async {
-    return await _proxy.callMethod('applyFilter', [
+    final result = await _proxy.callMethod('applyFilter', [
       inputBytes
     ], namedArgs: {
       'filter': filter,
@@ -27,6 +27,7 @@ class ImageFilterServiceClient extends ImageFilterService {
       'brightness': brightness,
       'contrast': contrast
     });
+    return result as Uint8List;
   }
 }
 

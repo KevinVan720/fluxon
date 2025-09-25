@@ -13,8 +13,9 @@ class OrchestratorServiceClient extends OrchestratorService {
 
   @override
   Future<int> orchestrateComputation(int x) async {
-    return await _proxy
-        .callMethod('orchestrateComputation', [x], namedArgs: {});
+    final result =
+        await _proxy.callMethod('orchestrateComputation', [x], namedArgs: {});
+    return result as int;
   }
 }
 
@@ -104,7 +105,9 @@ class ComputeWorkerClient extends ComputeWorker {
 
   @override
   Future<int> complexCompute(int x) async {
-    return await _proxy.callMethod('complexCompute', [x], namedArgs: {});
+    final result =
+        await _proxy.callMethod('complexCompute', [x], namedArgs: {});
+    return result as int;
   }
 }
 
@@ -211,12 +214,13 @@ class StorageWorkerClient extends StorageWorker {
 
   @override
   Future<void> store(String key, Object? value) async {
-    return await _proxy.callMethod('store', [key, value], namedArgs: {});
+    await _proxy.callMethod('store', [key, value], namedArgs: {});
   }
 
   @override
   Future<int?> get(String key) async {
-    return await _proxy.callMethod('get', [key], namedArgs: {});
+    final result = await _proxy.callMethod('get', [key], namedArgs: {});
+    return result as int?;
   }
 }
 

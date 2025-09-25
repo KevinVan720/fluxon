@@ -13,7 +13,9 @@ class UserServiceClient extends UserService {
 
   @override
   Future<String> createUser(String name, String email) async {
-    return await _proxy.callMethod('createUser', [name, email], namedArgs: {});
+    final result =
+        await _proxy.callMethod('createUser', [name, email], namedArgs: {});
+    return result as String;
   }
 }
 
@@ -90,8 +92,9 @@ class OrderServiceClient extends OrderService {
   @override
   Future<String> placeOrder(
       String userId, double amount, List<String> items) async {
-    return await _proxy
+    final result = await _proxy
         .callMethod('placeOrder', [userId, amount, items], namedArgs: {});
+    return result as String;
   }
 }
 
@@ -234,7 +237,8 @@ class AnalyticsServiceClient extends AnalyticsService {
 
   @override
   Future<Map<String, int>> getAnalytics() async {
-    return await _proxy.callMethod('getAnalytics', [], namedArgs: {});
+    final result = await _proxy.callMethod('getAnalytics', [], namedArgs: {});
+    return result as Map<String, int>;
   }
 }
 

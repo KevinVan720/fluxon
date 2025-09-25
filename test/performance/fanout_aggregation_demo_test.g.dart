@@ -13,7 +13,8 @@ class PricingServiceClient extends PricingService {
 
   @override
   Future<double> getPrice(String sku) async {
-    return await _proxy.callMethod('getPrice', [sku], namedArgs: {});
+    final result = await _proxy.callMethod('getPrice', [sku], namedArgs: {});
+    return result as double;
   }
 }
 
@@ -100,7 +101,8 @@ class InventoryServiceClient extends InventoryService {
 
   @override
   Future<int> getStock(String sku) async {
-    return await _proxy.callMethod('getStock', [sku], namedArgs: {});
+    final result = await _proxy.callMethod('getStock', [sku], namedArgs: {});
+    return result as int;
   }
 }
 

@@ -13,7 +13,8 @@ class SimpleWorkerClient extends SimpleWorker {
 
   @override
   Future<int> add(int a, int b) async {
-    return await _proxy.callMethod('add', [a, b], namedArgs: {});
+    final result = await _proxy.callMethod('add', [a, b], namedArgs: {});
+    return result as int;
   }
 }
 

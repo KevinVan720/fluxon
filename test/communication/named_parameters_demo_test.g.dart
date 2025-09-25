@@ -14,8 +14,9 @@ class ReportServiceClient extends ReportService {
   @override
   Future<String> generateReport(String title,
       {int? year, bool detailed = false}) async {
-    return await _proxy.callMethod('generateReport', [title],
+    final result = await _proxy.callMethod('generateReport', [title],
         namedArgs: {'year': year, 'detailed': detailed});
+    return result as String;
   }
 }
 
@@ -103,7 +104,7 @@ class CoordinatorClient extends Coordinator {
 
   @override
   Future<void> run() async {
-    return await _proxy.callMethod('run', [], namedArgs: {});
+    await _proxy.callMethod('run', [], namedArgs: {});
   }
 }
 

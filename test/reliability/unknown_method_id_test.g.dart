@@ -13,7 +13,8 @@ class IdMissingServiceClient extends IdMissingService {
 
   @override
   Future<String> doWork(String x) async {
-    return await _proxy.callMethod('doWork', [x], namedArgs: {});
+    final result = await _proxy.callMethod('doWork', [x], namedArgs: {});
+    return result as String;
   }
 }
 

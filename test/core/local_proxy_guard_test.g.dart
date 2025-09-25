@@ -13,7 +13,8 @@ class GuardTestServiceClient extends GuardTestService {
 
   @override
   Future<String> greet() async {
-    return await _proxy.callMethod('greet', [], namedArgs: {});
+    final result = await _proxy.callMethod('greet', [], namedArgs: {});
+    return result as String;
   }
 }
 

@@ -13,7 +13,8 @@ class EchoServiceClient extends EchoService {
 
   @override
   Future<String> echo(String v) async {
-    return await _proxy.callMethod('echo', [v], namedArgs: {});
+    final result = await _proxy.callMethod('echo', [v], namedArgs: {});
+    return result as String;
   }
 }
 

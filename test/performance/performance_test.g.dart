@@ -13,15 +13,17 @@ class PerformanceServiceClient extends PerformanceService {
 
   @override
   Future<List<String>> generateLargeDataset(int count, int stringLength) async {
-    return await _proxy.callMethod(
+    final result = await _proxy.callMethod(
         'generateLargeDataset', [count, stringLength],
         namedArgs: {});
+    return result as List<String>;
   }
 
   @override
   Future<Map<String, int>> processEvents(int eventCount) async {
-    return await _proxy
-        .callMethod('processEvents', [eventCount], namedArgs: {});
+    final result =
+        await _proxy.callMethod('processEvents', [eventCount], namedArgs: {});
+    return result as Map<String, int>;
   }
 }
 
@@ -113,7 +115,8 @@ class EventReceiverServiceClient extends EventReceiverService {
 
   @override
   Future<Map<String, dynamic>> getStats() async {
-    return await _proxy.callMethod('getStats', [], namedArgs: {});
+    final result = await _proxy.callMethod('getStats', [], namedArgs: {});
+    return result as Map<String, dynamic>;
   }
 }
 
@@ -190,12 +193,13 @@ class LoadTestServiceClient extends LoadTestService {
 
   @override
   Future<void> sendBurstEvents(int count) async {
-    return await _proxy.callMethod('sendBurstEvents', [count], namedArgs: {});
+    await _proxy.callMethod('sendBurstEvents', [count], namedArgs: {});
   }
 
   @override
   Future<Map<String, dynamic>> getStats() async {
-    return await _proxy.callMethod('getStats', [], namedArgs: {});
+    final result = await _proxy.callMethod('getStats', [], namedArgs: {});
+    return result as Map<String, dynamic>;
   }
 }
 

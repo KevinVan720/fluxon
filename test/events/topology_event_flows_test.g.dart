@@ -13,7 +13,7 @@ class RemoteEmitterAClient extends RemoteEmitterA {
 
   @override
   Future<void> fire(String payload) async {
-    return await _proxy.callMethod('fire', [payload], namedArgs: {});
+    await _proxy.callMethod('fire', [payload], namedArgs: {});
   }
 }
 
@@ -100,7 +100,8 @@ class RemoteListenerBClient extends RemoteListenerB {
 
   @override
   Future<List<String>> getSeen() async {
-    return await _proxy.callMethod('getSeen', [], namedArgs: {});
+    final result = await _proxy.callMethod('getSeen', [], namedArgs: {});
+    return result as List<String>;
   }
 }
 
