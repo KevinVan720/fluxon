@@ -72,6 +72,20 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
   bool get isConnected => _service != null;
 
   @override
+  Future<R> callMethod<R>(
+    String methodName,
+    List<dynamic> positionalArgs, {
+    Map<String, dynamic>? namedArgs,
+    ServiceCallOptions? options,
+  }) async {
+    // Name-based invocation on local proxies is disabled to remove reflection paths.
+    // Services should obtain local instances via ServiceClientMixin.getService<T>(),
+    // which returns the actual instance for LocalServiceProxy.
+    throw const ServiceException(
+        'LocalServiceProxy does not support name-based calls. Use direct instance returned by getService<T>()');
+  }
+
+  @override
   Future<void> connect(target) async {
     if (target is! T) {
       throw InvalidServiceTypeException(
@@ -90,20 +104,6 @@ class LocalServiceProxy<T extends BaseService> implements ServiceProxy<T> {
       _service = null;
     }
   }
-
-  @override
-  Future<R> callMethod<R>(
-    String methodName,
-    List<dynamic> positionalArgs, {
-    Map<String, dynamic>? namedArgs,
-    ServiceCallOptions? options,
-  }) async {
-    // Name-based invocation on local proxies is disabled to remove reflection paths.
-    // Services should obtain local instances via ServiceClientMixin.getService<T>(),
-    // which returns the actual instance for LocalServiceProxy.
-    throw const ServiceException(
-        'LocalServiceProxy does not support name-based calls. Use direct instance returned by getService<T>()');
-  }
 }
 
 /// Proxy for services running in worker isolates.
@@ -121,36 +121,6 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
 
   @override
   bool get isConnected => _worker != null && !_worker!.isStopped;
-
-  @override
-  Future<void> connect(target) async {
-    if (target is! ServiceWorker) {
-      throw InvalidServiceTypeException(
-          'Expected ServiceWorker, got ${target.runtimeType}');
-    }
-
-    _worker = target;
-    _logger.debug('Connected to worker service: ${target.serviceName}');
-  }
-
-  @override
-  Future<void> disconnect() async {
-    final worker = _worker;
-    if (worker != null) {
-      try {
-        await worker.destroyService();
-      } catch (e) {
-        // Ignore errors during teardown
-      }
-      try {
-        worker.stop();
-      } catch (e) {
-        // Ignore errors during stop
-      }
-      _logger.debug('Disconnected from worker service: ${worker.serviceName}');
-      _worker = null;
-    }
-  }
 
   @override
   Future<R> callMethod<R>(
@@ -195,6 +165,36 @@ class WorkerServiceProxy<T extends BaseService> implements ServiceProxy<T> {
         'named': _stringifyMap(namedArgs ?? const {}),
       });
       rethrow;
+    }
+  }
+
+  @override
+  Future<void> connect(target) async {
+    if (target is! ServiceWorker) {
+      throw InvalidServiceTypeException(
+          'Expected ServiceWorker, got ${target.runtimeType}');
+    }
+
+    _worker = target;
+    _logger.debug('Connected to worker service: ${target.serviceName}');
+  }
+
+  @override
+  Future<void> disconnect() async {
+    final worker = _worker;
+    if (worker != null) {
+      try {
+        await worker.destroyService();
+      } catch (e) {
+        // Ignore errors during teardown
+      }
+      try {
+        worker.stop();
+      } catch (e) {
+        // Ignore errors during stop
+      }
+      _logger.debug('Disconnected from worker service: ${worker.serviceName}');
+      _worker = null;
     }
   }
 

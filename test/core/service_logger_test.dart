@@ -11,6 +11,7 @@ void main() {
       memoryWriter = MemoryLogWriter();
       logger = ServiceLogger(
         serviceName: 'TestService',
+        level: ServiceLogLevel.debug,
         writer: memoryWriter,
       );
     });
