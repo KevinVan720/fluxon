@@ -23,7 +23,7 @@ class ServiceResult<T> {
 
 class ServiceCallOptions {
   const ServiceCallOptions({
-    this.timeout = const Duration(seconds: 10),
+    this.timeout = const Duration(days: 1),
     this.retryAttempts = 0,
     this.retryDelay = const Duration(milliseconds: 500),
     this.metadata = const <String, dynamic>{},
