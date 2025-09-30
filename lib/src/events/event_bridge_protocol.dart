@@ -20,6 +20,8 @@ class EventMessage {
     this.subscriptionId,
     this.success,
     this.error,
+    this.directEvent, // NEW: Direct event reference for optimization
+    this.preSerializedData, // NEW: Pre-serialized event data to avoid double conversion
   });
 
   factory EventMessage.fromJson(Map<String, dynamic> json) => EventMessage(
@@ -32,7 +34,31 @@ class EventMessage {
         subscriptionId: json['subscriptionId'] as String?,
         success: json['success'] as bool?,
         error: json['error'] as String?,
+        // directEvent and preSerializedData are not deserialized from JSON
       );
+
+  /// Factory for creating optimized event messages
+  factory EventMessage.forEvent({
+    required EventMessageType type,
+    required String requestId,
+    required ServiceEvent event,
+    String? targetIsolate,
+    String? sourceIsolate,
+  }) {
+    // Pre-serialize the event data once to avoid double conversion
+    final eventJson = event.toJson();
+    return EventMessage(
+      type: type,
+      requestId: requestId,
+      eventData:
+          eventJson['data'] as Map<String, dynamic>?, // Only the data part
+      eventType: event.runtimeType.toString(),
+      sourceIsolate: sourceIsolate,
+      targetIsolate: targetIsolate,
+      directEvent: event, // Keep reference for same-isolate optimization
+      preSerializedData: eventJson, // Cache full serialized data
+    );
+  }
 
   final EventMessageType type;
   final String requestId;
@@ -44,7 +70,15 @@ class EventMessage {
   final bool? success;
   final String? error;
 
-  Map<String, dynamic> toJson() => {
+  // NEW: Optimization fields
+  final ServiceEvent?
+      directEvent; // Direct event reference for same-isolate optimization
+  final Map<String, dynamic>? preSerializedData; // Pre-serialized event data
+
+  Map<String, dynamic> toJson() {
+    // Use pre-serialized data if available to avoid double conversion
+    if (preSerializedData != null && type == EventMessageType.eventSend) {
+      return {
         'type': type.name,
         'requestId': requestId,
         'eventData': eventData,
@@ -55,4 +89,19 @@ class EventMessage {
         'success': success,
         'error': error,
       };
+    }
+
+    // Fallback to regular serialization
+    return {
+      'type': type.name,
+      'requestId': requestId,
+      'eventData': eventData,
+      'eventType': eventType,
+      'sourceIsolate': sourceIsolate,
+      'targetIsolate': targetIsolate,
+      'subscriptionId': subscriptionId,
+      'success': success,
+      'error': error,
+    };
+  }
 }

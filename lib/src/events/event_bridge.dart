@@ -68,15 +68,27 @@ class EventBridge {
     ServiceEvent event,
     String targetIsolate,
   ) async {
+    // OPTIMIZATION: Skip isolate communication for same-isolate events
+    if (targetIsolate == _isolateName && _dispatcher != null) {
+      _logger.debug('Same-isolate event optimization', metadata: {
+        'eventId': event.eventId,
+        'eventType': event.eventType,
+      });
+
+      // Send directly to local dispatcher - no serialization needed!
+      await _dispatcher!.sendEvent(event, EventDistribution.broadcast());
+      return;
+    }
+
     if (_hostPort == null) {
       throw StateError('Event bridge not connected to host');
     }
 
-    final message = EventMessage(
+    // OPTIMIZATION: Use optimized EventMessage factory to avoid double JSON conversion
+    final message = EventMessage.forEvent(
       type: EventMessageType.eventSend,
       requestId: _generateRequestId(_isolateName),
-      eventData: event.toJson(),
-      eventType: event.runtimeType.toString(),
+      event: event,
       sourceIsolate: _isolateName,
       targetIsolate: targetIsolate,
     );
@@ -102,10 +114,11 @@ class EventBridge {
       return;
     }
 
-    // This is a worker isolate - send to host for distribution
+    // OPTIMIZATION: Pre-serialize event data once for broadcast
+    final eventJson = event.toJson();
     final message = {
       'cmd': 'broadcastEvent',
-      'eventData': event.toJson(),
+      'eventData': eventJson,
       'sourceIsolate': _isolateName,
     };
 
@@ -229,12 +242,26 @@ class EventBridge {
 
   /// Handle incoming event from remote isolate
   Future<void> _handleIncomingEvent(EventMessage message) async {
-    if (_dispatcher == null || message.eventData == null) return;
+    if (_dispatcher == null) return;
 
     try {
-      // Reconstruct the event from JSON
-      final eventData = message.eventData!;
-      final event = _reconstructEventFromJson(eventData, message.eventType!);
+      ServiceEvent event;
+
+      // OPTIMIZATION: Use direct event reference if available (same-isolate optimization)
+      if (message.directEvent != null) {
+        event = message.directEvent!;
+        _logger.debug('Using direct event reference (no deserialization)',
+            metadata: {
+              'eventId': event.eventId,
+              'eventType': event.eventType,
+            });
+      } else if (message.eventData != null) {
+        // OPTIMIZATION: Use optimized event reconstruction
+        event = _reconstructEventFromJsonOptimized(message);
+      } else {
+        _logger.warning('No event data available in message');
+        return;
+      }
 
       // Send to local event dispatcher
       await _dispatcher!.sendEvent(
