@@ -154,7 +154,7 @@ class EventDispatcher {
       _updateStatistics(event, responses);
 
       // Notify subscribers
-      _notifySubscribers(event);
+      _notifySubscribers(event, distribution);
     } catch (error, stackTrace) {
       errors.add('Distribution error: $error');
       _logger.error('Event distribution failed',
@@ -420,7 +420,14 @@ class EventDispatcher {
   }
 
   /// Notify event subscribers
-  void _notifySubscribers(ServiceEvent event) {
+  void _notifySubscribers(
+    ServiceEvent event,
+    EventDistribution distribution,
+  ) {
+    if (!distribution.deliverToRuntimeSubscriptions) {
+      return;
+    }
+
     final controllers = _subscriptions[event.runtimeType] ?? [];
     for (final controller in controllers) {
       if (!controller.isClosed) {
