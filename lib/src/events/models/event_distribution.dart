@@ -25,30 +25,21 @@ class EventDistribution {
     this.includeSource = false,
     this.parallelProcessing = true,
     this.globalTimeout,
-    this.deliverToRuntimeSubscriptions = false,
   });
 
   /// Create a targeted distribution
-  factory EventDistribution.targeted(
-    List<EventTarget> targets, {
-    bool deliverToRuntimeSubscriptions = false,
-  }) =>
-      EventDistribution(
-        targets: targets,
-        deliverToRuntimeSubscriptions: deliverToRuntimeSubscriptions,
-      );
+  factory EventDistribution.targeted(List<EventTarget> targets) =>
+      EventDistribution(targets: targets);
 
   /// Create a broadcast distribution
   factory EventDistribution.broadcast({
     List<Type> excludeServices = const [],
     bool includeSource = false,
-    bool deliverToRuntimeSubscriptions = false,
   }) =>
       EventDistribution(
         strategy: EventDistributionStrategy.broadcast,
         excludeServices: excludeServices,
         includeSource: includeSource,
-        deliverToRuntimeSubscriptions: deliverToRuntimeSubscriptions,
       );
 
   /// Create a targeted then broadcast distribution
@@ -56,14 +47,12 @@ class EventDistribution {
     List<EventTarget> targets, {
     List<Type> excludeServices = const [],
     bool includeSource = false,
-    bool deliverToRuntimeSubscriptions = false,
   }) =>
       EventDistribution(
         targets: targets,
         strategy: EventDistributionStrategy.targetedThenBroadcast,
         excludeServices: excludeServices,
         includeSource: includeSource,
-        deliverToRuntimeSubscriptions: deliverToRuntimeSubscriptions,
       );
 
   /// Specific targets for the event
@@ -84,10 +73,7 @@ class EventDistribution {
   /// Global timeout for the entire distribution
   final Duration? globalTimeout;
 
-  /// Whether runtime-level subscriptions should receive this event
-  final bool deliverToRuntimeSubscriptions;
-
   @override
   String toString() =>
-      'EventDistribution(strategy: $strategy, targets: ${targets.length}, excludes: ${excludeServices.length}, deliverRuntime: $deliverToRuntimeSubscriptions)';
+      'EventDistribution(strategy: $strategy, targets: ${targets.length}, excludes: ${excludeServices.length})';
 }

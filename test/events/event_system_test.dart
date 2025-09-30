@@ -603,9 +603,7 @@ void main() {
         priority: 6,
       );
 
-      final distribution = EventDistribution.broadcast(
-        deliverToRuntimeSubscriptions: true,
-      );
+      final distribution = EventDistribution.broadcast();
       final result =
           await serviceA.sendEvent(event, distribution: distribution);
 
