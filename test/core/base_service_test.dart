@@ -135,6 +135,7 @@ void main() {
       logWriter = MemoryLogWriter();
       final logger = ServiceLogger(
         serviceName: 'TestService',
+        level: ServiceLogLevel.debug,
         writer: logWriter,
       );
       service = TestService(logger: logger);

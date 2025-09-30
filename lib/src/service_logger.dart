@@ -11,7 +11,7 @@ class ServiceLogger {
   /// Creates a service logger.
   ServiceLogger({
     required String serviceName,
-    ServiceLogLevel level = ServiceLogLevel.info,
+    ServiceLogLevel level = ServiceLogLevel.warning,
     Map<String, dynamic>? metadata,
     ServiceLogWriter? writer,
   })  : _serviceName = serviceName,

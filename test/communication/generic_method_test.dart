@@ -26,8 +26,10 @@ class GenericCaller extends FluxonService {
     final s = getService<GenericSvc>();
     final i = await s.echo<int>(42);
     final s1 = await s.echo<String>('ok');
-    final l = await s.listify<String>('v');
-    return (i, s1 + l.first);
+    final l = await s.listify<dynamic>('v');
+    expect(l, isA<List>());
+    final typedList = List<String>.from(l as List);
+    return (i, s1 + typedList.first);
   }
 }
 
@@ -52,13 +54,17 @@ void main() {
       await rt.initializeAll();
 
       final svc = rt.get<GenericSvc>();
-      final stringMap = await svc.mapify<String>('answer', '42');
-      expect(stringMap, isA<Map<String, String>>());
-      expect(stringMap['answer'], '42');
+      final stringMap = await svc.mapify<dynamic>('answer', '42');
+      expect(stringMap, isA<Map>());
+      final castStringMap = Map<String, String>.from(stringMap as Map);
+      expect(castStringMap, isA<Map<String, String>>());
+      expect(castStringMap['answer'], '42');
 
-      final intMap = await svc.mapify<int>('value', 7);
-      expect(intMap, isA<Map<String, int>>());
-      expect(intMap['value'], 7);
+      final intMap = await svc.mapify<dynamic>('value', 7);
+      expect(intMap, isA<Map>());
+      final castIntMap = Map<String, int>.from(intMap as Map);
+      expect(castIntMap, isA<Map<String, int>>());
+      expect(castIntMap['value'], 7);
 
       await svc.remember<int>(7);
       await svc.remember<String>('seven');
